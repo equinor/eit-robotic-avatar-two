@@ -1,6 +1,7 @@
 # Robotic Avatar Web Client
 
-The web clients main task is letting users manamge robots that is part of Robotic Avatar. And also host the ui for any screens needed by robotic avatar. VR Headsets and monetoring displays.
+The web clients main task is letting users manage robots that is part of Robotic Avatar.  
+It should host the ui for any screens required for the robotic avatar, including support for VR Headsets and monitoring displays.
 
 ### Features:
 * See the status of robots. (Not Implemented)
@@ -12,7 +13,7 @@ The web clients main task is letting users manamge robots that is part of Roboti
 
 To run the dev server use `trunk serve` from the project root folder.
 
-If you are not using the dev container you need to install some dependensies:
+If you are not using the dev container then you need to install some dependencies:
 
 * Web asembely build target with: `rustup target add wasm32-unknown-unknown`
 * And install trunk using: `cargo install --locked trunk`
@@ -21,8 +22,8 @@ There are no tests yet.
 
 ## Production
 
-There are no spesial production notes yet.
+There are no special production notes yet.
 
 ## Configuration
-Being a web client it do not have a any configuration.
+Being a web client it does not have a any configuration.
 
