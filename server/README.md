@@ -1,6 +1,6 @@
 # Robotic Avatar Server
 
-The servers main job is to be a common point of contact between robots and robot and users.
+The main job of the server is to be common point of contact between robot to robot and between robots and users
 
 ### Features for robots:
 * Config store. (Not Implemented)
