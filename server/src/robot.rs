@@ -1,5 +1,5 @@
 use anyhow::Result;
-use axum::{Router, routing::get};
+use axum::{routing::get, Router};
 
 pub async fn setup() -> Result<Router> {
     // Just a simple hello world for now.

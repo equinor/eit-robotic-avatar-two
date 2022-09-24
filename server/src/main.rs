@@ -4,13 +4,17 @@ mod server;
 
 use anyhow::Result;
 use axum::Router;
+use dotenvy::dotenv;
 use log::debug;
 
 pub use crate::config::Config;
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    // Setup log. 
+    // Load .env files
+    dotenv().ok();
+
+    // Setup log.
     env_logger::init();
 
     debug!("Loading config");
@@ -20,8 +24,7 @@ async fn main() -> Result<()> {
     let robot = robot::setup().await?;
 
     debug!("Setting up routes");
-    let app = Router::new()
-        .nest("/api/robot", robot); 
+    let app = Router::new().nest("/api/robot", robot);
 
     debug!("Starting the server");
     server::serve(app, &config).await

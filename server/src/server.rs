@@ -1,5 +1,5 @@
-use axum::Router;
 use anyhow::Result;
+use axum::Router;
 
 use crate::Config;
 
