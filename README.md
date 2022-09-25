@@ -1,17 +1,17 @@
 # EIT Robotic Avatar Rebirth
 
-Robotic Avatar is study to see if we can use the human mind as part of robotic control.
-Use VR tech on a human operator so that we can naturally control a remote robot as if it was his own body. 
+Robotic Avatar is a study to see if we can use the human mind as part of a robotic control system via VR.  
+The goal is to give a human operator a natural control of a remote robot as if it was his own body.
 
 ## Main features and goals
-* Use web technologies to allow pear to pere connection between robots and robot and user. We use web technologies because it work everywhere. (Not Implemented)
-* Allow for the remote installation to robots. As the robots may be somewhat remote. (Not Implemented)
-* Create connections between sensors and VR equipment. Over the internet. (Not Implemented)
+* Use web technologies to allow peer to peer connection between robots and robot and user. We use web technologies because it works everywhere. (Not Implemented)
+* Allow for remote installation of robots, as the robots may be somewhat remote. (Not Implemented)
+* Create connections between sensors and VR equipment over the internet. (Not Implemented)
 
 ## Quick Start (Not Implemented)
 
-1. Run `docker compose up` in the project root. To start everything.
-2. For the web ui open: `https://127.0.0.1:8080/`.
+1. To start everything then run `docker compose up` in the project root.
+2. For the web ui open: `https://127.0.0.1:8080/`
    * You may need to accept a self singed certificate.
 3. There should be a virtual robot you can play with ready to go.
 
