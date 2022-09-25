@@ -14,4 +14,4 @@ COPY . .
 # Installing dev tools
 RUN bash ./cargo-tools.sh
 
-ENV RUST_LOG=debug
+ENV RUST_LOG=info

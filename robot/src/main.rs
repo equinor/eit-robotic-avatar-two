@@ -1,6 +1,6 @@
 #[tokio::main]
 async fn main() {
-    robot::setup().await;
+    let server = robot::setup().await;
 
-    println!("Hello, world!");
+    println!("Config from server: {:?}", server.config());
 }

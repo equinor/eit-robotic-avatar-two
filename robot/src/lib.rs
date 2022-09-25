@@ -1,16 +1,35 @@
-use common::{RobotConfig, RobotRegister};
+mod config;
+mod server;
 
-pub async fn setup() -> RobotConfig {
+use std::process::exit;
+
+use common::RobotRegister;
+use config::LocalConfig;
+use log::error;
+use anyhow::Result;
+use server::Server;
+
+pub async fn setup() -> Server {
+    // Setup log.
+    env_logger::init();
+
+    setup_failable().await.unwrap_or_else(|e| {
+        error!("Startup failed: {}", e);
+        exit(1);
+    })
+}
+
+async fn setup_failable() -> Result<Server> { 
+    let config = LocalConfig::from_args();
+
+    #[cfg(debug_assertions)]
+    let config = config.unwrap_or_default();
+    #[cfg(not(debug_assertions))]
+    let config = config?;
+
     let register = RobotRegister{
         name: "robot".to_string()
     };
 
-    let client = reqwest::Client::new();
-
-    client.post("http://127.0.0.1:3000/api/robot/register")
-    .json(&register)
-    .send()
-    .await.unwrap()
-    .json()
-    .await.unwrap()
+    Server::connect(config, register).await
 }
