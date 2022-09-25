@@ -1,23 +1,25 @@
-use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
-use wasm_bindgen_futures::spawn_local;
-use yew::{Properties, Component, Context, Html, html};
+use web_sys::MediaStream;
 use weblog::console_log;
+use yew::{html, Component, Context, Html, Properties};
+
+use crate::js::media::get_user_video;
 
 #[derive(PartialEq, Eq, Properties)]
 pub struct Props;
 
-pub struct MediaSelector{
+pub struct MediaSelector {}
+
+pub enum Msg {
+    LeftVideo(MediaStream),
 }
 
-
-
 impl Component for MediaSelector {
-    type Message = ();
+    type Message = Msg;
     type Properties = Props;
 
-    fn create(_ctx: &Context<Self>) -> Self {
-        spawn_local(get_user_video());
-        MediaSelector{}
+    fn create(ctx: &Context<Self>) -> Self {
+        get_user_video(ctx.link().callback(Msg::LeftVideo));
+        MediaSelector {}
     }
 
     fn view(&self, _ctx: &Context<Self>) -> Html {
@@ -25,14 +27,11 @@ impl Component for MediaSelector {
             "Media Selector"
         }
     }
-}
 
-async fn get_user_video() {
-    let value = user_video_id("test id").await;
-    console_log!(value);
-}
-
-#[wasm_bindgen(module = "/js/media_selector.js")]
-extern "C" {
-    async fn user_video_id(id: &str) -> JsValue;
+    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
+        match msg {
+            Msg::LeftVideo(video) => console_log!(video),
+        }
+        false
+    }
 }

@@ -1,3 +1,4 @@
+mod js;
 mod media_selector;
 
 use yew::prelude::*;
