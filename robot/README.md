@@ -1,6 +1,6 @@
 # Robotic Avatar Robot
 
-For right now this is more of a generic robot code. Not bound to any desigen yet.
+This is both a simple virtual robot to help with deveopemnt and a library for the other robots to use.
 The main focus now is:
 Infrastucture as code.
 Data streams beween robots and robots and users.
