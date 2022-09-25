@@ -7,3 +7,14 @@ edition = "2021"
 
 [dependencies]
 yew = "0.19"
+wasm-bindgen = "0.2"
+wasm-bindgen-futures = "0.4"
+js-sys = "0.3"
+weblog = "0.3.0"
+
+[dependencies.web-sys]
+version = "0.3"
+# We need to enable all the web-sys features we want to use!
+features = [
+    "MediaStream",
+]
