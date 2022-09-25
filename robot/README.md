@@ -10,11 +10,11 @@ The main focus now is:
 
 ### Setup sequence
 1. Short runbook to install OS and boot script (Not Implemented)
-2. Boot script download the latests binary of robot and runs it. (Not Implemented)
+2. Boot script will download the latests binary of robot and run it. (Not Implemented)
     * May revert the filesystem to a clean slate (Not Implemented)
-3. This robot software install and setups the system and needed based of info from server. (Not Implemented)
-4. Then starts running the main loop for that robot. (Not Implemented)
-5. Shuts everyting down cleanly if given the signal from server. (Not Implemented)
+3. This robot software will install and setup the system and requirements based on info from server. (Not Implemented)
+4. Then start running the main loop for that robot. (Not Implemented)
+5. Shut everyting down cleanly if given the signal from server. (Not Implemented)
 
 ### Other features.
 * Process ad hoc console commands from server. (Not Implemented)
@@ -27,7 +27,7 @@ For now run `cargo run` this directory or `cargo run --bin robot` from project r
 There are no tests yet.
 
 ## Production
-No produktion notes yet.
+No production notes yet.
 
 ## Configuration
 No configuration yet.
