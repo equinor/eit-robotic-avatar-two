@@ -39,7 +39,7 @@ Ui for monitoring and controlling robots. Also driver for any visuals needed. VR
 A base library for robots and virtual robot to help development of core functionality
 
 ### [Common](./common/README.md)
-Small library that defines common datatypes sent between components
+Small library that defines common data definitions sent between components
 
 ## Robots
 
