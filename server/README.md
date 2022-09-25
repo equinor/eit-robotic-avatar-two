@@ -43,6 +43,8 @@ Logging configuration. For a simple case just put in the log level. `error`, `wa
 
 For more complicated configuration look at: https://docs.rs/env_logger/0.9.1/env_logger/#enabling-logging
 
+Note: In dev container RUST_LOG is set to debug.
+
 * Type: Comma-separated list of logging directives.
 * Default value: error
 * Debug only: false
