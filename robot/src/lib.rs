@@ -3,10 +3,11 @@ mod server;
 
 use std::process::exit;
 
-use common::RobotRegister;
+use common::{RobotRegister, Interface};
 use config::LocalConfig;
 use log::error;
 use anyhow::Result;
+use network_interface::{NetworkInterface, NetworkInterfaceConfig, Addr};
 use server::Server;
 
 pub async fn setup() -> Server {
@@ -27,8 +28,43 @@ async fn setup_failable() -> Result<Server> {
     #[cfg(not(debug_assertions))]
     let config = config?;
 
+    let network_interfaces = NetworkInterface::show()?;
+    let interfaces = network_interfaces.iter().map(|i| {
+        let mut interface = Interface {
+            name: i.name.clone(),
+            ip: Default::default(),
+            broadcast: Default::default(),
+            netmask: Default::default(),
+            mac: i.mac_addr.clone().unwrap_or_default()
+        };
+
+        if let Some(Addr::V4(addr)) = i.addr{
+            interface.ip = addr.ip.to_string();
+            if let Some(broadcast) = addr.broadcast {
+                interface.broadcast = broadcast.to_string();
+            }
+            if let Some(netmask) = addr.netmask {
+                interface.netmask = netmask.to_string();
+            }
+        }
+
+        if let Some(Addr::V6(addr)) = i.addr{
+            interface.ip = addr.ip.to_string();
+            if let Some(broadcast) = addr.broadcast {
+                interface.broadcast = broadcast.to_string();
+            }
+            if let Some(netmask) = addr.netmask {
+                interface.netmask = netmask.to_string();
+            }
+        }
+        interface
+    }).collect();
+
+    
+
     let register = RobotRegister{
-        name: "robot".to_string()
+        name: "robot".to_string(),
+        network_interfaces: interfaces
     };
 
     Server::connect(config, register).await
