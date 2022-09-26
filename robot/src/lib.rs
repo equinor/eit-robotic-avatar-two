@@ -1,4 +1,5 @@
 mod config;
+mod network;
 mod server;
 
 use std::process::exit;
@@ -7,6 +8,7 @@ use common::RobotRegister;
 use config::LocalConfig;
 use log::error;
 use anyhow::Result;
+use network::get_networking_interfaces;
 use server::Server;
 
 pub async fn setup() -> Server {
@@ -28,7 +30,8 @@ async fn setup_failable() -> Result<Server> {
     let config = config?;
 
     let register = RobotRegister{
-        name: "robot".to_string()
+        name: "robot".to_string(),
+        network_interfaces: get_networking_interfaces()
     };
 
     Server::connect(config, register).await

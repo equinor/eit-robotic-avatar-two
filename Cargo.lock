@@ -663,6 +663,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "network-interface"
+version = "0.1.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "21b6b61223ca537617697c188effa655879a397c87133039ab14e9ca6489340f"
+dependencies = [
+ "cc",
+ "libc",
+ "thiserror",
+ "winapi",
+]
+
+[[package]]
 name = "num_cpus"
 version = "1.13.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -923,6 +935,7 @@ dependencies = [
  "common",
  "env_logger",
  "log",
+ "network-interface",
  "reqwest",
  "tokio",
 ]
