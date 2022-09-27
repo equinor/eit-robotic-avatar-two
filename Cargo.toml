@@ -5,3 +5,9 @@ members = [
     "robot",
     "common",
 ]
+
+# Deafult build traget.
+default-members = [
+    "server",
+    "robot",
+]
