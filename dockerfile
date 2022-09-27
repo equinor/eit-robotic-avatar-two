@@ -3,12 +3,14 @@ FROM rust:1.64 AS builder
 WORKDIR /app
 COPY . .
 
+#Install Cargo tools
+RUN chmod +x .devcontainer/cargo-tools.sh
+RUN .devcontainer/cargo-tools.sh
+
 #Build the binaries
 RUN cargo build --release 
 
 #Build webapp
-RUN cargo install trunk
-RUN rustup target add wasm32-unknown-unknown
 RUN trunk build
 
 FROM nginxinc/nginx-unprivileged:1.21.1
