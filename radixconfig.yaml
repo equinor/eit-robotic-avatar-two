@@ -1,0 +1,22 @@
+apiVersion: radix.equinor.com/v1
+kind: RadixApplication
+metadata:
+  name: robotic-avatar
+spec:
+  environments:
+    - name: prod
+      build:
+        from: main
+  components:
+    - name: web
+      variables:
+      src: .
+      ports:
+        - name: http
+          port: 8080
+      publicPort: http
+      public: true
+      environmentConfig:
+        - environment: prod
+          monitoring: false
+          replicas: 1
