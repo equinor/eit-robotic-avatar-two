@@ -1,5 +1,8 @@
 use anyhow::Result;
-use axum::{routing::{get, post}, Router, Json};
+use axum::{
+    routing::{get, post},
+    Json, Router,
+};
 use common::{RobotConfig, RobotRegister};
 use log::info;
 
@@ -14,6 +17,9 @@ pub async fn setup() -> Result<Router> {
 
 async fn register(Json(robot_register): Json<RobotRegister>) -> Json<RobotConfig> {
     info!("A robot called {} registered", robot_register.name);
-    info!("With current networking: {:?}", robot_register.network_interfaces);
-    Json(RobotConfig{})
+    info!(
+        "With current networking: {:?}",
+        robot_register.network_interfaces
+    );
+    Json(RobotConfig {})
 }

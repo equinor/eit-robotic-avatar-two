@@ -1,13 +1,13 @@
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct RobotRegister {
     pub name: String,
-    pub network_interfaces: Vec<Interface>
+    pub network_interfaces: Vec<Interface>,
 }
 
 /// Information for a networking interface
-/// 
+///
 /// This interface information is only meant to be shown to users.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Interface {
@@ -19,6 +19,4 @@ pub struct Interface {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct RobotConfig{
-
-}
+pub struct RobotConfig {}
