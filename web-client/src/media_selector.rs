@@ -1,12 +1,13 @@
 use web_sys::{MediaDeviceInfo, MediaDeviceKind, MediaStream};
 use yew::{html, Component, Context, Html, Properties};
 
-use crate::js::media::{enumerate_devices_callback, get_user_video};
+use crate::media::MediaService;
 
 #[derive(PartialEq, Eq, Properties)]
 pub struct Props;
 
 pub struct MediaSelector {
+    service: MediaService,
     device_list: Vec<MediaDeviceInfo>,
 }
 
@@ -20,8 +21,11 @@ impl Component for MediaSelector {
     type Properties = Props;
 
     fn create(ctx: &Context<Self>) -> Self {
-        get_user_video(ctx.link().callback(Msg::LeftVideo));
+        let service = MediaService::new();
+
+        service.get_user_media_callback(ctx.link().callback(Msg::LeftVideo));
         MediaSelector {
+            service,
             device_list: Vec::new(),
         }
     }
@@ -29,7 +33,8 @@ impl Component for MediaSelector {
     fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
             Msg::LeftVideo(_video) => {
-                enumerate_devices_callback(ctx.link().callback(Msg::DeviceInfo));
+                self.service
+                    .enumerate_devices_callback(ctx.link().callback(Msg::DeviceInfo));
             }
             Msg::DeviceInfo(list) => {
                 self.device_list = list;
