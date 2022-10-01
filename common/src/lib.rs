@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct RobotRegister {
@@ -20,3 +21,18 @@ pub struct Interface {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct RobotConfig {}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct SendMessage {
+    pub topic: String,
+    pub msg_type: String,
+    pub payload: Vec<u8>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Message {
+    pub id: Uuid,
+    pub topic: String,
+    pub msg_type: String,
+    pub payload: Vec<u8>,
+}
