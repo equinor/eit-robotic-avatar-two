@@ -1,13 +1,10 @@
 mod media;
-mod media_selector;
+mod views;
 
-use stylist::{
-    css,
-    yew::{styled_component, Global},
-};
+use stylist::{css, yew::Global};
 use yew::prelude::*;
 
-use media_selector::MediaSelector;
+use crate::views::{DebugTools, Robotic};
 
 #[function_component(App)]
 fn app() -> Html {
@@ -21,13 +18,10 @@ fn app() -> Html {
 
             #robotic-avatar {
                 display: grid;
-                grid-template-columns: min-content 1fr;
-                grid-template-rows: min-content 1fr min-content min-content;
+                grid-template-rows: 1fr min-content;
                 grid-template-areas: 
-                    "header header"
-                    "robot-menu robot"
-                    "debug-menu debug-menu"
-                    "debug debug"
+                    "robotic"
+                    "debug"
             }
         "#
     );
@@ -35,68 +29,10 @@ fn app() -> Html {
     html! {
         <>
             <Global css={global_css} />
-            <Header />
-            <RobotMenu />
-            <Robot/>
-            <DebugMenu />
-            <Debug />
+            <Robotic class={css!("grid-area: robotic;")}/>
+            <DebugTools class={css!("grid-area: debug;")}/>
         </>
     }
-}
-
-#[styled_component(Header)]
-fn header() -> Html {
-    let css = css!(
-        r#"
-        grid-area: header;
-    "#
-    );
-
-    html!(<h1 class={css}>{"Robotic Avatar"}</h1>)
-}
-
-#[styled_component(RobotMenu)]
-fn robot_menu() -> Html {
-    let css = css!(
-        r#"
-        grid-area: robot-menu;
-    "#
-    );
-
-    html!(<div class={css}></div>)
-}
-
-#[styled_component(Robot)]
-fn robot() -> Html {
-    let css = css!(
-        r#"
-        grid-area: robot;
-    "#
-    );
-
-    html!(<div class={css}></div>)
-}
-
-#[styled_component(DebugMenu)]
-fn debug_menu() -> Html {
-    let css = css!(
-        r#"
-        grid-area: debug-menu;
-    "#
-    );
-
-    html!(<div class={css}>{"Debug tools: "}</div>)
-}
-
-#[styled_component(Debug)]
-fn debug() -> Html {
-    let css = css!(
-        r#"
-        grid-area: debug;
-    "#
-    );
-
-    html!(<div class={css}><MediaSelector /></div>)
 }
 
 fn main() {
