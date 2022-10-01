@@ -16,5 +16,11 @@ weblog = "0.3.0"
 version = "0.3"
 # We need to enable all the web-sys features we want to use!
 features = [
+    "MediaDevices",
+    "MediaDeviceInfo",
+    "MediaDeviceKind",
     "MediaStream",
+    "MediaStreamConstraints",
+    "Navigator",
+    "Window",
 ]
