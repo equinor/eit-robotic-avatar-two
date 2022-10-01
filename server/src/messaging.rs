@@ -46,8 +46,8 @@ async fn post_message(
     Json(message): Json<SendMessage>,
 ) {
     info!(
-        "New message to topic: {} of type {}",
-        message.topic, message.msg_type
+        "New message {} to {} with {} ",
+        message.msg_type, message.topic, message.payload
     );
     service.put(message);
 }

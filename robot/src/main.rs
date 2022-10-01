@@ -9,7 +9,7 @@ async fn main() {
     let msg = SendMessage {
         topic: "robot".to_string(),
         msg_type: "hello".to_string(),
-        payload: Vec::new(),
+        payload: "world".to_string(),
     };
     server.send_message(msg).await.unwrap();
 }
