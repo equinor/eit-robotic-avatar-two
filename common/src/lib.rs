@@ -22,14 +22,14 @@ pub struct Interface {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct RobotConfig {}
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SendMessage {
     pub topic: String,
     pub msg_type: String,
     pub payload: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Message {
     pub id: Uuid,
     pub topic: String,
