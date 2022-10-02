@@ -5,6 +5,7 @@ use reqwest::Url;
 
 pub struct LocalConfig {
     pub base_url: Url,
+    pub token: String,
 }
 
 impl LocalConfig {
@@ -12,11 +13,16 @@ impl LocalConfig {
         let args: Vec<_> = args().collect();
         let base_url = args
             .get(1)
-            .ok_or_else(|| anyhow!("No base_url was pased in as argument 'robot <base_url>' "))?;
+            .ok_or_else(|| anyhow!("No base_url was passed in as argument 'robot <base_url> <token>' "))?;
+        
+        let token = args
+            .get(2)
+            .ok_or_else(|| anyhow!("No token was passed in as argument 'robot <base_url> <token>' "))?;
 
         println!("{:?}", args);
         Ok(LocalConfig {
-            base_url: Url::parse(base_url).context("Base_url agrument mut be a valid url")?,
+            base_url: Url::parse(base_url).context("Base_url argument mut be a valid url")?,
+            token: token.to_owned()
         })
     }
 }
@@ -26,6 +32,9 @@ impl Default for LocalConfig {
     fn default() -> Self {
         Self {
             base_url: Url::parse("http://127.0.0.1:3000/").expect("Default base_url is not valid"),
+            // This token is singed by the dev-key that is an empty string.
+            // No release build of the server will accept this key.
+            token: "eyJzdWIiOiJyb2JvdCIsImlhdCI6MTUxNjIzOTAyMn0.67fseNnCElgbQvYv40bS1Rd7yuOuokA1Ay8tddNzPXo".to_owned()
         }
     }
 }
