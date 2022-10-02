@@ -30,4 +30,15 @@ There are no tests yet.
 No production notes yet.
 
 ## Configuration
-No configuration yet.
+Robot binary require 2 arguments: `robot <server_url> <token>`
+
+### \<server_url\>
+The url to the base path of the server. That robot should connect to for configuration and communication.
+
+Debug only default: http://127.0.0.1:3000/
+
+### \<token\>
+Bearer token to be used to authenticate with server.
+
+Debug only default is a token singed by an empty key. Only debug version of server can accept it as valid.
+

@@ -20,7 +20,7 @@ impl Server {
             .build().unwrap();
 
         let config = client
-            .post(config.base_url.join("api/robot/register")?)
+            .post(config.server_url.join("api/robot/register")?)
             .json(&register)
             .send()
             .await?
