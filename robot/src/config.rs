@@ -11,18 +11,18 @@ pub struct LocalConfig {
 impl LocalConfig {
     pub fn from_args() -> Result<LocalConfig> {
         let args: Vec<_> = args().collect();
-        let server_url = args
-            .get(1)
-            .ok_or_else(|| anyhow!("No base_url was passed in as argument 'robot <base_url> <token>' "))?;
-        
-        let token = args
-            .get(2)
-            .ok_or_else(|| anyhow!("No token was passed in as argument 'robot <base_url> <token>' "))?;
+        let server_url = args.get(1).ok_or_else(|| {
+            anyhow!("No base_url was passed in as argument 'robot <base_url> <token>' ")
+        })?;
+
+        let token = args.get(2).ok_or_else(|| {
+            anyhow!("No token was passed in as argument 'robot <base_url> <token>' ")
+        })?;
 
         println!("{:?}", args);
         Ok(LocalConfig {
             server_url: Url::parse(server_url).context("Base_url argument mut be a valid url")?,
-            token: token.to_owned()
+            token: token.to_owned(),
         })
     }
 }
