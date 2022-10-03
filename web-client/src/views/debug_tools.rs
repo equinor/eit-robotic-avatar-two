@@ -60,15 +60,37 @@ impl Component for DebugTools {
             Tab::Message => html!(<MessagingDebug />),
         };
 
+        let header_css = css!(
+            r#"
+            grid-area: menu;
+            background-color: lightgray;
+            border: black solid 1px;
+            border-radius: 10px 10px 0 0;
+            padding: 5px;
+
+            & > * {
+                margin: 5px;
+            }
+        "#
+        );
+
+        let box_css = css!(
+            r#"
+            grid-area: tool;
+            border-left: black solid 1px;
+            border-right: black solid 1px;
+        "#
+        );
+
         html! {
             <div class={class}>
-                <div class={css!("grid-area: menu;")}>
+                <div class={header_css}>
                     {"Debug tools: "}
                     <button onclick={link.callback(|_| Tab::Media)}>{"Media Debugger"}</button>
                     <button onclick={link.callback(|_| Tab::Message)}>{"Messaging Debugger"}</button>
                     <button onclick={link.callback(|_| Tab::None)}>{"X"}</button>
                 </div>
-                <div class={css!("grid-area: tool;")}>{tab}</div>
+                <div class={box_css}>{tab}</div>
             </div>
         }
     }

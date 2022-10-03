@@ -38,11 +38,39 @@ impl Component for Robotic {
 
         let class = classes!(props.class.clone(), css);
 
+        let header_css = css!(
+            r#"
+            grid-area: header;
+            background-color: lightblue;
+            border-bottom: black solid 1px;
+            margin: 0;
+            padding: 0.2em;
+        "#
+        );
+
+        let menu_css = css!(
+            r#"
+            grid-area: menu;
+            border-right: black solid 1px;
+            margin: 0;
+            padding: 0.2em;
+            min-width: 10em;
+        "#
+        );
+
+        let robot_css = css!(
+            r#"
+            grid-area: robot;
+            margin: 0;
+            padding: 0.2em;
+        "#
+        );
+
         html! {
             <div class={class}>
-                <h1 class={css!("grid-area: header;")}>{"Robotic Avatar"}</h1>
-                <div class={css!("grid-area: menu;")}>{"Future robot menu"}</div>
-                <div class={css!("grid-area: robot;")}>{"Future robot UI"}</div>
+                <h1 class={header_css}>{"Robotic Avatar"}</h1>
+                <div class={menu_css}>{"Future robot menu"}</div>
+                <div class={robot_css}>{"Future robot UI"}</div>
             </div>
         }
     }
