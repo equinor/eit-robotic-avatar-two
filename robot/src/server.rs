@@ -1,10 +1,12 @@
 use anyhow::Result;
-use common::{RobotConfig, RobotRegister};
-use reqwest::{header, Client};
+use common::{RobotConfig, RobotRegister, SendMessage};
+use reqwest::{header, Client, Url};
 
 use crate::config::LocalConfig;
 
 pub struct Server {
+    base_url: Url,
+    client: Client,
     config: RobotConfig,
 }
 
@@ -17,19 +19,34 @@ impl Server {
         headers.insert(header::AUTHORIZATION, auth_value);
 
         let client = Client::builder().default_headers(headers).build().unwrap();
+        let base_url = config.server_url;
 
         let config = client
-            .post(config.server_url.join("api/robot/register")?)
+            .post(base_url.join("api/robot/register")?)
             .json(&register)
             .send()
             .await?
             .json()
             .await?;
 
-        Ok(Server { config })
+        Ok(Server {
+            base_url,
+            client,
+            config,
+        })
     }
 
     pub fn config(&self) -> &RobotConfig {
         &self.config
+    }
+
+    pub async fn send_message(&self, msg: SendMessage) -> Result<()> {
+        self.client
+            .post(self.base_url.join("api/messaging")?)
+            .json(&msg)
+            .send()
+            .await?;
+
+        Ok(())
     }
 }

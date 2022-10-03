@@ -1,4 +1,5 @@
 mod config;
+mod messaging;
 mod robot;
 mod server;
 
@@ -22,9 +23,12 @@ async fn main() -> Result<()> {
 
     debug!("Loading modules");
     let robot = robot::setup().await?;
+    let messaging = messaging::setup().await?;
 
     debug!("Setting up routes");
-    let app = Router::new().nest("/api/robot", robot);
+    let app = Router::new()
+        .nest("/api/robot", robot)
+        .nest("/api/messaging", messaging);
 
     debug!("Starting the server");
     server::serve(app, &config).await
