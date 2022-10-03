@@ -1,10 +1,12 @@
 mod media;
 mod views;
+mod messaging_debug;
 
 use stylist::{css, yew::Global};
 use yew::prelude::*;
 
 use crate::views::{DebugTools, Robotic};
+use messaging_debug::MessagingDebug;
 
 #[function_component(App)]
 fn app() -> Html {
@@ -31,6 +33,7 @@ fn app() -> Html {
             <Global css={global_css} />
             <Robotic class={css!("grid-area: robotic;")}/>
             <DebugTools class={css!("grid-area: debug;")}/>
+            <MessagingDebug />
         </>
     }
 }
