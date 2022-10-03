@@ -1,7 +1,7 @@
 use std::{collections::VecDeque, sync::Arc};
 
 use anyhow::Result;
-use axum::{routing::get, Extension, Json, Router, extract::Query};
+use axum::{extract::Query, routing::get, Extension, Json, Router};
 use common::{Message, SendMessage};
 use log::info;
 use parking_lot::Mutex;
@@ -46,8 +46,9 @@ impl MessagingService {
 
         // If topics is set filter out messages where topic is not in topics.
         let topic_iter = id_iter.filter(|m| {
-            topics.as_ref()
-                .map(|list| list.contains(&m.topic)) //Test if topics contains message.topic. But only if topic is set. 
+            topics
+                .as_ref()
+                .map(|list| list.contains(&m.topic)) //Test if topics contains message.topic. But only if topic is set.
                 .unwrap_or(true) // If topics was not sett we want to keep every message.
         });
 
@@ -65,7 +66,7 @@ pub async fn setup() -> Result<Router> {
 }
 
 #[derive(Deserialize)]
-struct MessageQuery{
+struct MessageQuery {
     topics: Option<Vec<String>>,
     from_id: Option<Uuid>,
 }
@@ -73,7 +74,7 @@ struct MessageQuery{
 async fn query_message(
     Extension(service): Extension<MessagingService>,
     Query(params): Query<MessageQuery>,
-) -> Json<Vec<Message>>{
+) -> Json<Vec<Message>> {
     Json(service.query(params.topics, params.from_id))
 }
 
@@ -106,7 +107,7 @@ mod tests {
     }
 
     fn topics(t: &[&str]) -> Option<Vec<String>> {
-        Some(t.iter().map(|&s|s.into()).collect())
+        Some(t.iter().map(|&s| s.into()).collect())
     }
 
     #[test]
@@ -175,8 +176,6 @@ mod tests {
 
         assert_message_payload(&messages, &["1", "2", "3"])
     }
-
-    
 
     #[test]
     fn query_topic_and_id() {
