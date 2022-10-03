@@ -1,7 +1,7 @@
 use std::{collections::VecDeque, sync::Arc};
 
 use anyhow::Result;
-use axum::{routing::{post, get}, Extension, Json, Router, extract::Query};
+use axum::{routing::get, Extension, Json, Router, extract::Query};
 use common::{Message, SendMessage};
 use log::info;
 use parking_lot::Mutex;
@@ -32,7 +32,7 @@ impl MessagingService {
         queue.push_back(msg);
     }
 
-    pub fn query(&self, topics: Option<&[&str]>, from_id: Option<Uuid>) -> Vec<Message> {
+    pub fn query(&self, topics: Option<Vec<String>>, from_id: Option<Uuid>) -> Vec<Message> {
         let queue = self.queue.lock();
         let queue_iter = queue.iter();
 
@@ -46,8 +46,8 @@ impl MessagingService {
 
         // If topics is set filter out messages where topic is not in topics.
         let topic_iter = id_iter.filter(|m| {
-            topics
-                .map(|list| list.contains(&m.topic.as_str())) //Test if topics contains message.topic. But only if topic is set. 
+            topics.as_ref()
+                .map(|list| list.contains(&m.topic)) //Test if topics contains message.topic. But only if topic is set. 
                 .unwrap_or(true) // If topics was not sett we want to keep every message.
         });
 
@@ -74,9 +74,7 @@ async fn query_message(
     Extension(service): Extension<MessagingService>,
     Query(params): Query<MessageQuery>,
 ) -> Json<Vec<Message>>{
-    let topics:Option<Vec<&str>> = params.topics.map(|topics| topics.iter().map(|m| m.as_str()).collect());
-
-    Json(service.query(topics.as_deref(), params.from_id))
+    Json(service.query(params.topics, params.from_id))
 }
 
 async fn post_message(
@@ -107,6 +105,10 @@ mod tests {
         assert_eq!(msg_payload, payloads)
     }
 
+    fn topics(t: &[&str]) -> Option<Vec<String>> {
+        Some(t.iter().map(|&s|s.into()).collect())
+    }
+
     #[test]
     fn query() {
         let mut service = MessagingService::new();
@@ -128,7 +130,7 @@ mod tests {
         service.put(create_message("topic_2", "2"));
         service.put(create_message("topic_1", "3"));
 
-        let messages = service.query(Some(&["topic_1"]), None);
+        let messages = service.query(topics(&["topic_1"]), None);
 
         assert_message_payload(&messages, &["1", "3"])
     }
@@ -141,7 +143,7 @@ mod tests {
         service.put(create_message("topic_2", "2"));
         service.put(create_message("topic_3", "3"));
 
-        let messages = service.query(Some(&["topic_2", "topic_3"]), None);
+        let messages = service.query(topics(&["topic_2", "topic_3"]), None);
 
         assert_message_payload(&messages, &["2", "3"])
     }
@@ -185,7 +187,7 @@ mod tests {
         service.put(create_message("topic_1", "3"));
         let id_first = service.query(None, None)[0].id;
 
-        let messages = service.query(Some(&["topic_1"]), Some(id_first));
+        let messages = service.query(topics(&["topic_1"]), Some(id_first));
 
         assert_message_payload(&messages, &["3"])
     }
