@@ -1,6 +1,7 @@
 mod media;
-mod views;
 mod messaging_debug;
+mod server;
+mod views;
 
 use stylist::{css, yew::Global};
 use yew::prelude::*;
