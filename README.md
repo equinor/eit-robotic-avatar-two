@@ -11,9 +11,8 @@ The goal is to give a human operator a natural control of a remote robot as if i
 ## Quick Start
 
 1. To start everything then run `docker compose up` in the project root.
-2. For the web ui open: `https://127.0.0.1:8080/`
-   * You may need to accept a self singed certificate.
-3. There should be a virtual robot you can play with ready to go. (Not Implemented)
+2. For the web ui open: `http://127.0.0.1:8080/`
+3. There should be a virtual robot you can play with, ready to go. (Not Implemented)
 
 For the other robots look into there respective readmes for install instructions.
 
