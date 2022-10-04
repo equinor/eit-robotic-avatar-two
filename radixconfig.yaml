@@ -9,6 +9,8 @@ spec:
         from: main
   components:
     - name: web
+      secrets:
+        - AVATAR_TOKEN_KEY
       variables:
       src: .
       ports:

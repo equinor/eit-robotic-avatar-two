@@ -38,6 +38,13 @@ Define both the IPv4 address and port in the format `<address>:<port>`. That the
 * Default value: 127.0.0.1:3000
 * Debug only: false
 
+### AVATAR_TOKEN_KEY (SECRET)
+A string to derive the singing key for bearer tokens. Should contain at least 256 bits of entropy. Must be at least 32 bytes longs.
+
+* Type: String
+* Default value: "" (Only debug have empty string as default.)
+* Debug only: false
+
 ### RUST_LOG
 Logging configuration. For a simple case just put in the log level. `error`, `warn`, `info`, `debug` or `trace`. 
 
