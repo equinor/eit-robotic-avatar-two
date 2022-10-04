@@ -32,7 +32,7 @@ impl Default for LocalConfig {
     fn default() -> Self {
         Self {
             server_url: Url::parse("http://127.0.0.1:3000/").expect("Default base_url is not valid"),
-            // This token is singed by the dev-key that is an empty string.
+            // This token is signed by the dev-key that is an empty string.
             // No release build of the server will accept this key.
             token: "eyJzdWIiOiJyb2JvdCIsImlhdCI6MTUxNjIzOTAyMn0.eUcwVDVwKmEnxo8uGej7C7Sc93IBcDdkfuQ0qOTOs5M".to_owned()
         }
