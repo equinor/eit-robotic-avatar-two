@@ -1,4 +1,3 @@
-use anyhow::Result;
 use axum::{
     routing::{get, post},
     Json, Router,
@@ -6,13 +5,11 @@ use axum::{
 use common::{RobotConfig, RobotRegister};
 use log::info;
 
-pub async fn setup() -> Result<Router> {
+pub fn routes(router: Router) -> Router {
     // Just a simple hello world for now.
-    let router = Router::new()
-        .route("/", get(|| async { "Hello, World!" }))
-        .route("/register", post(register));
-
-    Ok(router)
+    router
+        .route("/api/robot/", get(|| async { "Hello, World!" }))
+        .route("/api/robot/register", post(register))
 }
 
 async fn register(Json(robot_register): Json<RobotRegister>) -> Json<RobotConfig> {
