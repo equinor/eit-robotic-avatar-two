@@ -144,6 +144,22 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 
 [[package]]
+name = "client"
+version = "0.1.0"
+dependencies = [
+ "common",
+ "gloo-net",
+ "gloo-utils",
+ "js-sys",
+ "stylist",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
+ "web-sys",
+ "weblog",
+ "yew",
+]
+
+[[package]]
 name = "common"
 version = "0.1.0"
 dependencies = [
@@ -1636,22 +1652,6 @@ name = "wasm-bindgen-shared"
 version = "0.2.83"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1c38c045535d93ec4f0b4defec448e4291638ee608530863b1e2ba115d4fff7f"
-
-[[package]]
-name = "web-client"
-version = "0.1.0"
-dependencies = [
- "common",
- "gloo-net",
- "gloo-utils",
- "js-sys",
- "stylist",
- "wasm-bindgen",
- "wasm-bindgen-futures",
- "web-sys",
- "weblog",
- "yew",
-]
 
 [[package]]
 name = "web-sys"

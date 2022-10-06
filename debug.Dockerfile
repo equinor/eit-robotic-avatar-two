@@ -15,11 +15,11 @@ RUN trunk build
 
 FROM nginxinc/nginx-unprivileged:1.21.1
 WORKDIR /app
-COPY --from=builder /app/web-client/dist ./www
+COPY --from=builder /app/client/dist ./www
 COPY --from=builder /app/target/debug/robot ./www/robots/robot
 COPY --from=builder /app/target/debug/server .
-COPY ./web-client/proxy ./proxy
-COPY ./web-client/proxy/server.conf /etc/nginx/conf.d/default.conf
+COPY ./client/proxy ./proxy
+COPY ./client/proxy/server.conf /etc/nginx/conf.d/default.conf
 
 USER 0
 RUN chown -R nginx /etc/nginx/conf.d \

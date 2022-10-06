@@ -1,7 +1,7 @@
 [workspace]
 members = [
     "server",
-    "web-client",
+    "client",
     "robot",
     "common",
 ]

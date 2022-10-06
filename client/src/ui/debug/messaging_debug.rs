@@ -3,7 +3,7 @@ use wasm_bindgen::JsCast;
 use web_sys::{EventTarget, HtmlInputElement, HtmlTextAreaElement};
 use yew::{events::Event, html, Callback, Component, Context, Html, Properties};
 
-use crate::server::send_message;
+use crate::robotic::send_message;
 
 #[derive(PartialEq, Eq, Properties)]
 pub struct Props;
