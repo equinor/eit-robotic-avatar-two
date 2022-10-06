@@ -11,7 +11,7 @@ use yew::prelude::*;
 
 #[derive(Properties, PartialEq)]
 pub struct Props {
-    pub robotic: Model
+    pub robotic: Model,
 }
 
 #[function_component(Ui)]

@@ -4,8 +4,8 @@ use yew::{html, Component, Context, Html, Properties};
 use crate::robotic::MediaService;
 
 #[derive(PartialEq, Eq, Properties)]
-pub struct Props{
-    pub media: MediaService
+pub struct Props {
+    pub media: MediaService,
 }
 
 pub struct MediaSelector {
@@ -24,7 +24,9 @@ impl Component for MediaSelector {
     fn create(ctx: &Context<Self>) -> Self {
         let props = ctx.props();
 
-        props.media.get_user_media_callback(ctx.link().callback(Msg::LeftVideo));
+        props
+            .media
+            .get_user_media_callback(ctx.link().callback(Msg::LeftVideo));
         MediaSelector {
             device_list: Vec::new(),
         }
@@ -34,7 +36,8 @@ impl Component for MediaSelector {
         let props = ctx.props();
         match msg {
             Msg::LeftVideo(_video) => {
-                props.media
+                props
+                    .media
                     .enumerate_devices_callback(ctx.link().callback(Msg::DeviceInfo));
             }
             Msg::DeviceInfo(list) => {

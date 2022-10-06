@@ -13,6 +13,6 @@ fn main() {
     let app_root = gloo_utils::document()
         .get_element_by_id("robotic-avatar")
         .unwrap();
-    let props = Props{robotic};
+    let props = Props { robotic };
     yew::start_app_with_props_in_element::<Ui>(app_root, props);
 }

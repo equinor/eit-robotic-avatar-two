@@ -11,13 +11,13 @@ pub struct Robotic(Rc<Inner>);
 
 #[derive(PartialEq)]
 struct Inner {
-    media: MediaService
+    media: MediaService,
 }
 
 impl Robotic {
     pub fn new() -> Robotic {
         let inner = Inner {
-            media: MediaService::new()
+            media: MediaService::new(),
         };
 
         Robotic(Rc::new(inner))
