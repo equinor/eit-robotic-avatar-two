@@ -1,44 +1,18 @@
-mod media;
-mod server;
-mod views;
+mod robotic;
+mod ui;
 
-use stylist::{css, yew::Global};
-use yew::prelude::*;
-
-use crate::views::{DebugTools, Robotic};
-
-#[function_component(App)]
-fn app() -> Html {
-    let global_css = css!(
-        r#"
-            html, body, #robotic-avatar{
-                height: 100%;
-                width: 100%;
-                margin: 0;
-            }
-
-            #robotic-avatar {
-                display: grid;
-                grid-template-rows: 1fr min-content;
-                grid-template-areas: 
-                    "robotic"
-                    "debug"
-            }
-        "#
-    );
-
-    html! {
-        <>
-            <Global css={global_css} />
-            <Robotic class={css!("grid-area: robotic;")}/>
-            <DebugTools class={css!("grid-area: debug;")}/>
-        </>
-    }
-}
+pub use robotic::Robotic;
+use ui::Props;
+pub use ui::Ui;
 
 fn main() {
+    // Loading app
+    let robotic = Robotic::new();
+
+    // Load UI
     let app_root = gloo_utils::document()
         .get_element_by_id("robotic-avatar")
         .unwrap();
-    yew::start_app_in_element::<App>(app_root);
+    let props = Props{robotic};
+    yew::start_app_with_props_in_element::<Ui>(app_root, props);
 }

@@ -4,6 +4,7 @@ use wasm_bindgen_futures::{spawn_local, JsFuture};
 use web_sys::{MediaDeviceInfo, MediaDevices, MediaStream, MediaStreamConstraints};
 use yew::Callback;
 
+#[derive(PartialEq, Eq, Clone)]
 pub struct MediaService {
     media_devices: MediaDevices,
 }
@@ -39,5 +40,11 @@ impl MediaService {
             let devices = device_array.iter().map(|j| j.dyn_into().unwrap()).collect();
             callback.emit(devices);
         });
+    }
+}
+
+impl Default for MediaService {
+    fn default() -> Self {
+        Self::new()
     }
 }

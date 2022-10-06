@@ -1,9 +1,12 @@
 use stylist::css;
 use yew::prelude::*;
 
+use crate::Robotic as Model;
+
 #[derive(PartialEq, Properties)]
 pub struct Props {
     pub class: Classes,
+    pub model: Model,
 }
 
 pub enum Msg {}
