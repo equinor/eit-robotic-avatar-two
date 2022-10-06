@@ -1,21 +1,17 @@
 use std::{collections::VecDeque, sync::Arc};
 
-use anyhow::Result;
-use axum::{extract::Query, routing::get, Extension, Json, Router};
 use common::{Message, SendMessage};
-use log::info;
 use parking_lot::Mutex;
-use serde::Deserialize;
 use uuid::Uuid;
 
 #[derive(Clone)]
-struct MessagingService {
+pub struct Messaging {
     queue: Arc<Mutex<VecDeque<Message>>>,
 }
 
-impl MessagingService {
-    pub fn new() -> MessagingService {
-        MessagingService {
+impl Messaging {
+    pub fn new() -> Messaging {
+        Messaging {
             queue: Default::default(),
         }
     }
@@ -56,37 +52,10 @@ impl MessagingService {
     }
 }
 
-pub async fn setup() -> Result<Router> {
-    let service = MessagingService::new();
-    let router = Router::new()
-        .route("/", get(query_message).post(post_message))
-        .layer(Extension(service));
-
-    Ok(router)
-}
-
-#[derive(Deserialize)]
-struct MessageQuery {
-    topics: Option<Vec<String>>,
-    from_id: Option<Uuid>,
-}
-
-async fn query_message(
-    Extension(service): Extension<MessagingService>,
-    Query(params): Query<MessageQuery>,
-) -> Json<Vec<Message>> {
-    Json(service.query(params.topics, params.from_id))
-}
-
-async fn post_message(
-    Extension(mut service): Extension<MessagingService>,
-    Json(message): Json<SendMessage>,
-) {
-    info!(
-        "New message {} to {} with {} ",
-        message.msg_type, message.topic, message.payload
-    );
-    service.put(message);
+impl Default for Messaging {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 #[cfg(test)]
@@ -112,7 +81,7 @@ mod tests {
 
     #[test]
     fn query() {
-        let mut service = MessagingService::new();
+        let mut service = Messaging::new();
         //Populate messages
         service.put(create_message("test_topic", "1"));
         service.put(create_message("test_topic", "2"));
@@ -125,7 +94,7 @@ mod tests {
 
     #[test]
     fn query_topic() {
-        let mut service = MessagingService::new();
+        let mut service = Messaging::new();
         //Populate messages
         service.put(create_message("topic_1", "1"));
         service.put(create_message("topic_2", "2"));
@@ -138,7 +107,7 @@ mod tests {
 
     #[test]
     fn query_topics() {
-        let mut service = MessagingService::new();
+        let mut service = Messaging::new();
         //Populate messages
         service.put(create_message("topic_1", "1"));
         service.put(create_message("topic_2", "2"));
@@ -151,7 +120,7 @@ mod tests {
 
     #[test]
     fn query_id() {
-        let mut service = MessagingService::new();
+        let mut service = Messaging::new();
         //Populate messages
         service.put(create_message("topic_1", "1"));
         service.put(create_message("topic_2", "2"));
@@ -165,7 +134,7 @@ mod tests {
 
     #[test]
     fn query_id_not_found() {
-        let mut service = MessagingService::new();
+        let mut service = Messaging::new();
         //Populate messages
         service.put(create_message("topic_1", "1"));
         service.put(create_message("topic_2", "2"));
@@ -179,7 +148,7 @@ mod tests {
 
     #[test]
     fn query_topic_and_id() {
-        let mut service = MessagingService::new();
+        let mut service = Messaging::new();
         //Populate messages
         service.put(create_message("topic_1", "1"));
         service.put(create_message("topic_2", "2"));

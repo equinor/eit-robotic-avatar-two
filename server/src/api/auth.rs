@@ -1,7 +1,8 @@
 use axum::{
     http::{self, Request, StatusCode},
-    middleware::Next,
+    middleware::{self, Next},
     response::Response,
+    Router,
 };
 use hmac::Hmac;
 use jwt::VerifyWithKey;
@@ -10,8 +11,16 @@ use sha2::Sha256;
 
 use crate::Config;
 
+pub fn routes(router: Router, config: &Config) -> Router {
+    let auth = Auth::new(config);
+    router.route_layer(middleware::from_fn(move |req, next| {
+        let auth = auth.clone();
+        auth.middleware(req, next)
+    }))
+}
+
 #[derive(Debug, Clone)]
-pub struct Auth {
+struct Auth {
     key: Hmac<Sha256>,
 }
 
