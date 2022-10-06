@@ -1,5 +1,5 @@
 [build]
-target = "web-client/index.html"
+target = "client/index.html"
 
 [[proxy]]
 backend = "http://localhost:3000/api/"

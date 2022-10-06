@@ -31,7 +31,7 @@ For the virtual robot `cargo run --bin robot`
 ### [Server](./server/README.md)
 Common point of contact between robot to robot and between robots and users. 
 
-### [Web Client](./web-client/README.md)
+### [Client](./client/README.md)
 Ui for monitoring and controlling robots. Also driver for any visuals needed. VR Headset over WebXR
 
 ### [Robot](.robot/README.md)
