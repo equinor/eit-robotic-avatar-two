@@ -36,14 +36,14 @@ Define both the IPv4 address and port in the format `<address>:<port>`. That the
 
 * Type: String
 * Default value: 127.0.0.1:3000
-* Debug only: false
+* Required: No
 
 ### AVATAR_TOKEN_KEY (SECRET)
 A string to derive the singing key for bearer tokens. Should contain at least 256 bits of entropy. Must be at least 32 bytes longs.
 
 * Type: String
 * Default value: "" (Only debug have empty string as default.)
-* Debug only: false
+* Required: Yes for release.
 
 ### RUST_LOG
 Logging configuration. For a simple case just put in the log level. `error`, `warn`, `info`, `debug` or `trace`. 
@@ -54,5 +54,36 @@ Note: In dev container RUST_LOG is set to debug.
 
 * Type: Comma-separated list of logging directives.
 * Default value: error
-* Debug only: false
+* Required: No
 
+### AVATAR_AZURE_AD_ID
+The Client ID for a Azure AD App. It it not set it will disable Azure AD authentication. 
+
+* Type: String
+* Default value: 
+* Required: No
+
+### AVATAR_AZURE_AD_SECRET (SECRET)
+The Client Secret for a Azure AD App. 
+
+* Type: String
+* Default value: 
+* Required: Yes if AVATAR_AZURE_AD_ID is set.
+
+### AVATAR_AZURE_AD_URL
+OpenID Connect base url. Will look something like this: `https://login.microsoftonline.com/<Azure AD tenant ID>/v2.0/`
+
+* Type: Url
+* Default value: 
+* Required: Yes if AVATAR_AZURE_AD_ID is set.
+
+### AVATAR_AZURE_AD_BASE_URL
+The public url this application will have.
+
+Will try to build a value from environment if not set.
+1. `https://RADIX_PUBLIC_DOMAIN_NAME/`
+2. `http://localhost:8080/` Most likely wrong
+
+* Type: Url
+* Default value: Auto built see notes.
+* Required: No
