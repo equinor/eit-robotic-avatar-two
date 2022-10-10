@@ -7,7 +7,7 @@ use uuid::Uuid;
 use crate::Robotic;
 
 pub fn routes(router: Router) -> Router {
-    router.route("api/messaging", get(query_message).post(post_message))
+    router.route("/api/messaging", get(query_message).post(post_message))
 }
 
 #[derive(Deserialize)]
