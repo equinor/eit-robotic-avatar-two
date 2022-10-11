@@ -4,10 +4,12 @@ members = [
     "client",
     "robot",
     "common",
+    "minion"
 ]
 
 # Deafult build traget.
 default-members = [
     "server",
     "robot",
+    "minion",
 ]

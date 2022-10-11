@@ -1,11 +1,11 @@
 use std::{sync::Arc, thread};
 
 use anyhow::Result;
-use common::{Tracking, Head, Drive};
+use common::{Drive, Head, Tracking};
 use parking_lot::Mutex;
 use reqwest::{blocking::Client, Url};
 
-use crate::{config::LocalConfig};
+use crate::config::LocalConfig;
 
 #[derive(Clone)]
 pub struct Server {
@@ -49,7 +49,9 @@ impl Server {
     }
 
     fn get_tracking(&mut self) -> Result<()> {
-        let server_tracking: Tracking = self.http.get(self.baseurl.join("/minion/tracking")?)
+        let server_tracking: Tracking = self
+            .http
+            .get(self.baseurl.join("/minion/tracking")?)
             .send()?
             .json()?;
 

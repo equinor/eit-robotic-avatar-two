@@ -24,8 +24,14 @@ impl LocalConfig {
         dotenv().ok();
 
         const MINION_SERVER: &str = "MINION_SERVER";
-        let server = env::var(MINION_SERVER).context(format!("{} env variable must be set to the server url", MINION_SERVER))?;
-        let server = Url::parse(&server).context(format!("{} needs to be a valid URL got {} ", MINION_SERVER, server ))?;
+        let server = env::var(MINION_SERVER).context(format!(
+            "{} env variable must be set to the server url",
+            MINION_SERVER
+        ))?;
+        let server = Url::parse(&server).context(format!(
+            "{} needs to be a valid URL got {} ",
+            MINION_SERVER, server
+        ))?;
 
         Ok(LocalConfig { server })
     }
