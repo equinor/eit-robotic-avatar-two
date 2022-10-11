@@ -51,7 +51,7 @@ impl Server {
     fn get_tracking(&mut self) -> Result<()> {
         let server_tracking: Tracking = self
             .http
-            .get(self.baseurl.join("/minion/tracking")?)
+            .get(self.baseurl.join("/api/minion/tracking")?)
             .send()?
             .json()?;
 
