@@ -1,5 +1,6 @@
 mod auth;
 mod messaging;
+mod minion;
 mod robot;
 
 use anyhow::Result;
@@ -13,6 +14,7 @@ pub async fn serve(config: Config, robotic: Robotic) -> Result<()> {
     let api = Router::new();
     let api = messaging::routes(api);
     let api = robot::routes(api);
+    let api = minion::routes(api);
     let api = auth::routes(api, &config);
     let api = api.layer(Extension(robotic));
 
