@@ -42,7 +42,7 @@ Small library that defines common data definitions sent between components
 
 ## Robots
 
-### Minion (Not implemented)
+### [Minion](./minion/readme.md) (Not implemented)
 Small robot car for testing remote sight, hearing and speech.
 
 ### Rocky (Not implemented)

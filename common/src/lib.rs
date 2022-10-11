@@ -36,3 +36,24 @@ pub struct Message {
     pub msg_type: String,
     pub payload: String,
 }
+
+// Legacy types from the old robotic avatar
+
+#[derive(Debug, Default, Clone, Copy, Serialize, Deserialize)]
+pub struct Tracking {
+    pub head: Head,
+    pub drive: Drive,
+}
+
+#[derive(Debug, Default, Clone, Copy, Serialize, Deserialize)]
+pub struct Head {
+    pub rx: f64,
+    pub ry: f64,
+    pub rz: f64,
+}
+
+#[derive(Debug, Default, Clone, Copy, Serialize, Deserialize)]
+pub struct Drive {
+    pub speed: f64,
+    pub turn: f64,
+}
