@@ -14,31 +14,75 @@ pub struct Props {
     pub robotic: Model,
 }
 
-#[function_component(Ui)]
-pub fn ui(props: &Props) -> Html {
-    let global_css = css!(
-        r#"
-            html, body, #robotic-avatar{
-                height: 100%;
-                width: 100%;
-                margin: 0;
-            }
+pub struct Ui {
+    page: Page,
+}
 
-            #robotic-avatar {
-                display: grid;
-                grid-template-rows: 1fr min-content;
-                grid-template-areas: 
-                    "robotic"
-                    "debug"
-            }
-        "#
-    );
+#[derive(PartialEq, Eq)]
+pub enum Page {
+    Login,
+    Main,
+}
 
-    html! {
-        <>
-            <Global css={global_css} />
-            <Robotic class={css!("grid-area: robotic;")} model={props.robotic.clone()}/>
-            <DebugTools class={css!("grid-area: debug;")} model={props.robotic.clone()}/>
-        </>
+impl Component for Ui {
+    type Message = Page;
+    type Properties = Props;
+
+    fn create(_ctx: &Context<Self>) -> Self {
+        Ui { page: Page::Main }
+    }
+
+    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
+        if self.page != msg {
+            self.page = msg;
+            true
+        } else {
+            false
+        }
+    }
+
+    fn view(&self, ctx: &Context<Self>) -> Html {
+        let props = ctx.props();
+
+        let global_css = css!(
+            r#"
+                html, body, #robotic-avatar{
+                    height: 100%;
+                    width: 100%;
+                    margin: 0;
+                }
+
+                #robotic-avatar {
+                    display: grid;
+                    grid-template-rows: 1fr min-content;
+                    grid-template-areas: 
+                        "robotic"
+                        "debug"
+                }
+            "#
+        );
+
+        let page = match self.page {
+            Page::Login => {
+                html!()
+            },
+            Page::Main => {
+                html! {
+                    <>
+                        <Robotic class={css!("grid-area: robotic;")} model={props.robotic.clone()}/>
+                        <DebugTools class={css!("grid-area: debug;")} model={props.robotic.clone()}/>
+                    </>
+                }
+            }
+        };
+
+        html! {
+            <>
+                <Global css={global_css} />
+                {page}
+            </>
+        }
     }
 }
+
+
