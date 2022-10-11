@@ -68,7 +68,7 @@ impl Component for Ui {
         let page = match self.page {
             Page::Login => {
                 html!(<Login class={css!("grid-area: main;")} on_login={link.callback(|_| Page::Main)} model={props.robotic.clone()}/>)
-            },
+            }
             Page::Main => {
                 html! {
                     <>
