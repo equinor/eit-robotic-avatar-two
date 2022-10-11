@@ -1,7 +1,9 @@
 mod debug;
+mod login;
 mod robotic;
 
 pub use debug::DebugTools;
+pub use login::Login;
 pub use robotic::Robotic;
 
 use crate::Robotic as Model;
@@ -29,7 +31,7 @@ impl Component for Ui {
     type Properties = Props;
 
     fn create(_ctx: &Context<Self>) -> Self {
-        Ui { page: Page::Main }
+        Ui { page: Page::Login }
     }
 
     fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
@@ -43,6 +45,7 @@ impl Component for Ui {
 
     fn view(&self, ctx: &Context<Self>) -> Html {
         let props = ctx.props();
+        let link = ctx.link();
 
         let global_css = css!(
             r#"
@@ -56,7 +59,7 @@ impl Component for Ui {
                     display: grid;
                     grid-template-rows: 1fr min-content;
                     grid-template-areas: 
-                        "robotic"
+                        "main"
                         "debug"
                 }
             "#
@@ -64,12 +67,12 @@ impl Component for Ui {
 
         let page = match self.page {
             Page::Login => {
-                html!()
+                html!(<Login class={css!("grid-area: main;")} on_login={link.callback(|_| Page::Main)} model={props.robotic.clone()}/>)
             },
             Page::Main => {
                 html! {
                     <>
-                        <Robotic class={css!("grid-area: robotic;")} model={props.robotic.clone()}/>
+                        <Robotic class={css!("grid-area: main;")} model={props.robotic.clone()}/>
                         <DebugTools class={css!("grid-area: debug;")} model={props.robotic.clone()}/>
                     </>
                 }
@@ -84,5 +87,3 @@ impl Component for Ui {
         }
     }
 }
-
-
