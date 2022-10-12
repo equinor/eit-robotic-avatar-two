@@ -1,11 +1,9 @@
-import React from "react";
-import { listDevices, loadCams } from "../modules/cameras";
-import { fromOffers, fromStreams } from "../modules/rtc";
-import { postAnswer, postOffers, postTracking, pullAnswer, pullOffers } from "../modules/server";
-import styled, { createGlobalStyle } from "styled-components";
-import Viewport from "../view/Viewport";
+import { listDevices, loadCams } from "../modules/cameras.mjs";
+import { fromOffers, fromStreams } from "../modules/rtc.mjs";
+import { postAnswer, postOffers, postTracking, pullAnswer, pullOffers } from "../modules/server.mjs";
+import Viewport from "../view/Viewport.mjs";
 
-const GlobalStyle = createGlobalStyle `
+const GlobalStyle = styled.createGlobalStyle `
     html, body, #robotic_avatar {
         margin: 0;
         height: 100%;

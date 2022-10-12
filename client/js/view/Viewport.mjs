@@ -1,15 +1,18 @@
-import React from "react";
-import styled from "styled-components";
+//import React from "react";
+//import styled from "styled-components";
 import * as THREE from 'three';
-import { VRButton } from 'three/examples/jsm/webxr/VRButton.js';
+import { VRButton } from 'https://unpkg.com/three@0.142.0/examples/jsm/webxr/VRButton.js';
+
 const Canvas = styled.canvas `
     background-color: #000;
     height: 100%;
     width: 100%;
 `;
+
 const HiddenVideo = styled.video `
     display: none;
 `;
+
 export default class Viewport extends React.Component {
     constructor() {
         super(...arguments);
@@ -17,12 +20,14 @@ export default class Viewport extends React.Component {
         this.left = React.createRef();
         this.right = React.createRef();
     }
+
     render() {
         return React.createElement("div", { className: this.props.className },
             React.createElement(Canvas, { ref: this.canvas }),
             React.createElement(HiddenVideo, { autoPlay: true, ref: this.left }),
             React.createElement(HiddenVideo, { autoPlay: true, ref: this.right }));
     }
+
     componentDidMount() {
         // Based on the assumption both Oculus Quest 2 and Webcam have a diagonal field of view of 90. But a different aspect ratio.
         let fov = 0.830097;
@@ -32,6 +37,7 @@ export default class Viewport extends React.Component {
         const renderer = new THREE.WebGLRenderer({
             canvas: this.canvas.current
         });
+
         renderer.setSize(3664, 1920, false);
         renderer.xr.enabled = true;
         renderer.xr.cameraAutoUpdate = false;
@@ -39,6 +45,7 @@ export default class Viewport extends React.Component {
         renderer.xr.getCamera = function () {
             return camera;
         };
+
         const textureLeft = new THREE.VideoTexture(this.left.current);
         textureLeft.center = new THREE.Vector2(0.5, 0.5);
         textureLeft.rotation = 90 * 3 * (Math.PI / 180);
@@ -51,6 +58,7 @@ export default class Viewport extends React.Component {
         const right = new THREE.Mesh(new THREE.PlaneGeometry(0.58952 * fov, 2 * fov), new THREE.MeshBasicMaterial({ map: textureRight }));
         right.position.x = 0.5;
         scene.add(right);
+
         renderer.setAnimationLoop((_, xrframe) => {
             if (renderer.xr.isPresenting && this.props.onTrack) {
                 const r = xrframe.getViewerPose(renderer.xr.getReferenceSpace()).transform.orientation;
@@ -75,12 +83,14 @@ export default class Viewport extends React.Component {
         });
         document.body.appendChild(VRButton.createButton(renderer));
     }
+
     componentDidUpdate() {
         var _a, _b;
         this.left.current.srcObject = (_a = this.props.left) !== null && _a !== void 0 ? _a : null;
         this.right.current.srcObject = (_b = this.props.right) !== null && _b !== void 0 ? _b : null;
     }
 }
+
 function toController(game) {
     var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k;
     //I am just guessing
