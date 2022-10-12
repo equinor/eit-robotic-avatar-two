@@ -28,11 +28,11 @@ pub async fn routes(router: Router, config: &Config) -> Result<Router> {
 
     let key = auth.key.clone();
     let router = router
-        .route("/api/auth/login", get(login_handler))
-        .layer(Extension(auth))
         .route_layer(middleware::from_fn(move |req, next| {
             middleware(req, next, key.clone())
-        }));
+        }))
+        .route("/api/auth/login", get(login_handler))
+        .layer(Extension(auth));
 
     Ok(router)
 }
@@ -100,7 +100,6 @@ impl Auth {
                     Nonce::new_random,
                 )
                 .set_pkce_challenge(pkce_code_challenge)
-                .add_scope(Scope::new("openid".to_string()))
                 .add_scope(Scope::new("email".to_string()))
                 .add_scope(Scope::new("profile".to_string()))
                 .url();

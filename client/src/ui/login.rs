@@ -1,7 +1,9 @@
 use stylist::css;
+use wasm_bindgen_futures::spawn_local;
+use weblog::console_error;
 use yew::prelude::*;
 
-use crate::Robotic;
+use crate::{robotic::server, Robotic};
 
 #[derive(PartialEq, Properties)]
 pub struct Props {
@@ -10,23 +12,32 @@ pub struct Props {
     pub on_login: Callback<()>,
 }
 
+pub enum Msg {
+    Done,
+    AzureADStart,
+}
+
 pub struct Login;
 
 impl Component for Login {
-    type Message = ();
+    type Message = Msg;
     type Properties = Props;
 
     fn create(_ctx: &Context<Self>) -> Self {
         Login
     }
 
-    fn update(&mut self, _ctx: &Context<Self>, _msg: Self::Message) -> bool {
+    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
+        match msg {
+            Msg::Done => ctx.props().on_login.emit(()),
+            Msg::AzureADStart => spawn_local(azure_ad()),
+        }
         false
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
         let props = ctx.props();
-        let _link = ctx.link();
+        let link = ctx.link();
 
         let css = css!(
             r#"
@@ -66,9 +77,21 @@ impl Component for Login {
                 <div>
                     <h1>{"Robotic Avatar"}</h1>
                     <p>{"Welcome please select a login method:"}</p>
-                    <p><button onclick={props.on_login.reform(|_|())}>{"Login by nothing"}</button></p>
+                    <p><button onclick={link.callback(|_| Msg::Done)}>{"Login using nothing"}</button></p>
+                    <p><button onclick={link.callback(|_| Msg::AzureADStart)}>{"Login using AzureAD"}</button></p>
                 </div>
             </div>
+        }
+    }
+}
+
+async fn azure_ad() {
+    let url = server::auth_login().await;
+    if !url.is_empty() {
+        let window = web_sys::window().unwrap();
+        let location = window.location();
+        if let Err(err) = location.assign(&url) {
+            console_error!("Location assign error: ", err);
         }
     }
 }

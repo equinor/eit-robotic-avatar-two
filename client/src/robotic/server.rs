@@ -15,3 +15,13 @@ pub fn send_message(msg: &SendMessage, callback: Callback<()>) {
         callback.emit(());
     });
 }
+
+pub async fn auth_login() -> String {
+    Request::get("/api/auth/login")
+        .send()
+        .await
+        .unwrap()
+        .text()
+        .await
+        .unwrap()
+}
