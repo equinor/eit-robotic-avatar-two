@@ -1,5 +1,5 @@
 mod media;
-mod server;
+pub mod server;
 
 pub use media::MediaService;
 pub use server::send_message;
