@@ -1,3 +1,7 @@
+mod minion;
+
+pub use self::minion::Minion;
+
 use stylist::css;
 use yew::prelude::*;
 
@@ -73,7 +77,7 @@ impl Component for Robotic {
             <div class={class}>
                 <h1 class={header_css}>{"Robotic Avatar"}</h1>
                 <div class={menu_css}>{"Future robot menu"}</div>
-                <div class={robot_css}>{"Future robot UI"}</div>
+                <Minion class={robot_css}></Minion>
             </div>
         }
     }
