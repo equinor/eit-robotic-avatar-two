@@ -2,13 +2,12 @@ use wasm_bindgen::prelude::wasm_bindgen;
 use web_sys::HtmlElement;
 use yew::prelude::*;
 
-
 #[derive(PartialEq, Properties)]
 pub struct Props {
     pub class: Classes,
 }
 
-pub struct Minion{
+pub struct Minion {
     node_ref: NodeRef,
 }
 
@@ -18,7 +17,7 @@ impl Component for Minion {
 
     fn create(_ctx: &Context<Self>) -> Self {
         Minion {
-            node_ref: NodeRef::default()
+            node_ref: NodeRef::default(),
         }
     }
 
