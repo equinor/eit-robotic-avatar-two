@@ -15,7 +15,7 @@ pub async fn serve(config: Config, robotic: Robotic) -> Result<()> {
     let api = messaging::routes(api);
     let api = robot::routes(api);
     let api = minion::routes(api);
-    let api = auth::routes(api, &config);
+    let api = auth::routes(api, &config).await?;
     let api = api.layer(Extension(robotic));
 
     debug!("Starting the server");
