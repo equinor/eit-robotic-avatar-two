@@ -34,7 +34,7 @@ impl Component for Minion {
     }
 }
 
-#[wasm_bindgen]
+#[wasm_bindgen(raw_module = "/js/index.mjs")]
 extern "C" {
     fn robotic_main(root_elem: HtmlElement);
 }
