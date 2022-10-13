@@ -9,34 +9,18 @@ Minion uses a [LattePanda 3 Delta](https://www.lattepanda.com/lattepanda-3-delta
 1. Make sure its online and the normal peripherals like keyboard mouse and screen works.
     * The robot needs Wifi working before it can drive around.
 1. Update packages with `sudo apt update` and `sudo apt upgrade`
+
+## Setup SSH
 1. Install ssh server with `sudo apt install openssh-server`
     * Now you can connect over ssh for the rest of the guide.
 
+## Download the robotic avatar project
+1. Install git with `sudo apt install git`
+1. Clone the repo using one of:
+    * Using http: `git clone https://github.com/equinor/eit-robotic-avatar-two.git`
+    * Using ssh:`git clone git@github.com:equinor/eit-robotic-avatar-two.git`
+
 # Old Setup
-
-## Setup Raspberry Pi
-1. Flash new SD card with Ubuntu Server 20.04 (64-bit)
-1. Connect the SD card to an external PI and connect to internet via an Ethernet cable
-1. Default username and password is: ubuntu and ubuntu
-1. Find IP address with: `ip a`
-1. Connect to over ssh using: `ssh ubuntu@<eth0 ip>`
-1. Update date and time with:
-    1. `sudo apt install ntpdate`
-    1. `sudo ntpdate time.nist.gov`
-1. Ubuntu server updates automatically
-    * You will get an error `Waiting for cache lock: Could not get lock /var/lib/dpkg/lock-frontend. It is held by process 2794 (unattended-upgr)` while running apt commands. Wait it out.
-    * Or you can kill it with `sudo pkill unattended-upgr` and do a normal `sudo apt update` and `sudo apt upgrade`
-1. Connect PI to WIFI [Ubuntu Guide](https://ubuntu.com/core/docs/networkmanager/configure-wifi-connections)
-    1. Install network manager with: `sudo apt install network-manager`
-    1. Connect using: `sudo nmcli d wifi connect <wifi name> password <password>`
-1. Move ssh session over to wifi and disconnect ethernet
-    1. Find IP address with: `ip a`
-    1. Exit ssh using: `exit`
-    1. Connect to over ssh using: `ssh ubuntu@<wlan0 ip>`
-        * You may need to remove the old known host
-
-## Clone this project.
-1. Clone repo using `https://github.com/equinor/eit-robotic-avatar.git`
 
 ## Install and Setup ROS
 Based on: https://emanual.robotis.com/docs/en/platform/openmanipulator_x/quick_start_guide/
