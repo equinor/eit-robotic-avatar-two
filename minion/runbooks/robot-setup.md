@@ -1,4 +1,18 @@
-# Robot Setup
+# Minion Robot Setup
+
+Minion uses a [LattePanda 3 Delta](https://www.lattepanda.com/lattepanda-3-delta).  Raspberry Pi was not powerful enough for 2 video streams.
+
+## Setup LattePanda 3 Delta
+1. Download and flash Ubuntu 20.04 (64-bit) to a USB Stick
+1. Install Ubuntu 20.04 (64-bit) to LattePanda
+    * Both desktop and server will work. I used a minimal desktop install.
+1. Make sure its online and the normal peripherals like keyboard mouse and screen works.
+    * The robot needs Wifi working before it can drive around.
+1. Update packages with `sudo apt update` and `sudo apt upgrade`
+1. Install ssh server with `sudo apt install openssh-server`
+    * Now you can connect over ssh for the rest of the guide.
+
+# Old Setup
 
 ## Setup Raspberry Pi
 1. Flash new SD card with Ubuntu Server 20.04 (64-bit)
