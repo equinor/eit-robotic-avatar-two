@@ -20,6 +20,22 @@ Minion uses a [LattePanda 3 Delta](https://www.lattepanda.com/lattepanda-3-delta
     * Using http: `git clone https://github.com/equinor/eit-robotic-avatar-two.git`
     * Using ssh:`git clone git@github.com:equinor/eit-robotic-avatar-two.git`
 
+## Install Rust
+1. Install curl using: `sudo apt install curl`
+1. Install compiler using: `sudo apt install build-essential`
+1. Download and run the Rust install script using: `curl https://sh.rustup.rs -sSf | sh`
+    * Configure current shell with `source "$HOME/.cargo/env"`
+1. This project have some dependencies to build:
+    * libssl-dev: `sudo apt install libssl-dev`
+    * python3-dev: `sudo apt install python3-dev`
+1. Run `cargo build` to se if everything is in order.
+
+## Install Rust web dev (Dev only)
+You only need this if you plan todo development locally. 
+1. Install web assembly target: `rustup target add wasm32-unknown-unknown`
+1. Setup the trunk builder: `cargo install --locked trunk`
+1. `trunk serve` to build the client locally.
+
 # Old Setup
 
 ## Install and Setup ROS
