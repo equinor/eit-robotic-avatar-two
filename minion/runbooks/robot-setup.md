@@ -28,7 +28,7 @@ Minion uses a [LattePanda 3 Delta](https://www.lattepanda.com/lattepanda-3-delta
 1. This project have some dependencies to build:
     * libssl-dev: `sudo apt install libssl-dev`
     * python3-dev: `sudo apt install python3-dev`
-1. Run `cargo build` to se if everything is in order.
+1. Run `cargo build` to see if everything is in order.
 
 ## Install Rust web dev (Dev only)
 You only need this if you plan todo development locally. 
