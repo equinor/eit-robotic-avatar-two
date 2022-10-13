@@ -20,31 +20,49 @@ Minion uses a [LattePanda 3 Delta](https://www.lattepanda.com/lattepanda-3-delta
     * Using http: `git clone https://github.com/equinor/eit-robotic-avatar-two.git`
     * Using ssh:`git clone git@github.com:equinor/eit-robotic-avatar-two.git`
 
-# Old Setup
+## Install Rust
+1. Install curl using: `sudo apt install curl`
+1. Install compiler using: `sudo apt install build-essential`
+1. Download and run the Rust install script using: `curl https://sh.rustup.rs -sSf | sh`
+    * Configure current shell with `source "$HOME/.cargo/env"`
+1. This project have some dependencies to build:
+    * libssl-dev: `sudo apt install libssl-dev`
+    * python3-dev: `sudo apt install python3-dev`
+1. Run `cargo build` to see if everything is in order.
 
-## Install and Setup ROS
+## Install Rust web dev (Dev only)
+You only need this if you plan todo development locally. 
+1. Install web assembly target: `rustup target add wasm32-unknown-unknown`
+1. Setup the trunk builder: `cargo install --locked trunk`
+1. `trunk serve` to build the client locally.
+
+## Install ROS
 Based on: https://emanual.robotis.com/docs/en/platform/openmanipulator_x/quick_start_guide/
-1. Run ROS 2 Foxy Install Script: 
-    1. Install compiler using: `sudo apt install build-essential`
-    1. `chmod 755 ~/eit-robotic-avatar/ros/install_ros2_foxy.sh`  
-    1. `bash ~/eit-robotic-avatar/ros/install_ros2_foxy.sh`
-1. Install dependent packages for OpenMANIPULATOR-X:  
-    1. `sudo apt install ros-foxy-rqt* ros-foxy-joint-state-publisher`  
+1. Download ROS install script: `wget https://raw.githubusercontent.com/ROBOTIS-GIT/robotis_tools/master/install_ros2_foxy.sh`
+1. Set execution bits: `chmod 755 ./install_ros2_foxy.sh`
+1. Run the script `bash ./install_ros2_foxy.sh` and pray.
+
+## Setup OpenMANIPULATOR-X
+1. Install ROS dependencies:`sudo apt install ros-foxy-rqt* ros-foxy-joint-state-publisher` 
+1. Download OpenMANIPULATOR-X source:
     1. `cd ~/colcon_ws/src/` 
     1. `git clone -b foxy-devel https://github.com/ROBOTIS-GIT/DynamixelSDK.git`  
     1. `git clone -b ros2 https://github.com/ROBOTIS-GIT/dynamixel-workbench.git`  
     1. `git clone -b foxy-devel https://github.com/ROBOTIS-GIT/open_manipulator.git`  
     1. `git clone -b ros2 https://github.com/ROBOTIS-GIT/open_manipulator_msgs.git`  
     1. `git clone -b ros2 https://github.com/ROBOTIS-GIT/open_manipulator_dependencies.git`  
-    1. `git clone -b ros2 https://github.com/ROBOTIS-GIT/robotis_manipulator.git`  
+    1. `git clone -b ros2 https://github.com/ROBOTIS-GIT/robotis_manipulator.git`
+1. Build and install the arm software with:
+    1. `cd ~/colcon_ws`
+    1. `colcon build --symlink-install`
+1. You need to open a new terminal. Don't ask.
+1. Set USB latency to 1 ms using: `ros2 run open_manipulator_x_controller create_udev_rules`
+1. You can test the arm with `ros2 launch open_manipulator_x_controller open_manipulator_x_controller.launch.py`
+    * The robot will be rigid while the script is running.
 
+# Old Setup
 
 ## Setup robot specific settings
-1. Move package into ros: `cp -r ~/eit-robotic-avatar/ros/my_package .`
-1. Build packages `cd ~/colcon_ws && colcon build --symlink-install`   
-1. Set USB latency to 1 ms using: `ros2 run open_manipulator_x_controller create_udev_rules`
-1. `sudo apt install python3-pip`
-1. `sudo pip3 install gpiozero rpi-gpio`
 1. `sudo chown root:$USER /dev/gpiomem`
 1. `sudo chmod g+rw /dev/gpiomem`
 
