@@ -20,7 +20,6 @@ const Grid = styled.main `
         "ui"
         "view";
     gap: 16px 16px;
-    background-color: rgb(220, 220, 220);
     padding: 8px;
 `;
 
