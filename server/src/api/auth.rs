@@ -1,7 +1,11 @@
-use std::{sync::Arc, time::Instant};
+use std::{
+    sync::Arc,
+    time::{Duration, Instant},
+};
 
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use axum::{
+    extract::Query,
     http::{self, Request, StatusCode},
     middleware::{self, Next},
     response::Response,
@@ -14,11 +18,12 @@ use log::warn;
 use openidconnect::{
     core::{CoreAuthenticationFlow, CoreClient, CoreProviderMetadata},
     reqwest::async_http_client,
-    ClientId, ClientSecret, CsrfToken, IssuerUrl, Nonce, PkceCodeChallenge, PkceCodeVerifier,
-    RedirectUrl, Scope,
+    AccessTokenHash, AuthorizationCode, ClientId, ClientSecret, CsrfToken, IssuerUrl, Nonce,
+    OAuth2TokenResponse, PkceCodeChallenge, PkceCodeVerifier, RedirectUrl, Scope, TokenResponse,
 };
 use parking_lot::Mutex;
 use reqwest::Url;
+use serde::Deserialize;
 use sha2::Sha256;
 
 use crate::Config;
@@ -32,6 +37,7 @@ pub async fn routes(router: Router, config: &Config) -> Result<Router> {
             middleware(req, next, key.clone())
         }))
         .route("/api/auth/login", get(login_handler))
+        .route("/api/auth/azure_ad", get(azure_ad_handler))
         .layer(Extension(auth));
 
     Ok(router)
@@ -42,12 +48,31 @@ async fn login_handler(Extension(mut auth): Extension<Auth>) -> String {
     url.unwrap_or_default()
 }
 
+#[derive(Deserialize)]
+pub struct AuthQuery {
+    pub code: String,
+    pub state: String,
+}
+
+async fn azure_ad_handler(
+    Extension(mut auth): Extension<Auth>,
+    Query(query): Query<AuthQuery>,
+) -> String {
+    match auth.token_from_azure_ad(query.code, query.state).await {
+        Ok(token) => token,
+        Err(err) => {
+            warn!("/api/auth/azure_ad: {}", err);
+            String::new()
+        }
+    }
+}
+
 #[derive(Debug)]
 struct AuthState {
-    pub _pkce: PkceCodeVerifier,
-    pub _nonce: Nonce,
-    pub _token: CsrfToken,
-    pub _timestamp: Instant,
+    pub pkce: PkceCodeVerifier,
+    pub nonce: Nonce,
+    pub token: CsrfToken,
+    pub timestamp: Instant,
 }
 
 #[derive(Debug, Clone)]
@@ -93,7 +118,7 @@ impl Auth {
     pub fn gen_login(&mut self) -> Option<Url> {
         if let Some(client) = &self.client {
             let (pkce_code_challenge, pkce_code_verifier) = PkceCodeChallenge::new_random_sha256();
-            let (url, _token, _nonce) = client
+            let (url, token, nonce) = client
                 .authorize_url(
                     CoreAuthenticationFlow::AuthorizationCode,
                     CsrfToken::new_random,
@@ -106,16 +131,77 @@ impl Auth {
 
             let mut state = self.state.lock();
             state.push(AuthState {
-                _pkce: pkce_code_verifier,
-                _nonce,
-                _token,
-                _timestamp: Instant::now(),
+                pkce: pkce_code_verifier,
+                nonce,
+                token,
+                timestamp: Instant::now(),
             });
 
             Some(url)
         } else {
             None
         }
+    }
+
+    pub async fn token_from_azure_ad(&mut self, code: String, state: String) -> Result<String> {
+        let state = self.get_state(&state).ok_or_else(|| {
+            anyhow!("Did not find the record from a previous url generation. Timed out maybe")
+        })?;
+        let client = self
+            .client
+            .as_ref()
+            .ok_or_else(|| anyhow!("Azure AD is not configured."))?;
+        let code = AuthorizationCode::new(code);
+        let token_response = client
+            .exchange_code(code)
+            .set_pkce_verifier(state.pkce)
+            .request_async(async_http_client)
+            .await?;
+
+        let id_token = token_response
+            .id_token()
+            .ok_or_else(|| anyhow!("Server did not return an ID token"))?;
+        let claims = id_token.claims(&client.id_token_verifier(), &state.nonce)?;
+
+        if let Some(expected_access_token_hash) = claims.access_token_hash() {
+            let actual_access_token_hash = AccessTokenHash::from_token(
+                token_response.access_token(),
+                &id_token.signing_alg()?,
+            )?;
+            if actual_access_token_hash != *expected_access_token_hash {
+                return Err(anyhow!("Invalid access token"));
+            }
+        }
+
+        let name = claims
+            .name()
+            .and_then(|l| l.get(None))
+            .map(|n| n.to_string())
+            .ok_or_else(|| anyhow!("No name in OpenID Token"))?;
+
+        warn!(
+            "Valid login from {}, But login system is not implemented",
+            name
+        );
+
+        Ok("Fake token".to_string())
+    }
+
+    pub fn get_state(&mut self, token: &str) -> Option<AuthState> {
+        let mut state = self.state.lock();
+
+        // Remove old login state
+        const TIMEOUT: Duration = Duration::from_secs(5 * 60);
+        let now = Instant::now();
+        state.retain(|state| {
+            let age = now.duration_since(state.timestamp);
+            age < TIMEOUT
+        });
+
+        state
+            .iter()
+            .position(|s| s.token.secret() == token)
+            .map(|index| state.swap_remove(index))
     }
 }
 
