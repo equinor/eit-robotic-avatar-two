@@ -4,8 +4,8 @@ WORKDIR /app
 COPY . .
 
 #Install Cargo tools
-RUN chmod +x .devcontainer/cargo-tools.sh
-RUN .devcontainer/cargo-tools.sh
+RUN chmod +x .tools/build-dependency.sh
+RUN .tools/build-dependency.sh
 
 #Build the binaries
 RUN cargo build --release --bin server
