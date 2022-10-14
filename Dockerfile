@@ -8,7 +8,7 @@ RUN chmod +x .devcontainer/cargo-tools.sh
 RUN .devcontainer/cargo-tools.sh
 
 #Build the binaries
-RUN cargo build --release 
+RUN cargo build --release --bin server
 
 #Build webapp
 RUN trunk build --release 
@@ -16,7 +16,6 @@ RUN trunk build --release
 FROM nginxinc/nginx-unprivileged:1.21.1
 WORKDIR /app
 COPY --from=builder /app/client/dist ./www
-COPY --from=builder /app/target/release/robot ./www/robots/robot
 COPY --from=builder /app/target/release/server .
 COPY ./client/proxy ./proxy
 COPY ./client/proxy/server.conf /etc/nginx/conf.d/default.conf
