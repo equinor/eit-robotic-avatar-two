@@ -1,54 +1,56 @@
-use rust_gpiozero::{Motor, OutputDevice};
+use std::io;
+
+use serialport::SerialPort;
 
 pub struct Drive {
-    front_left: Wheel,
-    front_right: Wheel,
-    back_left: Wheel,
-    back_right: Wheel,
+    serial: Box<dyn SerialPort>
 }
 
 impl Drive {
     fn new() -> Self {
-        // Setting up the GPIO pins for the wheels.
+        let serial = serialport::new("/dev/ttyACM0", 115_200).open().expect("Failed to open port to arduino");
         Self {
-            front_left: Wheel::new(20, 16, 21),
-            front_right: Wheel::new(13, 19, 26),
-            back_left: Wheel::new(23, 24, 25),
-            back_right: Wheel::new(17, 27, 22),
+            serial
         }
     }
 
     fn set_speed(&mut self, left: f64, right: f64) {
-        self.front_left.set_speed(left);
-        self.front_right.set_speed(right);
-        self.back_left.set_speed(left);
-        self.back_right.set_speed(right);
-    }
-}
+        let left = speed_to_bytes(left);
+        let right = speed_to_bytes(right);
 
-struct Wheel {
-    motor: Motor,
-    _enable: OutputDevice,
-}
+        let motor_buffer = [
+            left[0], left[1], // front_left motor
+            right[0], right[1], // front_right motor
+            left[0], left[1], // back_left motor
+            right[0], right[1], // back_right motor
+        ];
 
-impl Wheel {
-    fn new(forward_pin: u8, backward_pin: u8, enable_pin: u8) -> Self {
-        let mut enable = OutputDevice::new(enable_pin);
-        enable.on();
-        Self {
-            motor: Motor::new(forward_pin, backward_pin),
-            _enable: enable,
+        println!("Drive write: {:?}", motor_buffer);
+
+        match self.send_buffer(&motor_buffer) {
+            Err(err) => {
+                println!("Failed write to arduino: {} ", err);
+            }
+            _ => ()
         }
     }
 
-    fn set_speed(&mut self, speed: f64) {
-        self.motor.set_speed(f64::abs(speed));
-        if speed.signum() == 1.0 {
-            self.motor.forward();
-        } else {
-            self.motor.backward();
-        }
+    fn send_buffer(&mut self, buffer:&[u8]) -> Result<(), io::Error> {
+        self.serial.write(&buffer)?;
+        //self.serial.flush()?;
+        Ok(())
     }
+}
+
+fn speed_to_bytes(speed: f64) -> [u8; 2] {
+    let direction = if speed.signum() == 1.0 {
+        1
+    } else {
+        0
+    };
+    let speed = (f64::abs(speed) * 256.0).round() as u8 ;
+
+    [direction, speed]
 }
 
 pub fn drive_start() -> Drive {
