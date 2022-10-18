@@ -1,17 +1,17 @@
-use std::{io, time::Duration};
+use std::io;
 
 use serialport::SerialPort;
 
 pub struct Drive {
-    serial: Box<dyn SerialPort>
+    serial: Box<dyn SerialPort>,
 }
 
 impl Drive {
     fn new() -> Self {
-        let serial = serialport::new("/dev/ttyACM0", 115_200).open().expect("Failed to open port to arduino");
-        Self {
-            serial
-        }
+        let serial = serialport::new("/dev/ttyACM0", 115_200)
+            .open()
+            .expect("Failed to open port to arduino");
+        Self { serial }
     }
 
     fn set_speed(&mut self, left: f64, right: f64) {
@@ -36,7 +36,7 @@ impl Drive {
         }
     }
 
-    fn send_buffer(&mut self, buffer:&[u8]) -> Result<(), io::Error> {
+    fn send_buffer(&mut self, buffer: &[u8]) -> Result<(), io::Error> {
         self.serial.write(&buffer)?;
         let mut buffer = [0; 64];
         let _ = self.serial.read(&mut buffer[..])?;
@@ -46,12 +46,8 @@ impl Drive {
 }
 
 fn speed_to_bytes(speed: f64) -> [u8; 2] {
-    let direction = if speed.signum() == 1.0 {
-        1
-    } else {
-        0
-    };
-    let speed = (f64::abs(speed) * 256.0).round() as u8 ;
+    let direction = if speed.signum() == 1.0 { 1 } else { 0 };
+    let speed = (f64::abs(speed) * 256.0).round() as u8;
 
     [direction, speed]
 }
