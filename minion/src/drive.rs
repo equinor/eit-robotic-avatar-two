@@ -37,7 +37,7 @@ impl Drive {
     }
 
     fn send_buffer(&mut self, buffer: &[u8]) -> Result<(), io::Error> {
-        self.serial.write(buffer)?;
+        self.serial.write_all(buffer)?;
         let mut buffer = [0; 64];
         let _ = self.serial.read(&mut buffer[..])?;
         //self.serial.flush()?;
