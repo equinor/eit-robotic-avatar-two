@@ -1,4 +1,4 @@
-use std::io;
+use std::{io, time::Duration};
 
 use serialport::SerialPort;
 
@@ -25,18 +25,21 @@ impl Drive {
             right[0], right[1], // back_right motor
         ];
 
-        println!("Drive write: {:?}", motor_buffer);
-
         match self.send_buffer(&motor_buffer) {
+            Err(ref e) if e.kind() == io::ErrorKind::TimedOut => (),
             Err(err) => {
                 println!("Failed write to arduino: {} ", err);
             }
-            _ => ()
+            Ok(_) => {
+                println!("Drive write: {:?}", motor_buffer);
+            }
         }
     }
 
     fn send_buffer(&mut self, buffer:&[u8]) -> Result<(), io::Error> {
         self.serial.write(&buffer)?;
+        let mut buffer = [0; 64];
+        let _ = self.serial.read(&mut buffer[..])?;
         //self.serial.flush()?;
         Ok(())
     }
