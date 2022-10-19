@@ -2,10 +2,8 @@ use wasm_bindgen::prelude::wasm_bindgen;
 use web_sys::HtmlElement;
 use yew::prelude::*;
 
-#[derive(PartialEq, Properties)]
-pub struct Props {
-    pub class: Classes,
-}
+#[derive(PartialEq, Eq, Properties)]
+pub struct Props;
 
 pub struct Minion {
     node_ref: NodeRef,
@@ -21,9 +19,9 @@ impl Component for Minion {
         }
     }
 
-    fn view(&self, ctx: &Context<Self>) -> Html {
+    fn view(&self, _ctx: &Context<Self>) -> Html {
         html! {
-            <div class={ctx.props().class.clone()} ref={self.node_ref.clone()}></div>
+            <div ref={self.node_ref.clone()}></div>
         }
     }
 

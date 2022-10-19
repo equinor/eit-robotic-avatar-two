@@ -1,6 +1,8 @@
 mod minion;
+mod robot;
 
 pub use self::minion::Minion;
+pub use self::robot::Robot;
 
 use stylist::css;
 use yew::prelude::*;
@@ -13,24 +15,36 @@ pub struct Props {
     pub model: Model,
 }
 
-pub enum Msg {}
+#[derive(PartialEq, Eq)]
+pub enum Msg {
+    Robot,
+    Minion,
+}
 
-pub struct Robotic;
+pub struct Robotic {
+    page: Msg,
+}
 
 impl Component for Robotic {
     type Message = Msg;
     type Properties = Props;
 
     fn create(_ctx: &Context<Self>) -> Self {
-        Robotic
+        Robotic { page: Msg::Robot }
     }
 
-    fn update(&mut self, _ctx: &Context<Self>, _msg: Self::Message) -> bool {
-        true
+    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
+        if self.page != msg {
+            self.page = msg;
+            true
+        } else {
+            false
+        }
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
         let props = ctx.props();
+        let link = ctx.link();
 
         let css = css!(
             r#"
@@ -40,44 +54,70 @@ impl Component for Robotic {
             grid-template-areas: 
                 "header header"
                 "menu robot";
+            
+            & > h1 {
+                grid-area: header;
+                background-color: lightblue;
+                border-bottom: black solid 1px;
+                margin: 0;
+                padding: 0.2em;
+            }
+
+            & > menu {
+                grid-area: menu;
+                border-right: black solid 1px;
+                margin: 0;
+                padding: 0.2em;
+                width: 15em;
+            }
+
+            & > menu > button{
+                width: 100%;
+                margin: 1em 0;
+            }
+
+            & > menu > button > img{
+                width: 100%;
+                object-fit: contain;
+            }
+
+            & > menu > button > .icon{
+                font-size: 10em;
+                margin: 0;
+            }
+
+            & > content {
+                grid-area: robot;
+                margin: 0;
+                padding: 0.2em;
+            }
         "#
         );
 
         let class = classes!(props.class.clone(), css);
 
-        let header_css = css!(
-            r#"
-            grid-area: header;
-            background-color: lightblue;
-            border-bottom: black solid 1px;
-            margin: 0;
-            padding: 0.2em;
-        "#
-        );
-
-        let menu_css = css!(
-            r#"
-            grid-area: menu;
-            border-right: black solid 1px;
-            margin: 0;
-            padding: 0.2em;
-            min-width: 10em;
-        "#
-        );
-
-        let robot_css = css!(
-            r#"
-            grid-area: robot;
-            margin: 0;
-            padding: 0.2em;
-        "#
-        );
+        let content = match self.page {
+            Msg::Robot => html!(<Robot/>),
+            Msg::Minion => html!(<Minion/>),
+        };
 
         html! {
             <div class={class}>
-                <h1 class={header_css}>{"Robotic Avatar"}</h1>
-                <div class={menu_css}>{"Future robot menu"}</div>
-                <Minion class={robot_css}></Minion>
+                <h1 class="header">{"Robotic Avatar"}</h1>
+                <menu>
+                    <button onclick={link.callback(|_| Msg::Robot)}>
+                        <p class="icon">{"🤖"}</p>
+                        <p>{"Robot"}</p>
+                    </button>
+                    <button onclick={link.callback(|_| Msg::Minion)}>
+                        <img src="img/minion.jpg"/>
+                        <p>{"Minion"}</p>
+                    </button>
+                    <button disabled={true}>
+                        <p>{"Rocky"}</p>
+                    </button>
+                </menu>
+                <content>{content}</content>
             </div>
         }
     }
