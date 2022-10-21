@@ -28,5 +28,5 @@ async fn post_message(Extension(service): Extension<Robotic>, Json(message): Jso
         "New message {} to {} with {} ",
         message.msg_type, message.topic, message.payload
     );
-    service.messaging_owned().put(message);
+    service.messaging().put(message);
 }
