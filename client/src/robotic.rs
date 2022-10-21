@@ -1,35 +1,51 @@
 mod media;
-pub mod server;
 
-pub use media::MediaService;
-pub use server::send_message;
+use crate::server::Server;
 
-use std::rc::Rc;
+use self::media::MediaService;
+pub use self::media::MediaState;
+use common::SendMessage;
+use wasm_bindgen_futures::spawn_local;
+use yew::Callback;
 
-#[derive(PartialEq, Clone)]
-pub struct Robotic(Rc<Inner>);
+pub enum RoboticMsg {
+    Media,
+    SendMessage(SendMessage),
+}
 
-#[derive(PartialEq)]
-struct Inner {
+pub struct Robotic {
     media: MediaService,
+    server: Server,
 }
 
 impl Robotic {
-    pub fn new() -> Robotic {
-        let inner = Inner {
-            media: MediaService::new(),
-        };
-
-        Robotic(Rc::new(inner))
+    pub fn new(on_change: Callback<()>, server: Server) -> Robotic {
+        Robotic {
+            media: MediaService::new(on_change),
+            server,
+        }
     }
 
-    pub fn media(&self) -> &MediaService {
-        &self.0.media
+    pub fn state(&self) -> RoboticState {
+        RoboticState {
+            media: self.media.state(),
+        }
+    }
+
+    pub fn action(&mut self, action: RoboticMsg) {
+        match action {
+            RoboticMsg::Media => self.media.get_media(),
+            RoboticMsg::SendMessage(msg) => self.send_message(msg),
+        }
+    }
+
+    fn send_message(&mut self, msg: SendMessage) {
+        let server = self.server.clone();
+        spawn_local(async move { server.post_message(&msg).await })
     }
 }
 
-impl Default for Robotic {
-    fn default() -> Self {
-        Self::new()
-    }
+#[derive(Debug, PartialEq, Eq, Clone)]
+pub struct RoboticState {
+    pub media: MediaState,
 }

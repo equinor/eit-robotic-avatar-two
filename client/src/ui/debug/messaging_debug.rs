@@ -3,10 +3,12 @@ use wasm_bindgen::JsCast;
 use web_sys::{EventTarget, HtmlInputElement, HtmlTextAreaElement};
 use yew::{events::Event, html, Callback, Component, Context, Html, Properties};
 
-use crate::robotic::send_message;
+use crate::robotic::RoboticMsg;
 
-#[derive(PartialEq, Eq, Properties)]
-pub struct Props;
+#[derive(PartialEq, Properties)]
+pub struct Props {
+    pub actions: Callback<RoboticMsg>,
+}
 
 pub struct MessagingDebug {
     to_send: SendMessage,
@@ -33,12 +35,15 @@ impl Component for MessagingDebug {
         }
     }
 
-    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
+    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
+        let props = ctx.props();
         match msg {
             Msg::Topic(topic) => self.to_send.topic = topic,
             Msg::Type(msg_type) => self.to_send.msg_type = msg_type,
             Msg::Payload(payload) => self.to_send.payload = payload,
-            Msg::Send => send_message(&self.to_send, Callback::noop()),
+            Msg::Send => props
+                .actions
+                .emit(RoboticMsg::SendMessage(self.to_send.clone())),
         }
         true
     }

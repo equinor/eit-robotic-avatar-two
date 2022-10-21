@@ -1,37 +1,40 @@
 use stylist::css;
-use wasm_bindgen_futures::spawn_local;
-use weblog::console_error;
 use yew::prelude::*;
 
-use crate::{robotic::server, Robotic};
+use crate::{auth::Auth, server::Server};
 
 #[derive(PartialEq, Properties)]
 pub struct Props {
     pub class: Classes,
-    pub model: Robotic,
-    pub on_login: Callback<()>,
+    pub on_login: Callback<Server>,
 }
 
 pub enum Msg {
-    Done,
-    AzureADStart,
+    Nothing,
+    AzureAD,
 }
 
-pub struct Login;
+pub struct Login {
+    auth: Auth,
+}
 
 impl Component for Login {
     type Message = Msg;
     type Properties = Props;
 
-    fn create(_ctx: &Context<Self>) -> Self {
-        Login
+    fn create(ctx: &Context<Self>) -> Self {
+        let props = ctx.props();
+
+        Login {
+            auth: Auth::new(props.on_login.clone()),
+        }
     }
 
-    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
+    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
-            Msg::Done => ctx.props().on_login.emit(()),
-            Msg::AzureADStart => spawn_local(azure_ad()),
-        }
+            Msg::Nothing => self.auth.nothing(),
+            Msg::AzureAD => self.auth.start_azure_ad(),
+        };
         false
     }
 
@@ -77,21 +80,10 @@ impl Component for Login {
                 <div>
                     <h1>{"Robotic Avatar"}</h1>
                     <p>{"Welcome please select a login method:"}</p>
-                    <p><button onclick={link.callback(|_| Msg::Done)}>{"Login using nothing"}</button></p>
-                    <p><button onclick={link.callback(|_| Msg::AzureADStart)}>{"Login using AzureAD"}</button></p>
+                    <p><button onclick={link.callback(|_| Msg::Nothing)}>{"Login using nothing"}</button></p>
+                    <p><button onclick={link.callback(|_| Msg::AzureAD)}>{"Login using AzureAD"}</button></p>
                 </div>
             </div>
-        }
-    }
-}
-
-async fn azure_ad() {
-    let url = server::auth_login().await;
-    if !url.is_empty() {
-        let window = web_sys::window().unwrap();
-        let location = window.location();
-        if let Err(err) = location.assign(&url) {
-            console_error!("Location assign error: ", err);
         }
     }
 }
