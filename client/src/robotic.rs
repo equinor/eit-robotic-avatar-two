@@ -1,8 +1,9 @@
 mod media;
-pub mod server;
 
+use crate::server::Server;
+
+use self::media::MediaService;
 pub use self::media::MediaState;
-use self::{media::MediaService, server::Server};
 use common::SendMessage;
 use wasm_bindgen_futures::spawn_local;
 use yew::Callback;
@@ -18,10 +19,10 @@ pub struct Robotic {
 }
 
 impl Robotic {
-    pub fn new(on_change: Callback<()>) -> Robotic {
+    pub fn new(on_change: Callback<()>, server: Server) -> Robotic {
         Robotic {
             media: MediaService::new(on_change),
-            server: Server::new(),
+            server,
         }
     }
 
