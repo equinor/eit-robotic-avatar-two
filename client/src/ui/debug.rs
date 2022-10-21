@@ -68,7 +68,7 @@ impl Component for DebugTools {
             Tab::Media => {
                 html!(<MediaSelector media={props.state.media.clone()} actions={props.actions.clone()}/>)
             }
-            Tab::Message => html!(<MessagingDebug />),
+            Tab::Message => html!(<MessagingDebug actions={props.actions.clone()} />),
         };
 
         let header_css = css!(

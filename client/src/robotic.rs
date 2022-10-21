@@ -1,23 +1,27 @@
 mod media;
 pub mod server;
 
-use self::media::MediaService;
 pub use self::media::MediaState;
-pub use server::send_message;
+use self::{media::MediaService, server::Server};
+use common::SendMessage;
+use wasm_bindgen_futures::spawn_local;
 use yew::Callback;
 
 pub enum RoboticMsg {
     Media,
+    SendMessage(SendMessage),
 }
 
 pub struct Robotic {
     media: MediaService,
+    server: Server,
 }
 
 impl Robotic {
     pub fn new(on_change: Callback<()>) -> Robotic {
         Robotic {
             media: MediaService::new(on_change),
+            server: Server::new(),
         }
     }
 
@@ -30,7 +34,13 @@ impl Robotic {
     pub fn action(&mut self, action: RoboticMsg) {
         match action {
             RoboticMsg::Media => self.media.get_media(),
+            RoboticMsg::SendMessage(msg) => self.send_message(msg),
         }
+    }
+
+    fn send_message(&mut self, msg: SendMessage) {
+        let server = self.server.clone();
+        spawn_local(async move { server.post_message(&msg).await })
     }
 }
 

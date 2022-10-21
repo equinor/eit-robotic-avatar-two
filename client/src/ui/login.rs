@@ -1,3 +1,4 @@
+use server::Server;
 use stylist::css;
 use wasm_bindgen_futures::spawn_local;
 use weblog::console_error;
@@ -85,7 +86,8 @@ impl Component for Login {
 }
 
 async fn azure_ad() {
-    let url = server::auth_login().await;
+    let server = Server::new();
+    let url = server.get_auth_login().await;
     if !url.is_empty() {
         let window = web_sys::window().unwrap();
         let location = window.location();

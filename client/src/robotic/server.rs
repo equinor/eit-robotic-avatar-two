@@ -1,27 +1,30 @@
 use common::SendMessage;
 use gloo_net::http::Request;
-use wasm_bindgen_futures::spawn_local;
-use yew::Callback;
 
-pub fn send_message(msg: &SendMessage, callback: Callback<()>) {
-    let msg = msg.clone();
-    spawn_local(async move {
+#[derive(Clone)]
+pub struct Server {}
+
+impl Server {
+    pub fn new() -> Server {
+        Server {}
+    }
+
+    pub async fn post_message(&self, msg: &SendMessage) {
         Request::post("/api/messaging")
             .json(&msg)
             .unwrap()
             .send()
             .await
             .unwrap();
-        callback.emit(());
-    });
-}
+    }
 
-pub async fn auth_login() -> String {
-    Request::get("/api/auth/login")
-        .send()
-        .await
-        .unwrap()
-        .text()
-        .await
-        .unwrap()
+    pub async fn get_auth_login(&self) -> String {
+        Request::get("/api/auth/login")
+            .send()
+            .await
+            .unwrap()
+            .text()
+            .await
+            .unwrap()
+    }
 }
