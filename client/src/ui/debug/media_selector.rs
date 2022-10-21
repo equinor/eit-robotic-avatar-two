@@ -1,53 +1,34 @@
-use web_sys::{MediaDeviceInfo, MediaDeviceKind, MediaStream};
-use yew::{html, Component, Context, Html, Properties};
+use web_sys::MediaDeviceKind;
+use yew::{html, Callback, Component, Context, Html, Properties};
 
-use crate::robotic::MediaService;
+use crate::robotic::{MediaState, RoboticMsg};
 
-#[derive(PartialEq, Eq, Properties)]
+#[derive(PartialEq, Properties)]
 pub struct Props {
-    pub media: MediaService,
+    pub media: MediaState,
+    pub actions: Callback<RoboticMsg>,
 }
 
-pub struct MediaSelector {
-    device_list: Vec<MediaDeviceInfo>,
-}
-
-pub enum Msg {
-    LeftVideo(MediaStream),
-    DeviceInfo(Vec<MediaDeviceInfo>),
-}
+pub struct MediaSelector {}
 
 impl Component for MediaSelector {
-    type Message = Msg;
+    type Message = ();
     type Properties = Props;
 
     fn create(ctx: &Context<Self>) -> Self {
         let props = ctx.props();
+        props.actions.emit(RoboticMsg::Media);
 
-        props
-            .media
-            .get_user_media_callback(ctx.link().callback(Msg::LeftVideo));
-        MediaSelector {
-            device_list: Vec::new(),
-        }
+        MediaSelector {}
     }
 
-    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
+    fn update(&mut self, _ctx: &Context<Self>, _msg: Self::Message) -> bool {
+        false
+    }
+
+    fn view(&self, ctx: &Context<Self>) -> Html {
         let props = ctx.props();
-        match msg {
-            Msg::LeftVideo(_video) => {
-                props
-                    .media
-                    .enumerate_devices_callback(ctx.link().callback(Msg::DeviceInfo));
-            }
-            Msg::DeviceInfo(list) => {
-                self.device_list = list;
-            }
-        }
-        true
-    }
 
-    fn view(&self, _ctx: &Context<Self>) -> Html {
         fn kind_name(kind: MediaDeviceKind) -> &'static str {
             match kind {
                 MediaDeviceKind::Audioinput => "Microphone",
@@ -57,7 +38,7 @@ impl Component for MediaSelector {
             }
         }
 
-        let devices = self.device_list.iter().map(|info| {
+        let devices = props.media.devices.iter().map(|info| {
             html!(
                 <tr>
                     <td>{kind_name(info.kind())}</td>

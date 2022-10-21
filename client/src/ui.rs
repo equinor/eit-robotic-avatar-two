@@ -6,18 +6,20 @@ pub use debug::DebugTools;
 pub use login::Login;
 pub use robotic::Robotic;
 
-use crate::Robotic as Model;
+use crate::robotic::{Robotic as App, RoboticMsg};
 
 use stylist::{css, yew::Global};
 use yew::prelude::*;
 
-#[derive(Properties, PartialEq)]
-pub struct Props {
-    pub robotic: Model,
-}
-
 pub struct Ui {
     page: Page,
+    robotic: App,
+}
+
+pub enum Msg {
+    State,
+    Page(Page),
+    Action(RoboticMsg),
 }
 
 #[derive(PartialEq, Eq)]
@@ -27,24 +29,39 @@ pub enum Page {
 }
 
 impl Component for Ui {
-    type Message = Page;
-    type Properties = Props;
+    type Message = Msg;
+    type Properties = ();
 
-    fn create(_ctx: &Context<Self>) -> Self {
-        Ui { page: Page::Login }
+    fn create(ctx: &Context<Self>) -> Self {
+        let link = ctx.link();
+        let robotic = App::new(link.callback(|_| Msg::State));
+
+        Ui {
+            page: Page::Login,
+            robotic,
+        }
     }
 
     fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
-        if self.page != msg {
-            self.page = msg;
-            true
-        } else {
-            false
+        match msg {
+            Msg::State => true,
+            Msg::Page(page) => {
+                if self.page != page {
+                    self.page = page;
+                    true
+                } else {
+                    false
+                }
+            }
+            Msg::Action(action) => {
+                self.robotic.action(action);
+                true
+            }
         }
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
-        let props = ctx.props();
+        let state = self.robotic.state();
         let link = ctx.link();
 
         let global_css = css!(
@@ -67,13 +84,13 @@ impl Component for Ui {
 
         let page = match self.page {
             Page::Login => {
-                html!(<Login class={css!("grid-area: main;")} on_login={link.callback(|_| Page::Main)} model={props.robotic.clone()}/>)
+                html!(<Login class={css!("grid-area: main;")} on_login={link.callback(|_| Msg::Page(Page::Main))}/>)
             }
             Page::Main => {
                 html! {
                     <>
-                        <Robotic class={css!("grid-area: main;")} model={props.robotic.clone()}/>
-                        <DebugTools class={css!("grid-area: debug;")} model={props.robotic.clone()}/>
+                        <Robotic class={css!("grid-area: main;")} model={state.clone()}/>
+                        <DebugTools class={css!("grid-area: debug;")} state={state} actions={link.callback(Msg::Action)}/>
                     </>
                 }
             }

@@ -3,12 +3,11 @@ use wasm_bindgen_futures::spawn_local;
 use weblog::console_error;
 use yew::prelude::*;
 
-use crate::{robotic::server, Robotic};
+use crate::robotic::server;
 
 #[derive(PartialEq, Properties)]
 pub struct Props {
     pub class: Classes,
-    pub model: Robotic,
     pub on_login: Callback<()>,
 }
 

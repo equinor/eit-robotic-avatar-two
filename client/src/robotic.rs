@@ -1,35 +1,40 @@
 mod media;
 pub mod server;
 
-pub use media::MediaService;
+use self::media::MediaService;
+pub use self::media::MediaState;
 pub use server::send_message;
+use yew::Callback;
 
-use std::rc::Rc;
+pub enum RoboticMsg {
+    Media,
+}
 
-#[derive(PartialEq, Clone)]
-pub struct Robotic(Rc<Inner>);
-
-#[derive(PartialEq)]
-struct Inner {
+pub struct Robotic {
     media: MediaService,
 }
 
 impl Robotic {
-    pub fn new() -> Robotic {
-        let inner = Inner {
-            media: MediaService::new(),
-        };
-
-        Robotic(Rc::new(inner))
+    pub fn new(on_change: Callback<()>) -> Robotic {
+        Robotic {
+            media: MediaService::new(on_change),
+        }
     }
 
-    pub fn media(&self) -> &MediaService {
-        &self.0.media
+    pub fn state(&self) -> RoboticState {
+        RoboticState {
+            media: self.media.state(),
+        }
+    }
+
+    pub fn action(&mut self, action: RoboticMsg) {
+        match action {
+            RoboticMsg::Media => self.media.get_media(),
+        }
     }
 }
 
-impl Default for Robotic {
-    fn default() -> Self {
-        Self::new()
-    }
+#[derive(Debug, PartialEq, Eq, Clone)]
+pub struct RoboticState {
+    pub media: MediaState,
 }

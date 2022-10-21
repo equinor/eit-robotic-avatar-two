@@ -7,7 +7,7 @@ pub use self::robot::Robot;
 use stylist::css;
 use yew::prelude::*;
 
-use crate::Robotic as Model;
+use crate::RoboticState as Model;
 
 #[derive(PartialEq, Properties)]
 pub struct Props {
