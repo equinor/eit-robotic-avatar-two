@@ -7,7 +7,6 @@ use std::sync::Arc;
 #[derive(Clone)]
 pub struct Robotic(Arc<Inner>);
 
-#[derive(Clone)]
 struct Inner {
     messaging: Messaging,
 }
@@ -22,10 +21,6 @@ impl Robotic {
 
     pub fn messaging(&self) -> &Messaging {
         &self.0.messaging
-    }
-
-    pub fn messaging_owned(&self) -> Messaging {
-        self.0.messaging.clone()
     }
 }
 
