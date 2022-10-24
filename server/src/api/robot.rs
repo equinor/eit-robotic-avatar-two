@@ -27,6 +27,6 @@ async fn register(
         "With current networking: {:?}",
         robot_register.network_interfaces
     );
-    service.robot().ping();
+    service.robot().register(robot_register);
     Json(RobotConfig {})
 }

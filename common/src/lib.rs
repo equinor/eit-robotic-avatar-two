@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use time::OffsetDateTime;
 use uuid::Uuid;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RobotRegister {
     pub name: String,
     pub network_interfaces: Vec<Interface>,
@@ -11,7 +11,7 @@ pub struct RobotRegister {
 /// Information for a networking interface
 ///
 /// This interface information is only meant to be shown to users.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Interface {
     pub name: String,
     pub ip: String,
@@ -41,6 +41,7 @@ pub struct Message {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RobotStatus {
     pub last_seen: Option<OffsetDateTime>,
+    pub interfaces: Vec<Interface>,
 }
 
 // Legacy types from the old robotic avatar
