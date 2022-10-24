@@ -192,6 +192,7 @@ version = "0.1.0"
 dependencies = [
  "common",
  "gloo-net",
+ "gloo-storage",
  "gloo-timers",
  "gloo-utils",
  "js-sys",
