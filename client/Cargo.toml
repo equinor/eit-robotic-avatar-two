@@ -17,6 +17,7 @@ stylist = { version = "0.10", features = ["yew_integration"] }
 gloo-utils = "0.1.5"
 gloo-net = "0.2.4"
 gloo-timers = { version = "0.2", features = ["futures"] }
+gloo-storage = "0.2.2"
 time = { version = "0.3", features = ["wasm-bindgen"] }
 
 [dependencies.web-sys]
