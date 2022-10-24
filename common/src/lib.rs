@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use time::OffsetDateTime;
 use uuid::Uuid;
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -35,6 +36,10 @@ pub struct Message {
     pub topic: String,
     pub msg_type: String,
     pub payload: String,
+}
+
+pub struct RobotStatus {
+    pub last_seen: Option<OffsetDateTime>,
 }
 
 // Legacy types from the old robotic avatar
