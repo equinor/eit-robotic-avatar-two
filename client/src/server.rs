@@ -1,4 +1,4 @@
-use common::SendMessage;
+use common::{RobotStatus, SendMessage};
 use gloo_net::http::Request;
 
 #[derive(Clone)]
@@ -24,6 +24,16 @@ impl Server {
             .await
             .unwrap()
             .text()
+            .await
+            .unwrap()
+    }
+
+    pub async fn get_robot(&self) -> RobotStatus {
+        Request::get("/api/robot")
+            .send()
+            .await
+            .unwrap()
+            .json()
             .await
             .unwrap()
     }

@@ -97,7 +97,7 @@ impl Component for Robotic {
         let class = classes!(props.class.clone(), css);
 
         let content = match self.page {
-            Msg::Robot => html!(<Robot/>),
+            Msg::Robot => html!(<Robot state={props.model.robot.clone()}/>),
             Msg::Minion => html!(<Minion/>),
         };
 
