@@ -13,7 +13,7 @@ use axum::{
     Extension, Router,
 };
 use hmac::Hmac;
-use jwt::VerifyWithKey;
+use jwt::{RegisteredClaims, SignWithKey, VerifyWithKey};
 use log::warn;
 use openidconnect::{
     core::{CoreAuthenticationFlow, CoreClient, CoreProviderMetadata},
@@ -25,6 +25,7 @@ use parking_lot::Mutex;
 use reqwest::Url;
 use serde::Deserialize;
 use sha2::Sha256;
+use time::OffsetDateTime;
 
 use crate::Config;
 
@@ -179,12 +180,13 @@ impl Auth {
             .map(|n| n.to_string())
             .ok_or_else(|| anyhow!("No name in OpenID Token"))?;
 
-        warn!(
-            "Valid login from {}, But login system is not implemented",
-            name
-        );
-
-        Ok("Fake token".to_string())
+        // Create and sign the token
+        let claims = RegisteredClaims {
+            subject: Some(name),
+            issued_at: Some(OffsetDateTime::now_utc().unix_timestamp() as u64),
+            ..Default::default()
+        };
+        Ok(claims.sign_with_key(&self.key)?)
     }
 
     pub fn get_state(&mut self, token: &str) -> Option<AuthState> {
@@ -225,16 +227,11 @@ pub async fn middleware<B>(
 }
 
 /// Tries to extract
-fn header_to_token(header: Option<&str>) -> Option<String> {
-    // The header is always the same so no need to send it to the client.
-    const JWT_HEADER: &str = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.";
-
-    let header = header.and_then(|s| s.strip_prefix("Bearer "));
-
-    header.map(|token_body| format!("{}{}", JWT_HEADER, token_body))
+fn header_to_token(header: Option<&str>) -> Option<&str> {
+    header.and_then(|s| s.strip_prefix("Bearer "))
 }
 
-fn verify_token(token_string: Option<String>, key: &Hmac<Sha256>) -> bool {
+fn verify_token(token_string: Option<&str>, key: &Hmac<Sha256>) -> bool {
     if let Some(token) = token_string {
         let claims: Result<serde_json::Value, _> = token.verify_with_key(key);
         claims.is_ok()
