@@ -1,9 +1,13 @@
 mod media;
+mod robot;
 
 use crate::server::Server;
 
-use self::media::MediaService;
 pub use self::media::MediaState;
+use self::{
+    media::MediaService,
+    robot::{Robot, RobotState},
+};
 use common::SendMessage;
 use wasm_bindgen_futures::spawn_local;
 use yew::Callback;
@@ -15,13 +19,15 @@ pub enum RoboticMsg {
 
 pub struct Robotic {
     media: MediaService,
+    robot: Robot,
     server: Server,
 }
 
 impl Robotic {
     pub fn new(on_change: Callback<()>, server: Server) -> Robotic {
         Robotic {
-            media: MediaService::new(on_change),
+            media: MediaService::new(on_change.clone()),
+            robot: Robot::new(server.clone(), on_change),
             server,
         }
     }
@@ -29,6 +35,7 @@ impl Robotic {
     pub fn state(&self) -> RoboticState {
         RoboticState {
             media: self.media.state(),
+            robot: self.robot.state(),
         }
     }
 
@@ -48,4 +55,5 @@ impl Robotic {
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct RoboticState {
     pub media: MediaState,
+    pub robot: RobotState,
 }

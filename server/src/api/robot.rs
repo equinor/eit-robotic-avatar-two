@@ -10,7 +10,7 @@ use crate::Robotic;
 pub fn routes(router: Router) -> Router {
     // Just a simple hello world for now.
     router
-        .route("/api/robot/", get(status))
+        .route("/api/robot", get(status))
         .route("/api/robot/register", post(register))
 }
 
