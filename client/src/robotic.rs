@@ -4,10 +4,9 @@ mod robot;
 use crate::server::Server;
 
 pub use self::media::MediaState;
-use self::{
-    media::MediaService,
-    robot::{Robot, RobotState},
-};
+pub use self::robot::RobotState;
+
+use self::{media::MediaService, robot::Robot};
 use common::SendMessage;
 use wasm_bindgen_futures::spawn_local;
 use yew::Callback;
