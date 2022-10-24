@@ -8,7 +8,7 @@ use axum::{
     extract::Query,
     http::{self, Request, StatusCode},
     middleware::{self, Next},
-    response::Response,
+    response::{Redirect, Response},
     routing::get,
     Extension, Router,
 };
@@ -58,14 +58,16 @@ pub struct AuthQuery {
 async fn azure_ad_handler(
     Extension(mut auth): Extension<Auth>,
     Query(query): Query<AuthQuery>,
-) -> String {
-    match auth.token_from_azure_ad(query.code, query.state).await {
+) -> Redirect {
+    let token = match auth.token_from_azure_ad(query.code, query.state).await {
         Ok(token) => token,
         Err(err) => {
             warn!("/api/auth/azure_ad: {}", err);
             String::new()
         }
-    }
+    };
+    let url = format!("/?token={}", token);
+    Redirect::temporary(&url)
 }
 
 #[derive(Debug)]
