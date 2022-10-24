@@ -1,26 +1,31 @@
-use common::RobotStatus;
+use common::{RobotRegister, RobotStatus};
 use parking_lot::Mutex;
 use time::OffsetDateTime;
 
 pub struct Robot {
-    last_seen: Mutex<Option<OffsetDateTime>>,
+    status: Mutex<RobotStatus>,
 }
 
 impl Robot {
     pub fn new() -> Robot {
-        Robot {
-            last_seen: Mutex::new(None),
-        }
-    }
+        let status = RobotStatus {
+            last_seen: None,
+            interfaces: Vec::new(),
+        };
 
-    pub fn ping(&self) {
-        *self.last_seen.lock() = Some(OffsetDateTime::now_utc())
+        Robot {
+            status: Mutex::new(status),
+        }
     }
 
     pub fn status(&self) -> RobotStatus {
-        RobotStatus {
-            last_seen: *self.last_seen.lock(),
-        }
+        self.status.lock().clone()
+    }
+
+    pub fn register(&self, register: RobotRegister) {
+        let mut status = self.status.lock();
+        status.last_seen = Some(OffsetDateTime::now_utc());
+        status.interfaces = register.network_interfaces;
     }
 }
 
