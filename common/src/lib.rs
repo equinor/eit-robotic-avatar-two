@@ -38,6 +38,7 @@ pub struct Message {
     pub payload: String,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RobotStatus {
     pub last_seen: Option<OffsetDateTime>,
 }
