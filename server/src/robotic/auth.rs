@@ -44,6 +44,10 @@ impl Auth {
         self.azure_ad.as_ref().map(|azure_ad| azure_ad.login_url())
     }
 
+    pub fn gen_token_for_robot(&self) -> Result<String> {
+        self.token_from_name("robot".to_string())
+    }
+
     pub async fn token_from_azure_ad(&self, code: String, state: String) -> Result<String> {
         let azure_ad = self
             .azure_ad

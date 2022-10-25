@@ -3,7 +3,7 @@ use axum::{
     Extension, Json, Router,
 };
 use common::{RobotConfig, RobotRegister, RobotStatus};
-use log::info;
+use log::{info, warn};
 
 use crate::Robotic;
 
@@ -12,6 +12,7 @@ pub fn routes(router: Router) -> Router {
     router
         .route("/api/robot", get(status))
         .route("/api/robot/register", post(register))
+        .route("/api/robot/token", get(get_token))
 }
 
 async fn status(Extension(service): Extension<Robotic>) -> Json<RobotStatus> {
@@ -29,4 +30,14 @@ async fn register(
     );
     service.robot().register(robot_register);
     Json(RobotConfig {})
+}
+
+async fn get_token(Extension(service): Extension<Robotic>) -> String {
+    match service.auth().gen_token_for_robot() {
+        Ok(token) => token,
+        Err(err) => {
+            warn!("/api/robot/token: {}", err);
+            String::new()
+        }
+    }
 }
