@@ -1,6 +1,6 @@
 mod azure_ad;
 
-use std::time::Instant;
+use std::time::{Duration, Instant};
 
 use anyhow::{anyhow, Result};
 use hmac::Hmac;
@@ -70,6 +70,14 @@ impl Auth {
         pin
     }
 
+    pub fn token_from_pin(&self, pin: String) -> Result<String> {
+        if self.valid_pin(pin) {
+            self.token_from_name("FromPin".to_string())
+        } else {
+            Err(anyhow!("Pin not found."))
+        }
+    }
+
     fn token_from_name(&self, name: String) -> Result<String> {
         let claims = RegisteredClaims {
             subject: Some(name),
@@ -78,6 +86,30 @@ impl Auth {
         };
         Ok(claims.sign_with_key(&self.key)?)
     }
+
+    fn valid_pin(&self, pin: String) -> bool {
+        if debug_pin(&pin) {
+            return true;
+        }
+
+        let mut pins = self.pins.lock();
+
+        // Remove old pins
+        const TIMEOUT: Duration = Duration::from_secs(5 * 60);
+        let now = Instant::now();
+        pins.retain(|(_, timestamp)| {
+            let age = now.duration_since(*timestamp);
+            age < TIMEOUT
+        });
+
+        // Find the pin and remove it if its there.
+        let pin = pins
+            .iter()
+            .position(|(p, _)| p == &pin)
+            .map(|index| pins.swap_remove(index));
+
+        pin.is_some()
+    }
 }
 
 fn gen_pin() -> String {
@@ -85,4 +117,16 @@ fn gen_pin() -> String {
     let numbers_dist = Slice::new(&NUMBERS).unwrap();
     let rng = rand::thread_rng();
     rng.sample_iter(&numbers_dist).take(5).collect()
+}
+
+#[cfg(not(debug_assertions))]
+fn debug_pin(pin: &str) -> bool {
+    // In prod there are no debug pins.
+    false
+}
+
+#[cfg(debug_assertions)]
+fn debug_pin(pin: &str) -> bool {
+    // In debug mode the pin 00000 is always valid.
+    pin == "00000"
 }

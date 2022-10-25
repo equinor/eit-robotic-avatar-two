@@ -4,7 +4,7 @@ use axum::{
     http::{self, Request, StatusCode},
     middleware::{self, Next},
     response::{Redirect, Response},
-    routing::get,
+    routing::{get, post},
     Extension, Router,
 };
 use log::warn;
@@ -17,6 +17,7 @@ pub fn routes(router: Router) -> Router {
         .route_layer(middleware::from_fn(middleware))
         .route("/api/auth/login", get(login_handler))
         .route("/api/auth/azure_ad", get(azure_ad_handler))
+        .route("/api/auth/pin", post(pin_handler))
 }
 
 async fn login_handler(Extension(service): Extension<Robotic>) -> String {
@@ -47,6 +48,16 @@ async fn azure_ad_handler(
     };
     let url = format!("/?token={}", token);
     Redirect::temporary(&url)
+}
+
+async fn pin_handler(Extension(service): Extension<Robotic>, pin: String) -> String {
+    match service.auth().token_from_pin(pin) {
+        Ok(token) => token,
+        Err(err) => {
+            warn!("/api/auth/pin: {}", err);
+            String::new()
+        }
+    }
 }
 
 pub async fn middleware<B>(req: Request<B>, next: Next<B>) -> Result<Response, StatusCode> {
