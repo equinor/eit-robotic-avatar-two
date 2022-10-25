@@ -43,6 +43,16 @@ impl Server {
             .unwrap()
     }
 
+    pub async fn get_robot_token(&self) -> String {
+        self.get("/api/robot/token")
+            .send()
+            .await
+            .unwrap()
+            .text()
+            .await
+            .unwrap()
+    }
+
     fn get(&self, url: &str) -> Request {
         Request::get(url).header("Authorization", &self.header)
     }

@@ -34,7 +34,7 @@ impl Default for LocalConfig {
             server_url: Url::parse("http://127.0.0.1:3000/").expect("Default base_url is not valid"),
             // This token is signed by the dev-key that is an empty string.
             // No release build of the server will accept this key.
-            token: "eyJzdWIiOiJyb2JvdCIsImlhdCI6MTUxNjIzOTAyMn0.eUcwVDVwKmEnxo8uGej7C7Sc93IBcDdkfuQ0qOTOs5M".to_owned()
+            token: "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJyb2JvdCIsImlhdCI6MTY2NjY4OTQ5Nn0.do5Rlx3DaAaYY1ufMpzuz3fjyw9_NR7p1YD3BKM-2Zs".to_owned()
         }
     }
 }

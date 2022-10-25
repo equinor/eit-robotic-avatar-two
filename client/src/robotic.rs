@@ -14,6 +14,7 @@ use yew::Callback;
 pub enum RoboticMsg {
     Media,
     SendMessage(SendMessage),
+    GenRobotToken,
 }
 
 pub struct Robotic {
@@ -42,6 +43,7 @@ impl Robotic {
         match action {
             RoboticMsg::Media => self.media.get_media(),
             RoboticMsg::SendMessage(msg) => self.send_message(msg),
+            RoboticMsg::GenRobotToken => self.robot.gen_token(),
         }
     }
 
