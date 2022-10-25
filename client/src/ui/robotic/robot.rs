@@ -1,11 +1,12 @@
-use crate::robotic::RobotState;
+use crate::robotic::{RobotState, RoboticMsg};
 use common::Interface;
 use time::{ext::NumericalDuration, OffsetDateTime};
 use yew::prelude::*;
 
-#[derive(PartialEq, Eq, Properties)]
+#[derive(PartialEq, Properties)]
 pub struct Props {
     pub state: RobotState,
+    pub actions: Callback<RoboticMsg>,
 }
 
 #[function_component(Robot)]
@@ -41,6 +42,8 @@ pub fn robot(props: &Props) -> Html {
                     {interfaces.collect::<Html>()}
                 </tbody>
             </table>
+
+            {gen_token(props.actions.clone(), props.state.token.as_ref())}
         </div>
     }
 }
@@ -54,5 +57,16 @@ fn interface_to_row(interface: &Interface) -> Html {
             <td>{&interface.netmask}</td>
             <td>{&interface.mac}</td>
         </tr>
+    }
+}
+
+fn gen_token(actions: Callback<RoboticMsg>, token: Option<&String>) -> Html {
+    let token = token.map(|s| &**s).unwrap_or("");
+
+    html! {
+        <div>
+            <button onclick={move |_| actions.emit(RoboticMsg::GenRobotToken) }>{"Generate token for Robot"}</button>
+            <pre>{token}</pre>
+        </div>
     }
 }

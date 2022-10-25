@@ -77,7 +77,7 @@ impl Component for Ui {
             let state = robotic.state();
             html! {
                 <>
-                    <Robotic class={css!("grid-area: main;")} model={state.clone()}/>
+                    <Robotic class={css!("grid-area: main;")} model={state.clone()} actions={link.callback(Msg::Action)}/>
                     <DebugTools class={css!("grid-area: debug;")} state={state} actions={link.callback(Msg::Action)}/>
                 </>
             }
