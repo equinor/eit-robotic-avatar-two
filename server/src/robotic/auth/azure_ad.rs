@@ -1,7 +1,4 @@
-use std::{
-    sync::Arc,
-    time::{Duration, Instant},
-};
+use std::time::{Duration, Instant};
 
 use anyhow::{anyhow, Result};
 
@@ -17,7 +14,7 @@ use reqwest::Url;
 
 pub struct AzureAd {
     client: CoreClient,
-    state: Arc<Mutex<Vec<AuthState>>>,
+    state: Mutex<Vec<AuthState>>,
 }
 
 impl AzureAd {
@@ -43,7 +40,7 @@ impl AzureAd {
 
         Ok(AzureAd {
             client,
-            state: Arc::default(),
+            state: Mutex::default(),
         })
     }
 

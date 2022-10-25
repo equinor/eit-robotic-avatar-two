@@ -43,6 +43,21 @@ impl Robot {
             on_change.emit(());
         });
     }
+
+    pub fn gen_pin(&self) {
+        let server = self.server.clone();
+        let state = self.state.clone();
+        let on_change = self.on_change.clone();
+
+        spawn_local(async move {
+            let pin = server.get_robot_pin().await;
+            {
+                let mut state_ref = state.borrow_mut();
+                state_ref.pin = Some(pin)
+            }
+            on_change.emit(());
+        });
+    }
 }
 
 fn pull_status(server: Server, on_change: Callback<()>, state: Rc<RefCell<RobotState>>) {
@@ -65,4 +80,5 @@ pub struct RobotState {
     pub last_seen: Option<OffsetDateTime>,
     pub interfaces: Vec<Interface>,
     pub token: Option<String>,
+    pub pin: Option<String>,
 }

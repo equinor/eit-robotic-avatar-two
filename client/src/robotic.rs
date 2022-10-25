@@ -15,6 +15,7 @@ pub enum RoboticMsg {
     Media,
     SendMessage(SendMessage),
     GenRobotToken,
+    GenPin,
 }
 
 pub struct Robotic {
@@ -44,6 +45,7 @@ impl Robotic {
             RoboticMsg::Media => self.media.get_media(),
             RoboticMsg::SendMessage(msg) => self.send_message(msg),
             RoboticMsg::GenRobotToken => self.robot.gen_token(),
+            RoboticMsg::GenPin => self.robot.gen_pin(),
         }
     }
 

@@ -13,6 +13,7 @@ pub fn routes(router: Router) -> Router {
         .route("/api/robot", get(status))
         .route("/api/robot/register", post(register))
         .route("/api/robot/token", get(get_token))
+        .route("/api/robot/pin", get(get_pin))
 }
 
 async fn status(Extension(service): Extension<Robotic>) -> Json<RobotStatus> {
@@ -40,4 +41,8 @@ async fn get_token(Extension(service): Extension<Robotic>) -> String {
             String::new()
         }
     }
+}
+
+async fn get_pin(Extension(service): Extension<Robotic>) -> String {
+    service.auth().issue_pin()
 }

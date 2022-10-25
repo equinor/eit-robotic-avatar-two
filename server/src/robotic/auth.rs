@@ -1,8 +1,12 @@
 mod azure_ad;
 
+use std::time::Instant;
+
 use anyhow::{anyhow, Result};
 use hmac::Hmac;
 use jwt::{RegisteredClaims, SignWithKey, VerifyWithKey};
+use parking_lot::Mutex;
+use rand::{distributions::Slice, Rng};
 use reqwest::Url;
 use sha2::Sha256;
 use time::OffsetDateTime;
@@ -14,6 +18,7 @@ use self::azure_ad::AzureAd;
 pub struct Auth {
     key: Hmac<Sha256>,
     azure_ad: Option<AzureAd>,
+    pins: Mutex<Vec<(String, Instant)>>,
 }
 
 impl Auth {
@@ -27,6 +32,7 @@ impl Auth {
         Ok(Auth {
             key: config.token_key.clone(),
             azure_ad,
+            pins: Mutex::default(),
         })
     }
 
@@ -57,6 +63,13 @@ impl Auth {
         self.token_from_name(azure_ad.name_from_reply(code, state).await?)
     }
 
+    pub fn issue_pin(&self) -> String {
+        let pin = gen_pin();
+        let mut pins = self.pins.lock();
+        pins.push((pin.clone(), Instant::now()));
+        pin
+    }
+
     fn token_from_name(&self, name: String) -> Result<String> {
         let claims = RegisteredClaims {
             subject: Some(name),
@@ -65,4 +78,11 @@ impl Auth {
         };
         Ok(claims.sign_with_key(&self.key)?)
     }
+}
+
+fn gen_pin() -> String {
+    const NUMBERS: [char; 10] = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+    let numbers_dist = Slice::new(&NUMBERS).unwrap();
+    let rng = rand::thread_rng();
+    rng.sample_iter(&numbers_dist).take(5).collect()
 }
