@@ -21,7 +21,7 @@ async fn main() -> Result<()> {
     let config = Config::load()?;
 
     debug!("Loading App");
-    let robotic = Robotic::new();
+    let robotic = Robotic::new(&config).await?;
 
     debug!("Stating API Server");
     api::serve(config, robotic).await
