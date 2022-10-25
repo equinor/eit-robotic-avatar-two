@@ -29,8 +29,15 @@ impl Auth {
         Auth { on_login }
     }
 
-    pub fn nothing(&self) {
-        self.on_login.emit(Server::new(""))
+    pub fn pin(&self, pin: String) {
+        let on_login = self.on_login.clone();
+        spawn_local(async move {
+            let token = Server::post_auth_pin(pin).await;
+            if !token.is_empty() {
+                LocalStorage::set("robotic_token", token.clone()).unwrap();
+                on_login.emit(Server::new(&token))
+            }
+        });
     }
 
     pub fn start_azure_ad(&self) {

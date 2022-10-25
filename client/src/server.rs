@@ -23,6 +23,17 @@ impl Server {
             .unwrap()
     }
 
+    pub async fn post_auth_pin(pin: String) -> String {
+        Request::post("/api/auth/pin")
+            .body(pin)
+            .send()
+            .await
+            .unwrap()
+            .text()
+            .await
+            .unwrap()
+    }
+
     pub async fn post_message(&self, msg: &SendMessage) {
         self.post("/api/messaging")
             .header("Authorization", &self.header)
