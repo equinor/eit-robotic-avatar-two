@@ -53,6 +53,16 @@ impl Server {
             .unwrap()
     }
 
+    pub async fn get_robot_pin(&self) -> String {
+        self.get("/api/robot/pin")
+            .send()
+            .await
+            .unwrap()
+            .text()
+            .await
+            .unwrap()
+    }
+
     fn get(&self, url: &str) -> Request {
         Request::get(url).header("Authorization", &self.header)
     }
