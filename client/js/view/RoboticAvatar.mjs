@@ -1,4 +1,4 @@
-import { loadCams } from "../modules/cameras.mjs";
+import { listDevices, loadCams } from "../modules/cameras.mjs";
 import { fromOffers, fromStreams } from "../modules/rtc.mjs";
 import { postAnswer, postOffers, postTracking, pullAnswer, pullOffers } from "../modules/server.mjs";
 import Viewport from "../view/Viewport.mjs";
@@ -8,19 +8,14 @@ export class RoboticAvatar extends React.Component {
         super(props);
         this.sending = false;
 
+        this.setStreams = (streams) => {
+            this.setState(streams) 
+        };
+
         this.handleSource = async () => {
             try {
                 this.setState({ started: true });
-                let cams = await loadCams(this.props.leftCamId, this.props.rightCamId);
-                this.setState(cams);
-                this.setState({ devices: await listDevices() });
-                let con = await fromStreams(cams);
-                let offers = await con.createOffers();
-                console.log(offers);
-                await postOffers(offers);
-                let answer = await pullAnswer();
-                console.log(answer);
-                await con.setAnswers(answer);
+                await source(this.setStreams, this.props.leftCamId, this.props.rightCamId);
             }
             catch (err) {
                 console.error(err);
@@ -30,14 +25,7 @@ export class RoboticAvatar extends React.Component {
         this.handleReceiver = async () => {
             try {
                 this.setState({ started: true });
-                let offers = await pullOffers();
-                console.log(offers);
-                let con = await fromOffers(offers);
-                let answer = await con.createAnswers();
-                console.log(answer);
-                await postAnswer(answer);
-                let streams = con.getStreams();
-                this.setState(streams);
+                this.setState(await receiver());
             }
             catch (err) {
                 console.log(err);
@@ -81,4 +69,26 @@ export class RoboticAvatar extends React.Component {
                     React.createElement("button", { disabled: this.state.started, onClick: this.handleReceiver }, "Start as receiver"))),
             React.createElement(Viewport, { left: this.state.left, right: this.state.right, onTrack: this.handleTracking }));
     }
+}
+
+async function source(setStreams, leftCamId, rightCamId) {
+    let cams = await loadCams(leftCamId, rightCamId);
+    setStreams(cams);
+    let con = await fromStreams(cams);
+    let offers = await con.createOffers();
+    console.log(offers);
+    await postOffers(offers);
+    let answer = await pullAnswer();
+    console.log(answer);
+    await con.setAnswers(answer);
+}
+
+async function receiver() {
+    let offers = await pullOffers();
+    console.log(offers);
+    let con = await fromOffers(offers);
+    let answer = await con.createAnswers();
+    console.log(answer);
+    await postAnswer(answer);
+    return con.getStreams();
 }
