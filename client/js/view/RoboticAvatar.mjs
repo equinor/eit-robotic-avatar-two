@@ -3,13 +3,6 @@ import { fromOffers, fromStreams } from "../modules/rtc.mjs";
 import { postAnswer, postOffers, postTracking, pullAnswer, pullOffers } from "../modules/server.mjs";
 import Viewport from "../view/Viewport.mjs";
 
-const GlobalStyle = styled.createGlobalStyle `
-    html, body, #robotic_avatar {
-        margin: 0;
-        height: 100%;
-    }
-`;
-
 const Grid = styled.main `
     height: 100%;
     display: grid;
@@ -56,25 +49,6 @@ export class RoboticAvatar extends React.Component {
                 this.setState({ started: true });
                 let cams = await loadCams(this.state.leftCamId, this.state.rightCamId);
                 this.setState(cams);
-                this.setState({ devices: await listDevices() });
-                let con = await fromStreams(cams);
-                let offers = await con.createOffers();
-                console.log(offers);
-                await postOffers(offers);
-                let answer = await pullAnswer();
-                console.log(answer);
-                await con.setAnswers(answer);
-            }
-            catch (err) {
-                console.error(err);
-            }
-        };
-
-        this.handleSourceNoView = async () => {
-            try {
-                this.setState({ started: true });
-                let cams = await loadCams(this.state.leftCamId, this.state.rightCamId);
-                // this.setState(cams);
                 this.setState({ devices: await listDevices() });
                 let con = await fromStreams(cams);
                 let offers = await con.createOffers();
@@ -146,7 +120,6 @@ export class RoboticAvatar extends React.Component {
             ": ",
             device[1]));
         return React.createElement(Grid, null,
-            React.createElement(GlobalStyle, null),
             React.createElement(Ui, null,
                 React.createElement("h1", null, "Robotic Avatar Demo"),
                 React.createElement("p", null,
@@ -158,7 +131,6 @@ export class RoboticAvatar extends React.Component {
                     React.createElement("ul", null, devices)),
                 React.createElement("p", null,
                     React.createElement("button", { disabled: this.state.started, onClick: this.handleSource }, "Start as source"),
-                    React.createElement("button", { disabled: this.state.started, onClick: this.handleSourceNoView }, "Start as source NO VIEWPORT"),
                     React.createElement("button", { disabled: this.state.started, onClick: this.handleReceiver }, "Start as receiver"))),
             React.createElement(View, { left: this.state.left, right: this.state.right, onTrack: this.handleTracking }));
     }
