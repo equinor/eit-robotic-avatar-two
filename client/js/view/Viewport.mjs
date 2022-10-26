@@ -1,5 +1,3 @@
-//import React from "react";
-//import styled from "styled-components";
 import * as THREE from 'three';
 import { VRButton } from 'https://unpkg.com/three@0.142.0/examples/jsm/webxr/VRButton.js';
 

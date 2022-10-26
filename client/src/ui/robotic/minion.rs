@@ -1,9 +1,14 @@
 mod cameras;
 
+use std::{cell::RefCell, rc::Rc};
+
 use gloo_storage::{LocalStorage, Storage};
 use js_sys::Reflect;
 use stylist::css;
-use wasm_bindgen::{prelude::{wasm_bindgen, Closure}, JsCast, JsValue};
+use wasm_bindgen::{
+    prelude::{wasm_bindgen, Closure},
+    JsCast, JsValue,
+};
 use wasm_bindgen_futures::spawn_local;
 use web_sys::{EventTarget, HtmlElement, HtmlInputElement, MediaStream};
 use yew::prelude::*;
@@ -20,6 +25,7 @@ pub enum Msg {
     Source,
     Receiver,
     Cams((MediaStream, MediaStream)),
+    Tracking(JsValue),
 }
 
 pub struct Minion {
@@ -29,6 +35,7 @@ pub struct Minion {
     devices: Vec<(String, String)>,
     started: bool,
     cams: (Option<MediaStream>, Option<MediaStream>),
+    sending: Rc<RefCell<bool>>,
 }
 
 impl Component for Minion {
@@ -51,6 +58,7 @@ impl Component for Minion {
             devices: Vec::new(),
             started: false,
             cams: (None, None),
+            sending: Rc::default(),
         }
     }
 
@@ -72,15 +80,55 @@ impl Component for Minion {
                 let cam_id = self.cam_id.clone();
                 let callback = link.callback(Msg::Cams);
                 spawn_local(async move {
-                    source(&Closure::new(move | streams| {
-                        let left = Reflect::get(&streams, &JsValue::from_str("left")).unwrap().dyn_into().unwrap();
-                        let right = Reflect::get(&streams, &JsValue::from_str("right")).unwrap().dyn_into().unwrap();
-                        callback.emit((left, right));
-                    }), cam_id.0, cam_id.1).await
+                    source(
+                        &Closure::new(move |streams| {
+                            let left = Reflect::get(&streams, &JsValue::from_str("left"))
+                                .unwrap()
+                                .dyn_into()
+                                .unwrap();
+                            let right = Reflect::get(&streams, &JsValue::from_str("right"))
+                                .unwrap()
+                                .dyn_into()
+                                .unwrap();
+                            callback.emit((left, right));
+                        }),
+                        cam_id.0,
+                        cam_id.1,
+                    )
+                    .await
                 });
-            },
-            Msg::Receiver => todo!(),
+            }
+            Msg::Receiver => {
+                self.started = true;
+
+                let callback = link.callback(Msg::Cams);
+                spawn_local(async move {
+                    let streams = receiver().await;
+                    let left = Reflect::get(&streams, &JsValue::from_str("left"))
+                        .unwrap()
+                        .dyn_into()
+                        .unwrap();
+                    let right = Reflect::get(&streams, &JsValue::from_str("right"))
+                        .unwrap()
+                        .dyn_into()
+                        .unwrap();
+                    callback.emit((left, right));
+                });
+            }
             Msg::Cams(cams) => self.cams = (Some(cams.0), Some(cams.1)),
+            Msg::Tracking(value) => {
+                let mut sending = self.sending.borrow_mut();
+                if !(*sending) {
+                    *sending = true;
+                    drop(sending);
+
+                    let sending = self.sending.clone();
+                    spawn_local(async move {
+                        tracking(value).await;
+                        *sending.borrow_mut() = false;
+                    });
+                }
+            }
         };
         true
     }
@@ -154,22 +202,41 @@ impl Component for Minion {
         }
     }
 
-    fn rendered(&mut self, _ctx: &Context<Self>, first_render: bool) {
+    fn rendered(&mut self, ctx: &Context<Self>, first_render: bool) {
         if first_render {
             self.root = minion_root(self.node_ref.cast().unwrap());
         }
-        render(&self.root, self.cams.0.clone(), self.cams.1.clone())
+
+        let callback = ctx.link().callback(Msg::Tracking);
+        render(
+            &self.root,
+            self.cams.0.clone(),
+            self.cams.1.clone(),
+            &Closure::new(move |t| {
+                callback.emit(t);
+            }),
+        )
     }
 }
 
 #[wasm_bindgen(raw_module = "/js/index.mjs")]
 extern "C" {
     fn minion_root(root_elem: HtmlElement) -> JsValue;
-    fn render(root: &JsValue, left_cam_id: Option<MediaStream>, right_cam_id: Option<MediaStream>);
+    fn render(
+        root: &JsValue,
+        left: Option<MediaStream>,
+        right: Option<MediaStream>,
+        on_track: &Closure<dyn FnMut(JsValue)>,
+    );
 }
 
 #[wasm_bindgen(raw_module = "/js/view/RoboticAvatar.mjs")]
 extern "C" {
-    async fn source(setStreams: &Closure<dyn FnMut(JsValue)> , leftCamId: String, rightCamId: String);
+    async fn source(
+        setStreams: &Closure<dyn FnMut(JsValue)>,
+        leftCamId: String,
+        rightCamId: String,
+    );
     async fn receiver() -> JsValue;
+    async fn tracking(track: JsValue);
 }
