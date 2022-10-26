@@ -1,10 +1,11 @@
 mod cameras;
 
 use gloo_storage::{LocalStorage, Storage};
+use js_sys::Reflect;
 use stylist::css;
-use wasm_bindgen::{prelude::wasm_bindgen, JsCast, JsValue};
+use wasm_bindgen::{prelude::{wasm_bindgen, Closure}, JsCast, JsValue};
 use wasm_bindgen_futures::spawn_local;
-use web_sys::{EventTarget, HtmlElement, HtmlInputElement};
+use web_sys::{EventTarget, HtmlElement, HtmlInputElement, MediaStream};
 use yew::prelude::*;
 
 use self::cameras::list_devices;
@@ -16,6 +17,9 @@ pub enum Msg {
     LeftCamId(String),
     RightCamId(String),
     Devices(Vec<(String, String)>),
+    Source,
+    Receiver,
+    Cams((MediaStream, MediaStream)),
 }
 
 pub struct Minion {
@@ -23,6 +27,8 @@ pub struct Minion {
     root: JsValue,
     cam_id: (String, String),
     devices: Vec<(String, String)>,
+    started: bool,
+    cams: (Option<MediaStream>, Option<MediaStream>),
 }
 
 impl Component for Minion {
@@ -43,10 +49,13 @@ impl Component for Minion {
             root: JsValue::null(),
             cam_id,
             devices: Vec::new(),
+            started: false,
+            cams: (None, None),
         }
     }
 
-    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
+    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
+        let link = ctx.link();
         match msg {
             Msg::LeftCamId(id) => {
                 self.cam_id.0 = id;
@@ -57,6 +66,21 @@ impl Component for Minion {
                 LocalStorage::set("minion_cam_id", self.cam_id.clone()).unwrap();
             }
             Msg::Devices(devices) => self.devices = devices,
+            Msg::Source => {
+                self.started = true;
+
+                let cam_id = self.cam_id.clone();
+                let callback = link.callback(Msg::Cams);
+                spawn_local(async move {
+                    source(&Closure::new(move | streams| {
+                        let left = Reflect::get(&streams, &JsValue::from_str("left")).unwrap().dyn_into().unwrap();
+                        let right = Reflect::get(&streams, &JsValue::from_str("right")).unwrap().dyn_into().unwrap();
+                        callback.emit((left, right));
+                    }), cam_id.0, cam_id.1).await
+                });
+            },
+            Msg::Receiver => todo!(),
+            Msg::Cams(cams) => self.cams = (Some(cams.0), Some(cams.1)),
         };
         true
     }
@@ -118,6 +142,10 @@ impl Component for Minion {
                             {for devices}
                         </ul>
                     </p>
+                    <p>
+                        <button disabled={self.started} onclick={link.callback(|_| Msg::Source)}>{"Start as source"}</button>
+                        <button disabled={self.started} onclick={link.callback(|_| Msg::Receiver)}>{"Start as receiver"}</button>
+                    </p>
                 </div>
                 <div class={"view"} ref={self.node_ref.clone()}>
 
@@ -130,12 +158,18 @@ impl Component for Minion {
         if first_render {
             self.root = minion_root(self.node_ref.cast().unwrap());
         }
-        render(&self.root, &self.cam_id.0, &self.cam_id.1)
+        render(&self.root, self.cams.0.clone(), self.cams.1.clone())
     }
 }
 
 #[wasm_bindgen(raw_module = "/js/index.mjs")]
 extern "C" {
     fn minion_root(root_elem: HtmlElement) -> JsValue;
-    fn render(root: &JsValue, left_cam_id: &str, right_cam_id: &str);
+    fn render(root: &JsValue, left_cam_id: Option<MediaStream>, right_cam_id: Option<MediaStream>);
+}
+
+#[wasm_bindgen(raw_module = "/js/view/RoboticAvatar.mjs")]
+extern "C" {
+    async fn source(setStreams: &Closure<dyn FnMut(JsValue)> , leftCamId: String, rightCamId: String);
+    async fn receiver() -> JsValue;
 }

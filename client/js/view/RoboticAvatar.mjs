@@ -8,30 +8,6 @@ export class RoboticAvatar extends React.Component {
         super(props);
         this.sending = false;
 
-        this.setStreams = (streams) => {
-            this.setState(streams) 
-        };
-
-        this.handleSource = async () => {
-            try {
-                this.setState({ started: true });
-                await source(this.setStreams, this.props.leftCamId, this.props.rightCamId);
-            }
-            catch (err) {
-                console.error(err);
-            }
-        };
-
-        this.handleReceiver = async () => {
-            try {
-                this.setState({ started: true });
-                this.setState(await receiver());
-            }
-            catch (err) {
-                console.log(err);
-            }
-        };
-
         this.handleTracking = async (track) => {
             try {
                 if (this.sending)
@@ -62,16 +38,11 @@ export class RoboticAvatar extends React.Component {
 
     render() {
         console.log(this.props);
-        return React.createElement(React.Fragment, null,
-            React.createElement("div", null,
-                React.createElement("p", null,
-                    React.createElement("button", { disabled: this.state.started, onClick: this.handleSource }, "Start as source"),
-                    React.createElement("button", { disabled: this.state.started, onClick: this.handleReceiver }, "Start as receiver"))),
-            React.createElement(Viewport, { left: this.state.left, right: this.state.right, onTrack: this.handleTracking }));
+        return React.createElement(Viewport, { left: this.props.left, right: this.props.right, onTrack: this.handleTracking });
     }
 }
 
-async function source(setStreams, leftCamId, rightCamId) {
+export async function source(setStreams, leftCamId, rightCamId) {
     let cams = await loadCams(leftCamId, rightCamId);
     setStreams(cams);
     let con = await fromStreams(cams);
@@ -83,7 +54,7 @@ async function source(setStreams, leftCamId, rightCamId) {
     await con.setAnswers(answer);
 }
 
-async function receiver() {
+export async function receiver() {
     let offers = await pullOffers();
     console.log(offers);
     let con = await fromOffers(offers);
