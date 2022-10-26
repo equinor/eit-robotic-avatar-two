@@ -1,4 +1,5 @@
 mod cameras;
+mod viewport;
 
 use std::{cell::RefCell, rc::Rc};
 
@@ -10,10 +11,11 @@ use wasm_bindgen::{
     JsCast, JsValue,
 };
 use wasm_bindgen_futures::spawn_local;
-use web_sys::{EventTarget, HtmlElement, HtmlInputElement, MediaStream};
+use web_sys::{EventTarget, HtmlInputElement, MediaStream};
 use yew::prelude::*;
 
 use self::cameras::list_devices;
+use self::viewport::Viewport;
 
 #[derive(PartialEq, Eq, Properties)]
 pub struct Props;
@@ -29,8 +31,6 @@ pub enum Msg {
 }
 
 pub struct Minion {
-    node_ref: NodeRef,
-    root: JsValue,
     cam_id: (String, String),
     devices: Vec<(String, String)>,
     started: bool,
@@ -52,8 +52,6 @@ impl Component for Minion {
         });
 
         Minion {
-            node_ref: NodeRef::default(),
-            root: JsValue::null(),
             cam_id,
             devices: Vec::new(),
             started: false,
@@ -195,39 +193,10 @@ impl Component for Minion {
                         <button disabled={self.started} onclick={link.callback(|_| Msg::Receiver)}>{"Start as receiver"}</button>
                     </p>
                 </div>
-                <div class={"view"} ref={self.node_ref.clone()}>
-
-                </div>
+                <Viewport class={"view"} left={self.cams.0.clone()} right={self.cams.1.clone()} on_track={link.callback(Msg::Tracking)}></Viewport>
             </div>
         }
     }
-
-    fn rendered(&mut self, ctx: &Context<Self>, first_render: bool) {
-        if first_render {
-            self.root = minion_root(self.node_ref.cast().unwrap());
-        }
-
-        let callback = ctx.link().callback(Msg::Tracking);
-        render(
-            &self.root,
-            self.cams.0.clone(),
-            self.cams.1.clone(),
-            &Closure::new(move |t| {
-                callback.emit(t);
-            }),
-        )
-    }
-}
-
-#[wasm_bindgen(raw_module = "/js/index.mjs")]
-extern "C" {
-    fn minion_root(root_elem: HtmlElement) -> JsValue;
-    fn render(
-        root: &JsValue,
-        left: Option<MediaStream>,
-        right: Option<MediaStream>,
-        on_track: &Closure<dyn FnMut(JsValue)>,
-    );
 }
 
 #[wasm_bindgen(raw_module = "/js/view/RoboticAvatar.mjs")]
