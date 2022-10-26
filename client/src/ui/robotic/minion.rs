@@ -1,5 +1,5 @@
 use stylist::css;
-use wasm_bindgen::prelude::wasm_bindgen;
+use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
 use web_sys::HtmlElement;
 use yew::prelude::*;
 
@@ -8,6 +8,7 @@ pub struct Props;
 
 pub struct Minion {
     node_ref: NodeRef,
+    root: JsValue,
 }
 
 impl Component for Minion {
@@ -17,6 +18,7 @@ impl Component for Minion {
     fn create(_ctx: &Context<Self>) -> Self {
         Minion {
             node_ref: NodeRef::default(),
+            root: JsValue::null(),
         }
     }
 
@@ -58,12 +60,18 @@ impl Component for Minion {
 
     fn rendered(&mut self, _ctx: &Context<Self>, first_render: bool) {
         if first_render {
-            robotic_main(self.node_ref.cast().unwrap())
+            self.root = minion_root(self.node_ref.cast().unwrap());
         }
+        let props = ReactProps {};
+        render(&self.root, props)
     }
 }
 
+#[wasm_bindgen]
+struct ReactProps {}
+
 #[wasm_bindgen(raw_module = "/js/index.mjs")]
 extern "C" {
-    fn robotic_main(root_elem: HtmlElement);
+    fn minion_root(root_elem: HtmlElement) -> JsValue;
+    fn render(root: &JsValue, props: ReactProps);
 }

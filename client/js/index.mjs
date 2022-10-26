@@ -1,6 +1,9 @@
 import { RoboticAvatar } from "./view/RoboticAvatar.mjs";
 
-export function robotic_main(root_elem) {
-    const react_root = ReactDOM.createRoot(root_elem);
-    react_root.render(React.createElement(RoboticAvatar, null));
+export function minion_root(root_elem) {
+    return ReactDOM.createRoot(root_elem);
+}
+
+export function render(root, props) {
+    root.render(React.createElement(RoboticAvatar, props))
 }
