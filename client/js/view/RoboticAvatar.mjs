@@ -7,26 +7,13 @@ const LeftCameraId = "LeftCameraId";
 const RightCameraId = "RightCameraId";
 export class RoboticAvatar extends React.Component {
     constructor(props) {
-        var _a, _b;
         super(props);
         this.sending = false;
-
-        this.handleLeftCam = (event) => {
-            const value = event.target.value;
-            localStorage.setItem(LeftCameraId, value);
-            this.setState({ leftCamId: value });
-        };
-
-        this.handleRightCam = (event) => {
-            const value = event.target.value;
-            localStorage.setItem(RightCameraId, value);
-            this.setState({ rightCamId: value });
-        };
 
         this.handleSource = async () => {
             try {
                 this.setState({ started: true });
-                let cams = await loadCams(this.state.leftCamId, this.state.rightCamId);
+                let cams = await loadCams(this.props.leftCamId, this.props.rightCamId);
                 this.setState(cams);
                 this.setState({ devices: await listDevices() });
                 let con = await fromStreams(cams);
@@ -82,18 +69,15 @@ export class RoboticAvatar extends React.Component {
             }
         };
 
-        const left = (_a = localStorage.getItem(LeftCameraId)) !== null && _a !== void 0 ? _a : "";
-        const right = (_b = localStorage.getItem(RightCameraId)) !== null && _b !== void 0 ? _b : "";
         this.state = {
             started: false,
-            leftCamId: left,
-            rightCamId: right,
             devices: []
         };
         listDevices().then(devices => this.setState({ devices: devices }));
     }
 
     render() {
+        console.log(this.props);
         const devices = this.state.devices.map(device => React.createElement("li", null,
             device[0],
             ": ",
@@ -101,11 +85,6 @@ export class RoboticAvatar extends React.Component {
         return React.createElement(React.Fragment, null,
             React.createElement("div", null,
                 React.createElement("p", null,
-                    "Left Camera ID: ",
-                    React.createElement("input", { size: 64, value: this.state.leftCamId, onChange: this.handleLeftCam }),
-                    React.createElement("br", null),
-                    "Right Camera ID ",
-                    React.createElement("input", { size: 64, value: this.state.rightCamId, onChange: this.handleRightCam }),
                     React.createElement("ul", null, devices)),
                 React.createElement("p", null,
                     React.createElement("button", { disabled: this.state.started, onClick: this.handleSource }, "Start as source"),

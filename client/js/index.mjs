@@ -4,6 +4,9 @@ export function minion_root(root_elem) {
     return ReactDOM.createRoot(root_elem);
 }
 
-export function render(root, props) {
-    root.render(React.createElement(RoboticAvatar, props))
+export function render(root, leftCamId, rightCamId) {
+    root.render(React.createElement(RoboticAvatar, {
+        leftCamId,
+        rightCamId
+    }))
 }
