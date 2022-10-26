@@ -33,11 +33,26 @@ impl Component for Minion {
                 "view";
             gap: 16px 16px;
             padding: 8px;
+
+            & > .ui {
+                grid-area: ui;
+            }
+            
+            & > .view {
+                grid-area: view;
+            }
         "#
         );
 
         html! {
-            <div class={css} ref={self.node_ref.clone()}></div>
+            <div class={css}>
+                <div class={"ui"}>
+                    <h1>{"Robotic Avatar Demo"}</h1>
+                </div>
+                <div class={"view"} ref={self.node_ref.clone()}>
+
+                </div>
+            </div>
         }
     }
 

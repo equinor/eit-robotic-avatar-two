@@ -3,14 +3,6 @@ import { fromOffers, fromStreams } from "../modules/rtc.mjs";
 import { postAnswer, postOffers, postTracking, pullAnswer, pullOffers } from "../modules/server.mjs";
 import Viewport from "../view/Viewport.mjs";
 
-const Ui = styled.div `
-    grid-area: ui;
-`;
-
-const View = styled(Viewport) `
-    grid-area: view;
-`;
-
 const LeftCameraId = "LeftCameraId";
 const RightCameraId = "RightCameraId";
 export class RoboticAvatar extends React.Component {
@@ -107,8 +99,7 @@ export class RoboticAvatar extends React.Component {
             ": ",
             device[1]));
         return React.createElement(React.Fragment, null,
-            React.createElement(Ui, null,
-                React.createElement("h1", null, "Robotic Avatar Demo"),
+            React.createElement("div", null,
                 React.createElement("p", null,
                     "Left Camera ID: ",
                     React.createElement("input", { size: 64, value: this.state.leftCamId, onChange: this.handleLeftCam }),
@@ -119,6 +110,6 @@ export class RoboticAvatar extends React.Component {
                 React.createElement("p", null,
                     React.createElement("button", { disabled: this.state.started, onClick: this.handleSource }, "Start as source"),
                     React.createElement("button", { disabled: this.state.started, onClick: this.handleReceiver }, "Start as receiver"))),
-            React.createElement(View, { left: this.state.left, right: this.state.right, onTrack: this.handleTracking }));
+            React.createElement(Viewport, { left: this.state.left, right: this.state.right, onTrack: this.handleTracking }));
     }
 }
