@@ -31,4 +31,6 @@ features = [
     "MediaStreamConstraints",
     "Navigator",
     "Window",
+    "HtmlCanvasElement",
+    "HtmlVideoElement"
 ]
