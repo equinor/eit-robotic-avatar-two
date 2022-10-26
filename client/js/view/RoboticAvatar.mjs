@@ -1,10 +1,8 @@
-import { listDevices, loadCams } from "../modules/cameras.mjs";
+import { loadCams } from "../modules/cameras.mjs";
 import { fromOffers, fromStreams } from "../modules/rtc.mjs";
 import { postAnswer, postOffers, postTracking, pullAnswer, pullOffers } from "../modules/server.mjs";
 import Viewport from "../view/Viewport.mjs";
 
-const LeftCameraId = "LeftCameraId";
-const RightCameraId = "RightCameraId";
 export class RoboticAvatar extends React.Component {
     constructor(props) {
         super(props);
@@ -71,21 +69,13 @@ export class RoboticAvatar extends React.Component {
 
         this.state = {
             started: false,
-            devices: []
         };
-        listDevices().then(devices => this.setState({ devices: devices }));
     }
 
     render() {
         console.log(this.props);
-        const devices = this.state.devices.map(device => React.createElement("li", null,
-            device[0],
-            ": ",
-            device[1]));
         return React.createElement(React.Fragment, null,
             React.createElement("div", null,
-                React.createElement("p", null,
-                    React.createElement("ul", null, devices)),
                 React.createElement("p", null,
                     React.createElement("button", { disabled: this.state.started, onClick: this.handleSource }, "Start as source"),
                     React.createElement("button", { disabled: this.state.started, onClick: this.handleReceiver }, "Start as receiver"))),

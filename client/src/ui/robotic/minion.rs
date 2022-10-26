@@ -1,8 +1,13 @@
+mod cameras;
+
 use gloo_storage::{LocalStorage, Storage};
 use stylist::css;
 use wasm_bindgen::{prelude::wasm_bindgen, JsCast, JsValue};
+use wasm_bindgen_futures::spawn_local;
 use web_sys::{EventTarget, HtmlElement, HtmlInputElement};
 use yew::prelude::*;
+
+use self::cameras::list_devices;
 
 #[derive(PartialEq, Eq, Properties)]
 pub struct Props;
@@ -10,25 +15,34 @@ pub struct Props;
 pub enum Msg {
     LeftCamId(String),
     RightCamId(String),
+    Devices(Vec<(String, String)>),
 }
 
 pub struct Minion {
     node_ref: NodeRef,
     root: JsValue,
     cam_id: (String, String),
+    devices: Vec<(String, String)>,
 }
 
 impl Component for Minion {
     type Message = Msg;
     type Properties = Props;
 
-    fn create(_ctx: &Context<Self>) -> Self {
+    fn create(ctx: &Context<Self>) -> Self {
         let cam_id = LocalStorage::get("minion_cam_id").unwrap_or_default();
+
+        let callback = ctx.link().callback(Msg::Devices);
+        spawn_local(async move {
+            let devices = list_devices().await;
+            callback.emit(devices)
+        });
 
         Minion {
             node_ref: NodeRef::default(),
             root: JsValue::null(),
             cam_id,
+            devices: Vec::new(),
         }
     }
 
@@ -42,6 +56,7 @@ impl Component for Minion {
                 self.cam_id.1 = id;
                 LocalStorage::set("minion_cam_id", self.cam_id.clone()).unwrap();
             }
+            Msg::Devices(devices) => self.devices = devices,
         };
         true
     }
@@ -86,6 +101,12 @@ impl Component for Minion {
             Msg::RightCamId(target.unchecked_into::<HtmlInputElement>().value())
         });
 
+        let devices = self.devices.iter().map(|(a, b)| {
+            html! {
+                <li>{a}{": "}{b}</li>
+            }
+        });
+
         html! {
             <div class={css}>
                 <div class={"ui"}>
@@ -93,6 +114,9 @@ impl Component for Minion {
                     <p>
                         {"Left Camera ID:"} <input size={64} value={self.cam_id.0.clone()} onchange={left_id_change} /><br/>
                         {"Right Camera ID:"} <input size={64} value={self.cam_id.1.clone()} onchange={right_id_change} />
+                        <ul>
+                            {for devices}
+                        </ul>
                     </p>
                 </div>
                 <div class={"view"} ref={self.node_ref.clone()}>
