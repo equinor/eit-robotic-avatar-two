@@ -6,15 +6,12 @@ use std::{cell::RefCell, rc::Rc};
 use gloo_storage::{LocalStorage, Storage};
 use js_sys::Reflect;
 use stylist::css;
-use wasm_bindgen::{
-    prelude::{wasm_bindgen, Closure},
-    JsCast, JsValue,
-};
+use wasm_bindgen::{prelude::wasm_bindgen, JsCast, JsValue};
 use wasm_bindgen_futures::spawn_local;
 use web_sys::{EventTarget, HtmlInputElement, MediaStream};
 use yew::prelude::*;
 
-use self::cameras::list_devices;
+use self::cameras::{list_devices, load_cams};
 use self::viewport::Viewport;
 
 #[derive(PartialEq, Eq, Properties)]
@@ -77,24 +74,7 @@ impl Component for Minion {
 
                 let cam_id = self.cam_id.clone();
                 let callback = link.callback(Msg::Cams);
-                spawn_local(async move {
-                    source(
-                        &Closure::new(move |streams| {
-                            let left = Reflect::get(&streams, &JsValue::from_str("left"))
-                                .unwrap()
-                                .dyn_into()
-                                .unwrap();
-                            let right = Reflect::get(&streams, &JsValue::from_str("right"))
-                                .unwrap()
-                                .dyn_into()
-                                .unwrap();
-                            callback.emit((left, right));
-                        }),
-                        cam_id.0,
-                        cam_id.1,
-                    )
-                    .await
-                });
+                start_source(callback, cam_id);
             }
             Msg::Receiver => {
                 self.started = true;
@@ -199,13 +179,17 @@ impl Component for Minion {
     }
 }
 
+fn start_source(callback: Callback<(MediaStream, MediaStream)>, cam_id: (String, String)) {
+    spawn_local(async move {
+        let streams = load_cams(&cam_id.0, &cam_id.1).await;
+        callback.emit(streams.clone());
+        source(streams.0, streams.1).await
+    });
+}
+
 #[wasm_bindgen(raw_module = "/js/view/RoboticAvatar.mjs")]
 extern "C" {
-    async fn source(
-        setStreams: &Closure<dyn FnMut(JsValue)>,
-        leftCamId: String,
-        rightCamId: String,
-    );
+    async fn source(leftCam: MediaStream, rightCamId: MediaStream);
     async fn receiver() -> JsValue;
     async fn tracking(track: JsValue);
 }

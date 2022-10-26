@@ -1,11 +1,12 @@
-import { loadCams } from "../modules/cameras.mjs";
 import { fromOffers, fromStreams } from "../modules/rtc.mjs";
 import { postAnswer, postOffers, postTracking, pullAnswer, pullOffers } from "../modules/server.mjs";
 
 
-export async function source(setStreams, leftCamId, rightCamId) {
-    let cams = await loadCams(leftCamId, rightCamId);
-    setStreams(cams);
+export async function source(leftCam, rightCam) {
+    let cams = {
+        left: leftCam,
+        right: rightCam
+    }
     let con = await fromStreams(cams);
     let offers = await con.createOffers();
     console.log(offers);
