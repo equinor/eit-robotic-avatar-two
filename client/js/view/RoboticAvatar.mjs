@@ -3,19 +3,6 @@ import { fromOffers, fromStreams } from "../modules/rtc.mjs";
 import { postAnswer, postOffers, postTracking, pullAnswer, pullOffers } from "../modules/server.mjs";
 import Viewport from "../view/Viewport.mjs";
 
-const Grid = styled.main `
-    height: 100%;
-    display: grid;
-    box-sizing: border-box;
-    grid-template-columns: 1fr;
-    grid-template-rows: auto 1fr;
-    grid-template-areas: 
-        "ui"
-        "view";
-    gap: 16px 16px;
-    padding: 8px;
-`;
-
 const Ui = styled.div `
     grid-area: ui;
 `;
@@ -119,7 +106,7 @@ export class RoboticAvatar extends React.Component {
             device[0],
             ": ",
             device[1]));
-        return React.createElement(Grid, null,
+        return React.createElement(React.Fragment, null,
             React.createElement(Ui, null,
                 React.createElement("h1", null, "Robotic Avatar Demo"),
                 React.createElement("p", null,

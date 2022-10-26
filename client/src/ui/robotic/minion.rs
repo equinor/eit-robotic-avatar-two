@@ -1,3 +1,4 @@
+use stylist::css;
 use wasm_bindgen::prelude::wasm_bindgen;
 use web_sys::HtmlElement;
 use yew::prelude::*;
@@ -20,8 +21,23 @@ impl Component for Minion {
     }
 
     fn view(&self, _ctx: &Context<Self>) -> Html {
+        let css = css!(
+            r#"
+            height: 100%;
+            display: grid;
+            box-sizing: border-box;
+            grid-template-columns: 1fr;
+            grid-template-rows: auto 1fr;
+            grid-template-areas: 
+                "ui"
+                "view";
+            gap: 16px 16px;
+            padding: 8px;
+        "#
+        );
+
         html! {
-            <div ref={self.node_ref.clone()}></div>
+            <div class={css} ref={self.node_ref.clone()}></div>
         }
     }
 
