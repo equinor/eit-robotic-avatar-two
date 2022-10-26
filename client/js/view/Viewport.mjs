@@ -1,43 +1,6 @@
 import * as THREE from 'three';
 import { VRButton } from 'https://unpkg.com/three@0.142.0/examples/jsm/webxr/VRButton.js';
 
-const Canvas = styled.canvas `
-    background-color: #000;
-    height: 100%;
-    width: 100%;
-`;
-
-const HiddenVideo = styled.video `
-    display: none;
-`;
-
-export default class Viewport extends React.Component {
-    constructor() {
-        super(...arguments);
-        this.canvas = React.createRef();
-        this.left = React.createRef();
-        this.right = React.createRef();
-    }
-
-    render() {
-        return React.createElement("div", { className: this.props.className },
-            React.createElement(Canvas, { ref: this.canvas }),
-            React.createElement(HiddenVideo, { autoPlay: true, ref: this.left }),
-            React.createElement(HiddenVideo, { autoPlay: true, ref: this.right }));
-    }
-
-    componentDidMount() {
-        this.componentDidUpdate();
-        setup_3d(this.canvas.current, this.left.current, this.right.current, this.props.onTrack);
-    }
-
-    componentDidUpdate() {
-        var _a, _b;
-        this.left.current.srcObject = (_a = this.props.left) !== null && _a !== void 0 ? _a : null;
-        this.right.current.srcObject = (_b = this.props.right) !== null && _b !== void 0 ? _b : null;
-    }
-}
-
 function toController(game) {
     var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k;
     //I am just guessing
