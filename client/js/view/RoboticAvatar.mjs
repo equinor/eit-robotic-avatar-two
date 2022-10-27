@@ -1,8 +1,7 @@
 import { fromOffers } from "../modules/rtc.mjs";
 import { postAnswer, postOffers, postTracking, pullAnswer, pullOffers } from "../modules/server.mjs";
 
-export async function source(con, offers) {
-    await postOffers(offers);
+export async function source(con) {
     let answer = await pullAnswer();
     console.log(answer);
     await con.setAnswers(answer);
