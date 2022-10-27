@@ -1,5 +1,21 @@
 use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
 
+pub async fn post_offers(offers: JsValue) {
+    postOffers(offers).await;
+}
+pub async fn pull_offers() -> JsValue {
+    pullOffers().await
+}
+pub async fn post_answer(answer: JsValue) {
+    postAnswer(answer).await;
+}
+pub async fn pull_answer() -> JsValue {
+    pullAnswer().await
+}
+pub async fn post_tracking(tracking: Tracking) {
+    postTracking(tracking).await;
+}
+
 #[wasm_bindgen]
 pub struct Tracking {
     pub head: Head,
@@ -23,9 +39,9 @@ pub struct Drive {
 
 #[wasm_bindgen(raw_module = "/js/modules/server.mjs")]
 extern "C" {
-    pub async fn postOffers(offers: JsValue);
-    pub async fn pullOffers() -> JsValue;
-    pub async fn postAnswer(answer: JsValue);
-    pub async fn pullAnswer() -> JsValue;
-    pub async fn postTracking(tracking: Tracking);
+    async fn postOffers(offers: JsValue);
+    async fn pullOffers() -> JsValue;
+    async fn postAnswer(answer: JsValue);
+    async fn pullAnswer() -> JsValue;
+    async fn postTracking(tracking: Tracking);
 }

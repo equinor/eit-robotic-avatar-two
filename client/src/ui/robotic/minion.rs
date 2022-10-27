@@ -17,7 +17,7 @@ use crate::ui::robotic::minion::rtc::Connection;
 
 use self::cameras::{list_devices, load_cams};
 use self::server::{
-    postAnswer, postOffers, postTracking, pullAnswer, pullOffers, Drive, Head, Tracking,
+    post_answer, post_offers, post_tracking, pull_answer, pull_offers, Drive, Head, Tracking,
 };
 use self::viewport::{Viewport, ViewportTracking};
 
@@ -109,7 +109,7 @@ impl Component for Minion {
                                 turn: value.l.x,
                             },
                         };
-                        postTracking(tracking).await;
+                        post_tracking(tracking).await;
                         *sending.borrow_mut() = false;
                     });
                 }
@@ -193,8 +193,8 @@ fn start_source(callback: Callback<(MediaStream, MediaStream)>, cam_id: (String,
         let con = Connection::from_streams(streams).await;
         let offers = con.create_offers().await;
         console_log!(&offers);
-        postOffers(offers).await;
-        let answer = pullAnswer().await;
+        post_offers(offers).await;
+        let answer = pull_answer().await;
         console_log!(&answer);
         con.set_answers(answer).await;
     });
@@ -202,12 +202,12 @@ fn start_source(callback: Callback<(MediaStream, MediaStream)>, cam_id: (String,
 
 fn start_receiver(callback: Callback<(MediaStream, MediaStream)>) {
     spawn_local(async move {
-        let offers = pullOffers().await;
+        let offers = pull_offers().await;
         console_log!(&offers);
         let con = Connection::from_offer(offers).await;
         let answer = con.create_answers().await;
         console_log!(&answer);
-        postAnswer(answer).await;
+        post_answer(answer).await;
         callback.emit(con.streams());
     });
 }

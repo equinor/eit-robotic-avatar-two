@@ -33,5 +33,6 @@ features = [
     "Navigator",
     "Window",
     "HtmlCanvasElement",
-    "HtmlVideoElement"
+    "HtmlVideoElement",
+    "RtcSessionDescription"
 ]
