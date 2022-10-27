@@ -39,12 +39,6 @@ export class Connection {
     }
 }
 
-export async function fromOffers(offers) {
-    // no await want to happen in parallel.
-    let left = fromOffer(offers.left);
-    let right = fromOffer(offers.right);
-    return new Connection(await left, await right);
-}
 /* ---- Private stuff --- */
 /**
  * @param {RTCPeerConnection} peer
@@ -77,24 +71,6 @@ function getStream(peer) {
         stream.addTrack(track.track);
     }
     return stream;
-}
-
-async function fromOffer(offer) {
-    let peer = newPeer();
-    await peer.setRemoteDescription(offer);
-    return peer;
-}
-
-function newPeer() {
-    return new RTCPeerConnection({
-        //iceServers: [
-        //    {urls: `stun:stun.l.google.com:19302`},
-        //    {urls: `stun:stun1.l.google.com:19302`},
-        //    {urls: `stun:stun2.l.google.com:19302`},
-        //    {urls: `stun:stun3.l.google.com:19302`},
-        //    {urls: `stun:stun4.l.google.com:19302`}
-        //]
-    });
 }
 
 /**

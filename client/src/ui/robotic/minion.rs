@@ -190,7 +190,7 @@ fn start_source(callback: Callback<(MediaStream, MediaStream)>, cam_id: (String,
     spawn_local(async move {
         let streams = load_cams(&cam_id.0, &cam_id.1).await;
         callback.emit(streams.clone());
-        let con = Connection::from_streams(streams);
+        let con = Connection::from_streams(&streams);
         let offers = con.create_offers().await;
         console_log!(&offers);
         post_offers(offers).await;
@@ -203,8 +203,8 @@ fn start_source(callback: Callback<(MediaStream, MediaStream)>, cam_id: (String,
 fn start_receiver(callback: Callback<(MediaStream, MediaStream)>) {
     spawn_local(async move {
         let offers = pull_offers().await;
-        console_log!(&offers);
-        let con = Connection::from_offer(offers).await;
+        //console_log!(&offers);
+        let con = Connection::from_offer(&offers).await;
         let answer = con.create_answers().await;
         console_log!(&answer);
         post_answer(answer).await;

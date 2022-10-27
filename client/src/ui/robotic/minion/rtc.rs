@@ -1,22 +1,28 @@
+use futures::join;
 use js_sys::Reflect;
 use wasm_bindgen::{prelude::wasm_bindgen, JsCast, JsValue};
-use web_sys::{MediaStream, RtcPeerConnection};
+use wasm_bindgen_futures::JsFuture;
+use web_sys::{MediaStream, RtcPeerConnection, RtcSessionDescriptionInit};
 
 pub struct Connection {
     inner_js: JsConnection,
 }
 
 impl Connection {
-    pub fn from_streams(streams: (MediaStream, MediaStream)) -> Connection {
-        let left = MyPeer::from_stream(streams.0);
-        let right = MyPeer::from_stream(streams.1);
+    pub fn from_streams(streams: &(MediaStream, MediaStream)) -> Connection {
+        let left = MyPeer::from_stream(&streams.0);
+        let right = MyPeer::from_stream(&streams.1);
 
         let inner_js = JsConnection::new(left.0, right.0);
         Connection { inner_js }
     }
 
-    pub async fn from_offer(offer: JsValue) -> Connection {
-        let inner_js = fromOffers(offer).await.dyn_into().unwrap();
+    pub async fn from_offer(
+        offer: &(RtcSessionDescriptionInit, RtcSessionDescriptionInit),
+    ) -> Connection {
+        let (left, right) = join!(MyPeer::from_offer(&offer.0), MyPeer::from_offer(&offer.1));
+
+        let inner_js = JsConnection::new(left.0, right.0);
         Connection { inner_js }
     }
 
@@ -49,17 +55,32 @@ impl Connection {
 pub struct MyPeer(RtcPeerConnection);
 
 impl MyPeer {
-    fn from_stream(stream: MediaStream) -> MyPeer {
+    fn from_stream(stream: &MediaStream) -> MyPeer {
         let peer = MyPeer::new();
         for track in stream.get_tracks().iter() {
             let track = track.dyn_into().unwrap();
-            peer.0.add_track_0(&track, &stream);
+            peer.0.add_track_0(&track, stream);
         }
+        peer
+    }
+
+    async fn from_offer(offer: &RtcSessionDescriptionInit) -> MyPeer {
+        let peer = MyPeer::new();
+        JsFuture::from(peer.0.set_remote_description(offer))
+            .await
+            .unwrap();
         peer
     }
 
     fn new() -> MyPeer {
         //Todo add Ice
+        //iceServers: [
+        //    {urls: `stun:stun.l.google.com:19302`},
+        //    {urls: `stun:stun1.l.google.com:19302`},
+        //    {urls: `stun:stun2.l.google.com:19302`},
+        //    {urls: `stun:stun3.l.google.com:19302`},
+        //    {urls: `stun:stun4.l.google.com:19302`}
+        //]
         MyPeer(RtcPeerConnection::new().unwrap())
     }
 }

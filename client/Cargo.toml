@@ -36,5 +36,7 @@ features = [
     "HtmlCanvasElement",
     "HtmlVideoElement",
     "RtcPeerConnection",
-    "RtcRtpSender"
+    "RtcRtpSender",
+    "RtcSessionDescriptionInit",
+    "RtcSdpType"
 ]
