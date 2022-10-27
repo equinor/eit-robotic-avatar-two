@@ -9,5 +9,8 @@ pub async fn from_streams(streams: (MediaStream, MediaStream)) -> Connection {
 extern "C" {
     pub type Connection;
 
+    #[wasm_bindgen(method)]
+    pub async fn createOffers(this: &Connection) -> JsValue;
+
     async fn fromStreams(left: MediaStream, right: MediaStream) -> JsValue;
 }

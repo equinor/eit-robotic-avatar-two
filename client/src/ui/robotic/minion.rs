@@ -10,6 +10,7 @@ use stylist::css;
 use wasm_bindgen::{prelude::wasm_bindgen, JsCast, JsValue};
 use wasm_bindgen_futures::spawn_local;
 use web_sys::{EventTarget, HtmlInputElement, MediaStream};
+use weblog::console_log;
 use yew::prelude::*;
 
 use self::cameras::{list_devices, load_cams};
@@ -186,13 +187,15 @@ fn start_source(callback: Callback<(MediaStream, MediaStream)>, cam_id: (String,
         let streams = load_cams(&cam_id.0, &cam_id.1).await;
         callback.emit(streams.clone());
         let con = from_streams(streams).await;
-        source(con).await
+        let offers = con.createOffers().await;
+        console_log!(&offers);
+        source(con, offers).await
     });
 }
 
 #[wasm_bindgen(raw_module = "/js/view/RoboticAvatar.mjs")]
 extern "C" {
-    async fn source(con: Connection);
+    async fn source(con: Connection, offers: JsValue);
     async fn receiver() -> JsValue;
     async fn tracking(track: JsValue);
 }
