@@ -13,9 +13,3 @@ export async function loadCams(leftId, rightId) {
     };
     return streams;
 }
-
-export async function listDevices() {
-    let devices = await navigator.mediaDevices.enumerateDevices();
-    return devices.filter(device => device.kind === "videoinput")
-        .map(device => [device.label, device.deviceId]);
-}

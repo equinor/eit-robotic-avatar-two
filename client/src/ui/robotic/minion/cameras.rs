@@ -1,6 +1,7 @@
 use js_sys::{Array, Reflect};
 use wasm_bindgen::{prelude::wasm_bindgen, JsCast, JsValue};
-use web_sys::MediaStream;
+use wasm_bindgen_futures::JsFuture;
+use web_sys::{MediaDeviceInfo, MediaDeviceKind, MediaDevices, MediaStream};
 
 pub async fn load_cams(left: &str, right: &str) -> (MediaStream, MediaStream) {
     let streams = loadCams(left, right).await;
@@ -16,21 +17,25 @@ pub async fn load_cams(left: &str, right: &str) -> (MediaStream, MediaStream) {
 }
 
 pub async fn list_devices() -> Vec<(String, String)> {
-    let array: Array = listDevices().await.dyn_into().unwrap();
-    array
+    let devices_promise = media_devices().enumerate_devices().unwrap();
+    let devices_value = JsFuture::from(devices_promise).await.unwrap();
+    let devices_array: Array = devices_value.dyn_into().unwrap();
+    let devices_info = devices_array
         .iter()
-        .map(|v| {
-            let array: Array = v.dyn_into().unwrap();
-            (
-                array.at(0).as_string().unwrap(),
-                array.at(1).as_string().unwrap(),
-            )
-        })
+        .map(|j| -> MediaDeviceInfo { j.dyn_into().unwrap() });
+    let video_info = devices_info.filter(|info| info.kind() == MediaDeviceKind::Videoinput);
+    video_info
+        .map(|info| (info.label(), info.device_id()))
         .collect()
+}
+
+fn media_devices() -> MediaDevices {
+    let window = web_sys::window().unwrap();
+    let navigator = window.navigator();
+    navigator.media_devices().unwrap()
 }
 
 #[wasm_bindgen(raw_module = "/js/modules/cameras.mjs")]
 extern "C" {
     async fn loadCams(left: &str, right: &str) -> JsValue;
-    async fn listDevices() -> JsValue;
 }
