@@ -14,10 +14,9 @@ use web_sys::{EventTarget, HtmlInputElement, MediaStream};
 use weblog::console_log;
 use yew::prelude::*;
 
-use crate::ui::robotic::minion::server::postOffers;
-
 use self::cameras::{list_devices, load_cams};
 use self::rtc::{from_streams, Connection};
+use self::server::{postOffers, pullAnswer};
 use self::viewport::Viewport;
 
 #[derive(PartialEq, Eq, Properties)]
@@ -193,13 +192,15 @@ fn start_source(callback: Callback<(MediaStream, MediaStream)>, cam_id: (String,
         let offers = con.createOffers().await;
         console_log!(&offers);
         postOffers(offers).await;
-        source(con).await;
+        let answer = pullAnswer().await;
+        console_log!(&answer);
+        source(con, answer).await;
     });
 }
 
 #[wasm_bindgen(raw_module = "/js/view/RoboticAvatar.mjs")]
 extern "C" {
-    async fn source(con: Connection);
+    async fn source(con: Connection, answer: JsValue);
     async fn receiver() -> JsValue;
     async fn tracking(track: JsValue);
 }
