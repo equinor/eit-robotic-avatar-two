@@ -1,8 +1,12 @@
 use futures::join;
 use js_sys::Reflect;
-use wasm_bindgen::{prelude::wasm_bindgen, JsCast, JsValue};
+use wasm_bindgen::{
+    prelude::{wasm_bindgen, Closure},
+    JsCast, JsValue,
+};
 use wasm_bindgen_futures::JsFuture;
 use web_sys::{MediaStream, RtcPeerConnection, RtcSessionDescriptionInit};
+use weblog::console_log;
 
 pub struct Connection {
     inner_js: JsConnection,
@@ -13,8 +17,7 @@ impl Connection {
         let left = MyPeer::from_stream(&streams.0);
         let right = MyPeer::from_stream(&streams.1);
 
-        let inner_js = JsConnection::new(left.0, right.0);
-        Connection { inner_js }
+        Connection::new(left, right)
     }
 
     pub async fn from_offer(
@@ -22,7 +25,14 @@ impl Connection {
     ) -> Connection {
         let (left, right) = join!(MyPeer::from_offer(&offer.0), MyPeer::from_offer(&offer.1));
 
-        let inner_js = JsConnection::new(left.0, right.0);
+        Connection::new(left, right)
+    }
+
+    fn new(left: MyPeer, right: MyPeer) -> Connection {
+        left.register_events("left");
+        right.register_events("right");
+        let inner_js = JsConnection::new(&left.0, &right.0);
+
         Connection { inner_js }
     }
 
@@ -83,6 +93,30 @@ impl MyPeer {
         //]
         MyPeer(RtcPeerConnection::new().unwrap())
     }
+
+    fn register_events(&self, side: &'static str) {
+        let events = [
+            "connectionstatechange",
+            "datachannel",
+            "icecandidate",
+            "icecandidateerror",
+            "iceconnectionstatechange",
+            "icegatheringstatechange",
+            "negotiationneeded",
+            "signalingstatechange",
+            "track",
+        ];
+
+        for event in events {
+            let closure: Closure<dyn Fn(JsValue)> = Closure::new(move |e: JsValue| {
+                console_log!(side, event, e);
+            });
+            self.0
+                .add_event_listener_with_callback(event, closure.as_ref().unchecked_ref())
+                .unwrap();
+            closure.forget();
+        }
+    }
 }
 
 #[wasm_bindgen(raw_module = "/js/modules/rtc.mjs")]
@@ -91,7 +125,7 @@ extern "C" {
     type JsConnection;
 
     #[wasm_bindgen(constructor, js_class = "Connection")]
-    fn new(left: RtcPeerConnection, right: RtcPeerConnection) -> JsConnection;
+    fn new(left: &RtcPeerConnection, right: &RtcPeerConnection) -> JsConnection;
     #[wasm_bindgen(method)]
     async fn createOffers(this: &JsConnection) -> JsValue;
     #[wasm_bindgen(method)]

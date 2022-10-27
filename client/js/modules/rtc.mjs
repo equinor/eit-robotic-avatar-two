@@ -2,8 +2,6 @@ export class Connection {
     constructor(left, right) {
         this.left = left;
         this.right = right;
-        registerEvents(left, "left");
-        registerEvents(right, "right");
     }
 
     async createOffers() {
@@ -71,37 +69,4 @@ function getStream(peer) {
         stream.addTrack(track.track);
     }
     return stream;
-}
-
-/**
- * @param {RTCPeerConnection} peer
- */
-function registerEvents(peer, side) {
-    peer.onconnectionstatechange = e => {
-        console.log(side, "onconnectionstatechange", peer.connectionState);
-    };
-    peer.ondatachannel = e => {
-        console.log(side, "ondatachannel");
-    };
-    peer.onicecandidate = e => {
-        console.log(side, "onicecandidate", e.candidate);
-    };
-    peer.onicecandidateerror = e => {
-        console.log(side, "onicecandidateerror");
-    };
-    peer.oniceconnectionstatechange = e => {
-        console.log(side, "oniceconnectionstatechange", peer.iceConnectionState);
-    };
-    peer.onicegatheringstatechange = e => {
-        console.log(side, "onicegatheringstatechange", peer.iceGatheringState);
-    };
-    peer.onnegotiationneeded = e => {
-        console.log(side, "onnegotiationneeded");
-    };
-    peer.onsignalingstatechange = e => {
-        console.log(side, "onsignalingstatechange", peer.signalingState);
-    };
-    peer.ontrack = e => {
-        console.log(side, "ontrack");
-    };
 }
