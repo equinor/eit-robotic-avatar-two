@@ -1,8 +1,5 @@
 use stylist::css;
-use wasm_bindgen::{
-    prelude::{wasm_bindgen, Closure},
-    JsValue,
-};
+use wasm_bindgen::prelude::{wasm_bindgen, Closure};
 use web_sys::{HtmlCanvasElement, HtmlVideoElement, MediaStream};
 use yew::prelude::*;
 
@@ -11,7 +8,7 @@ pub struct Props {
     pub class: Classes,
     pub left: Option<MediaStream>,
     pub right: Option<MediaStream>,
-    pub on_track: Callback<JsValue>,
+    pub on_track: Callback<ViewportTracking>,
 }
 
 pub enum Msg {}
@@ -83,12 +80,32 @@ impl Component for Viewport {
     }
 }
 
+#[wasm_bindgen]
+pub struct ViewportTracking {
+    pub rx: f64,
+    pub ry: f64,
+    pub rz: f64,
+    pub l: Controller,
+    pub r: Controller,
+}
+
+#[wasm_bindgen]
+#[derive(Clone, Copy)]
+pub struct Controller {
+    pub x: f64,  // Thumb Sticks X
+    pub y: f64,  // Thumb Sticks X
+    pub a: bool, // A or X button
+    pub b: bool, // B or Y button
+    pub c: f64,  // Trigger
+    pub d: f64,  // Grip
+}
+
 #[wasm_bindgen(raw_module = "/js/view/Viewport.mjs")]
 extern "C" {
     fn setup_3d(
         canvas: HtmlCanvasElement,
         left: &HtmlVideoElement,
         right: &HtmlVideoElement,
-        onTrack: &Closure<dyn FnMut(JsValue)>,
+        onTrack: &Closure<dyn FnMut(ViewportTracking)>,
     );
 }

@@ -8,19 +8,18 @@ use std::{cell::RefCell, rc::Rc};
 use gloo_storage::{LocalStorage, Storage};
 use js_sys::Reflect;
 use stylist::css;
-use wasm_bindgen::{prelude::wasm_bindgen, JsCast, JsValue};
+use wasm_bindgen::{JsCast, JsValue};
 use wasm_bindgen_futures::spawn_local;
 use web_sys::{EventTarget, HtmlInputElement, MediaStream};
 use weblog::console_log;
 use yew::prelude::*;
 
-use crate::ui::robotic::minion::rtc::from_offer;
-use crate::ui::robotic::minion::server::postAnswer;
-
 use self::cameras::{list_devices, load_cams};
-use self::rtc::from_streams;
-use self::server::{postOffers, pullAnswer, pullOffers};
-use self::viewport::Viewport;
+use self::rtc::{from_offer, from_streams};
+use self::server::{
+    postAnswer, postOffers, postTracking, pullAnswer, pullOffers, Drive, Head, Tracking,
+};
+use self::viewport::{Viewport, ViewportTracking};
 
 #[derive(PartialEq, Eq, Properties)]
 pub struct Props;
@@ -32,7 +31,7 @@ pub enum Msg {
     Source,
     Receiver,
     Cams((MediaStream, MediaStream)),
-    Tracking(JsValue),
+    Tracking(ViewportTracking),
 }
 
 pub struct Minion {
@@ -99,7 +98,18 @@ impl Component for Minion {
 
                     let sending = self.sending.clone();
                     spawn_local(async move {
-                        tracking(value).await;
+                        let tracking = Tracking {
+                            head: Head {
+                                rx: value.rx,
+                                ry: value.ry,
+                                rz: value.rz,
+                            },
+                            drive: Drive {
+                                speed: value.l.y,
+                                turn: value.l.x,
+                            },
+                        };
+                        postTracking(tracking).await;
                         *sending.borrow_mut() = false;
                     });
                 }
@@ -209,9 +219,4 @@ fn start_receiver(callback: Callback<(MediaStream, MediaStream)>) {
             .unwrap();
         callback.emit((left, right));
     });
-}
-
-#[wasm_bindgen(raw_module = "/js/view/RoboticAvatar.mjs")]
-extern "C" {
-    async fn tracking(track: JsValue);
 }
