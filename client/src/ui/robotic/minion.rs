@@ -1,4 +1,5 @@
 mod cameras;
+mod rtc;
 mod viewport;
 
 use std::{cell::RefCell, rc::Rc};
@@ -12,6 +13,7 @@ use web_sys::{EventTarget, HtmlInputElement, MediaStream};
 use yew::prelude::*;
 
 use self::cameras::{list_devices, load_cams};
+use self::rtc::{from_streams, Connection};
 use self::viewport::Viewport;
 
 #[derive(PartialEq, Eq, Properties)]
@@ -183,13 +185,14 @@ fn start_source(callback: Callback<(MediaStream, MediaStream)>, cam_id: (String,
     spawn_local(async move {
         let streams = load_cams(&cam_id.0, &cam_id.1).await;
         callback.emit(streams.clone());
-        source(streams.0, streams.1).await
+        let con = from_streams(streams).await;
+        source(con).await
     });
 }
 
 #[wasm_bindgen(raw_module = "/js/view/RoboticAvatar.mjs")]
 extern "C" {
-    async fn source(leftCam: MediaStream, rightCamId: MediaStream);
+    async fn source(con: Connection);
     async fn receiver() -> JsValue;
     async fn tracking(track: JsValue);
 }

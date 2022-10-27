@@ -41,10 +41,10 @@ export class Connection {
         return left && right;
     }
 }
-export async function fromStreams(cams) {
+export async function fromStreams(leftStream, rightStream) {
     // no await want to happen in parallel.
-    let left = fromStream(cams.left);
-    let right = fromStream(cams.right);
+    let left = fromStream(leftStream);
+    let right = fromStream(rightStream);
     return new Connection(await left, await right);
 }
 export async function fromOffers(offers) {
