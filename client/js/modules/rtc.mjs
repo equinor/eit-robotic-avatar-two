@@ -2,11 +2,10 @@ export class Connection {
     constructor(left, right) {
         this.left = left;
         this.right = right;
-        this.left = left;
-        this.right = right;
         registerEvents(left, "left");
         registerEvents(right, "right");
     }
+
     async createOffers() {
         // no await want to happen in parallel.
         let left = createOffer(this.left);
@@ -16,6 +15,7 @@ export class Connection {
             right: await right,
         };
     }
+
     async createAnswers() {
         let left = createAnswer(this.left);
         let right = createAnswer(this.right);
@@ -24,29 +24,21 @@ export class Connection {
             right: await right,
         };
     }
+
     getStreams() {
         return {
             left: getStream(this.left),
             right: getStream(this.right),
         };
     }
+
     async setAnswers(answer) {
         let left = this.left.setRemoteDescription(answer.left);
         let right = this.right.setRemoteDescription(answer.right);
         await Promise.all([left, right]);
     }
-    isConnected() {
-        let left = this.left.connectionState === "connected";
-        let right = this.left.connectionState === "connected";
-        return left && right;
-    }
 }
-export async function fromStreams(leftStream, rightStream) {
-    // no await want to happen in parallel.
-    let left = fromStream(leftStream);
-    let right = fromStream(rightStream);
-    return new Connection(await left, await right);
-}
+
 export async function fromOffers(offers) {
     // no await want to happen in parallel.
     let left = fromOffer(offers.left);
@@ -86,16 +78,7 @@ function getStream(peer) {
     }
     return stream;
 }
-/**
- * @param {MediaStream} stream
- */
-async function fromStream(stream) {
-    let peer = newPeer();
-    for (const track of stream.getTracks()) {
-        peer.addTrack(track, stream);
-    }
-    return peer;
-}
+
 async function fromOffer(offer) {
     let peer = newPeer();
     await peer.setRemoteDescription(offer);

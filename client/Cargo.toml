@@ -30,9 +30,11 @@ features = [
     "MediaDeviceKind",
     "MediaStream",
     "MediaStreamConstraints",
+    "MediaStreamTrack",
     "Navigator",
     "Window",
     "HtmlCanvasElement",
     "HtmlVideoElement",
-    "RtcSessionDescription"
+    "RtcPeerConnection",
+    "RtcRtpSender"
 ]
