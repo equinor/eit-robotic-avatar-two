@@ -1,15 +1,4 @@
-import { fromOffers } from "../modules/rtc.mjs";
-import { postAnswer, postTracking, pullOffers } from "../modules/server.mjs";
-
-export async function receiver() {
-    let offers = await pullOffers();
-    console.log(offers);
-    let con = await fromOffers(offers);
-    let answer = await con.createAnswers();
-    console.log(answer);
-    await postAnswer(answer);
-    return con.getStreams();
-}
+import { postTracking } from "../modules/server.mjs";
 
 export async function tracking(track) {
     await postTracking({

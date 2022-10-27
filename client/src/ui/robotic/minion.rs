@@ -14,9 +14,12 @@ use web_sys::{EventTarget, HtmlInputElement, MediaStream};
 use weblog::console_log;
 use yew::prelude::*;
 
+use crate::ui::robotic::minion::rtc::from_offer;
+use crate::ui::robotic::minion::server::postAnswer;
+
 use self::cameras::{list_devices, load_cams};
 use self::rtc::from_streams;
-use self::server::{postOffers, pullAnswer};
+use self::server::{postOffers, pullAnswer, pullOffers};
 use self::viewport::Viewport;
 
 #[derive(PartialEq, Eq, Properties)]
@@ -85,18 +88,7 @@ impl Component for Minion {
                 self.started = true;
 
                 let callback = link.callback(Msg::Cams);
-                spawn_local(async move {
-                    let streams = receiver().await;
-                    let left = Reflect::get(&streams, &JsValue::from_str("left"))
-                        .unwrap()
-                        .dyn_into()
-                        .unwrap();
-                    let right = Reflect::get(&streams, &JsValue::from_str("right"))
-                        .unwrap()
-                        .dyn_into()
-                        .unwrap();
-                    callback.emit((left, right));
-                });
+                start_receiver(callback);
             }
             Msg::Cams(cams) => self.cams = (Some(cams.0), Some(cams.1)),
             Msg::Tracking(value) => {
@@ -198,8 +190,28 @@ fn start_source(callback: Callback<(MediaStream, MediaStream)>, cam_id: (String,
     });
 }
 
+fn start_receiver(callback: Callback<(MediaStream, MediaStream)>) {
+    spawn_local(async move {
+        let offers = pullOffers().await;
+        console_log!(&offers);
+        let con = from_offer(offers).await;
+        let answer = con.createAnswers().await;
+        console_log!(&answer);
+        postAnswer(answer).await;
+        let streams = con.getStreams();
+        let left = Reflect::get(&streams, &JsValue::from_str("left"))
+            .unwrap()
+            .dyn_into()
+            .unwrap();
+        let right = Reflect::get(&streams, &JsValue::from_str("right"))
+            .unwrap()
+            .dyn_into()
+            .unwrap();
+        callback.emit((left, right));
+    });
+}
+
 #[wasm_bindgen(raw_module = "/js/view/RoboticAvatar.mjs")]
 extern "C" {
-    async fn receiver() -> JsValue;
     async fn tracking(track: JsValue);
 }
