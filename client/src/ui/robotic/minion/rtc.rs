@@ -1,15 +1,21 @@
 use futures::join;
+use gloo_timers::future::TimeoutFuture;
 use js_sys::Reflect;
 use wasm_bindgen::{
     prelude::{wasm_bindgen, Closure},
     JsCast, JsValue,
 };
 use wasm_bindgen_futures::JsFuture;
-use web_sys::{MediaStream, RtcPeerConnection, RtcSessionDescriptionInit};
+use web_sys::{
+    MediaStream, RtcIceGatheringState, RtcPeerConnection, RtcSessionDescription,
+    RtcSessionDescriptionInit,
+};
 use weblog::console_log;
 
 pub struct Connection {
     inner_js: JsConnection,
+    left: MyPeer,
+    right: MyPeer,
 }
 
 impl Connection {
@@ -33,11 +39,15 @@ impl Connection {
         right.register_events("right");
         let inner_js = JsConnection::new(&left.0, &right.0);
 
-        Connection { inner_js }
+        Connection {
+            inner_js,
+            left,
+            right,
+        }
     }
 
-    pub async fn create_offers(&self) -> JsValue {
-        self.inner_js.createOffers().await
+    pub async fn create_offers(&self) -> (RtcSessionDescription, RtcSessionDescription) {
+        join!(self.left.create_offer(), self.right.create_offer())
     }
 
     pub async fn create_answers(&self) -> JsValue {
@@ -94,6 +104,24 @@ impl MyPeer {
         MyPeer(RtcPeerConnection::new().unwrap())
     }
 
+    async fn create_offer(&self) -> RtcSessionDescription {
+        let offer: RtcSessionDescription = JsFuture::from(self.0.create_offer())
+            .await
+            .unwrap()
+            .dyn_into()
+            .unwrap();
+        let mut local = RtcSessionDescriptionInit::new(offer.type_());
+        local.sdp(&offer.sdp());
+
+        JsFuture::from(self.0.set_local_description(&local))
+            .await
+            .unwrap();
+        while self.0.ice_gathering_state() == RtcIceGatheringState::Gathering {
+            TimeoutFuture::new(100).await
+        }
+        self.0.local_description().unwrap()
+    }
+
     fn register_events(&self, side: &'static str) {
         let events = [
             "connectionstatechange",
@@ -126,8 +154,6 @@ extern "C" {
 
     #[wasm_bindgen(constructor, js_class = "Connection")]
     fn new(left: &RtcPeerConnection, right: &RtcPeerConnection) -> JsConnection;
-    #[wasm_bindgen(method)]
-    async fn createOffers(this: &JsConnection) -> JsValue;
     #[wasm_bindgen(method)]
     async fn createAnswers(this: &JsConnection) -> JsValue;
     #[wasm_bindgen(method)]

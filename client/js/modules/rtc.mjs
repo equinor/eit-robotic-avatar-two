@@ -4,16 +4,6 @@ export class Connection {
         this.right = right;
     }
 
-    async createOffers() {
-        // no await want to happen in parallel.
-        let left = createOffer(this.left);
-        let right = createOffer(this.right);
-        return {
-            left: await left,
-            right: await right,
-        };
-    }
-
     async createAnswers() {
         let left = createAnswer(this.left);
         let right = createAnswer(this.right);
@@ -37,18 +27,6 @@ export class Connection {
     }
 }
 
-/* ---- Private stuff --- */
-/**
- * @param {RTCPeerConnection} peer
- */
-async function createOffer(peer) {
-    let offer = await peer.createOffer();
-    peer.setLocalDescription(offer);
-    while (peer.iceGatheringState != "complete") {
-        await new Promise(resolve => setTimeout(resolve, 100));
-    }
-    return peer.localDescription;
-}
 /**
  * @param {RTCPeerConnection} peer
  */
@@ -60,6 +38,7 @@ async function createAnswer(peer) {
     }
     return peer.localDescription;
 }
+
 /**
  * @param {RTCPeerConnection} peer
  */

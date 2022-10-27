@@ -1,9 +1,13 @@
-use js_sys::Reflect;
+use js_sys::{Object, Reflect};
 use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
-use web_sys::{RtcSdpType, RtcSessionDescriptionInit};
+use web_sys::{RtcSdpType, RtcSessionDescription, RtcSessionDescriptionInit};
 
-pub async fn post_offers(offers: JsValue) {
-    postOffers(offers).await;
+pub async fn post_offers(offers: (RtcSessionDescription, RtcSessionDescription)) {
+    let value = Object::new();
+    Reflect::set(&value, &"left".into(), &offers.0.into()).unwrap();
+    Reflect::set(&value, &"right".into(), &offers.1.into()).unwrap();
+
+    postOffers(value.into()).await;
 }
 pub async fn pull_offers() -> (RtcSessionDescriptionInit, RtcSessionDescriptionInit) {
     let value = pullOffers().await;
