@@ -15,7 +15,7 @@ use weblog::console_log;
 use yew::prelude::*;
 
 use self::cameras::{list_devices, load_cams};
-use self::rtc::{from_streams, Connection};
+use self::rtc::from_streams;
 use self::server::{postOffers, pullAnswer};
 use self::viewport::Viewport;
 
@@ -194,13 +194,12 @@ fn start_source(callback: Callback<(MediaStream, MediaStream)>, cam_id: (String,
         postOffers(offers).await;
         let answer = pullAnswer().await;
         console_log!(&answer);
-        source(con, answer).await;
+        con.setAnswers(answer).await;
     });
 }
 
 #[wasm_bindgen(raw_module = "/js/view/RoboticAvatar.mjs")]
 extern "C" {
-    async fn source(con: Connection, answer: JsValue);
     async fn receiver() -> JsValue;
     async fn tracking(track: JsValue);
 }

@@ -11,6 +11,8 @@ extern "C" {
 
     #[wasm_bindgen(method)]
     pub async fn createOffers(this: &Connection) -> JsValue;
+    #[wasm_bindgen(method)]
+    pub async fn setAnswers(this: &Connection, answer: JsValue);
 
     async fn fromStreams(left: MediaStream, right: MediaStream) -> JsValue;
 }
