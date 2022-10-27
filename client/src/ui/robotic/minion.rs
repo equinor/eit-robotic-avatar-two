@@ -6,16 +6,16 @@ mod viewport;
 use std::{cell::RefCell, rc::Rc};
 
 use gloo_storage::{LocalStorage, Storage};
-use js_sys::Reflect;
 use stylist::css;
-use wasm_bindgen::{JsCast, JsValue};
+use wasm_bindgen::JsCast;
 use wasm_bindgen_futures::spawn_local;
 use web_sys::{EventTarget, HtmlInputElement, MediaStream};
 use weblog::console_log;
 use yew::prelude::*;
 
+use crate::ui::robotic::minion::rtc::Connection;
+
 use self::cameras::{list_devices, load_cams};
-use self::rtc::{from_offer, from_streams};
 use self::server::{
     postAnswer, postOffers, postTracking, pullAnswer, pullOffers, Drive, Head, Tracking,
 };
@@ -190,13 +190,13 @@ fn start_source(callback: Callback<(MediaStream, MediaStream)>, cam_id: (String,
     spawn_local(async move {
         let streams = load_cams(&cam_id.0, &cam_id.1).await;
         callback.emit(streams.clone());
-        let con = from_streams(streams).await;
-        let offers = con.createOffers().await;
+        let con = Connection::from_streams(streams).await;
+        let offers = con.create_offers().await;
         console_log!(&offers);
         postOffers(offers).await;
         let answer = pullAnswer().await;
         console_log!(&answer);
-        con.setAnswers(answer).await;
+        con.set_answers(answer).await;
     });
 }
 
@@ -204,19 +204,10 @@ fn start_receiver(callback: Callback<(MediaStream, MediaStream)>) {
     spawn_local(async move {
         let offers = pullOffers().await;
         console_log!(&offers);
-        let con = from_offer(offers).await;
-        let answer = con.createAnswers().await;
+        let con = Connection::from_offer(offers).await;
+        let answer = con.create_answers().await;
         console_log!(&answer);
         postAnswer(answer).await;
-        let streams = con.getStreams();
-        let left = Reflect::get(&streams, &JsValue::from_str("left"))
-            .unwrap()
-            .dyn_into()
-            .unwrap();
-        let right = Reflect::get(&streams, &JsValue::from_str("right"))
-            .unwrap()
-            .dyn_into()
-            .unwrap();
-        callback.emit((left, right));
+        callback.emit(con.streams());
     });
 }
