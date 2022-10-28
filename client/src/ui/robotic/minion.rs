@@ -1,5 +1,4 @@
 mod cameras;
-mod rtc;
 mod viewport;
 
 use std::{cell::RefCell, rc::Rc};
@@ -10,14 +9,12 @@ use stylist::css;
 use wasm_bindgen::JsCast;
 use wasm_bindgen_futures::spawn_local;
 use web_sys::{EventTarget, HtmlInputElement, MediaStream};
-use weblog::console_log;
 use yew::prelude::*;
 
 use crate::robotic::MinionState;
-use crate::services::Server;
+use crate::services::{Server, WebRtc};
 
 use self::cameras::{list_devices, load_cams};
-use self::rtc::Connection;
 use self::viewport::{Viewport, ViewportTracking};
 
 #[derive(PartialEq, Eq, Properties)]
@@ -42,6 +39,7 @@ pub struct Minion {
     cams: (Option<MediaStream>, Option<MediaStream>),
     sending: Rc<RefCell<bool>>,
     server: Server,
+    webrtc: WebRtc,
 }
 
 impl Component for Minion {
@@ -57,13 +55,16 @@ impl Component for Minion {
             callback.emit(devices)
         });
 
+        let server = Server::new("");
+
         Minion {
             cam_id,
             devices: Vec::new(),
             started: false,
             cams: (None, None),
             sending: Rc::default(),
-            server: Server::new(""),
+            server: server.clone(),
+            webrtc: WebRtc::new(server),
         }
     }
 
@@ -84,13 +85,13 @@ impl Component for Minion {
 
                 let cam_id = self.cam_id.clone();
                 let callback = link.callback(Msg::Cams);
-                start_source(callback, cam_id, self.server.clone());
+                start_source(callback, cam_id, self.webrtc.clone());
             }
             Msg::Receiver => {
                 self.started = true;
 
                 let callback = link.callback(Msg::Cams);
-                start_receiver(callback, self.server.clone());
+                start_receiver(callback, self.webrtc.clone());
             }
             Msg::Cams(cams) => self.cams = (Some(cams.0), Some(cams.1)),
             Msg::Tracking(value) => {
@@ -193,29 +194,17 @@ impl Component for Minion {
 fn start_source(
     callback: Callback<(MediaStream, MediaStream)>,
     cam_id: (String, String),
-    server: Server,
+    webrtc: WebRtc,
 ) {
     spawn_local(async move {
         let streams = load_cams(&cam_id.0, &cam_id.1).await;
         callback.emit(streams.clone());
-        let con = Connection::from_streams(&streams);
-        let offers = con.create_offers().await;
-        console_log!(format!("{:?}", &offers));
-        server.post_minion_post_offers(&offers).await;
-        let answer = server.get_minion_pull_answer().await;
-        console_log!(format!("{:?}", &answer));
-        con.set_answers(&answer).await;
+        webrtc.send_video(streams).await;
     });
 }
 
-fn start_receiver(callback: Callback<(MediaStream, MediaStream)>, server: Server) {
+fn start_receiver(callback: Callback<(MediaStream, MediaStream)>, webrtc: WebRtc) {
     spawn_local(async move {
-        let offers = server.get_minion_pull_offers().await;
-        console_log!(format!("{:?}", &offers));
-        let con = Connection::from_offer(&offers).await;
-        let answer = con.create_answers().await;
-        console_log!(format!("{:?}", &answer));
-        server.post_minion_post_answer(&answer).await;
-        callback.emit(con.streams());
+        callback.emit(webrtc.receive().await);
     });
 }
