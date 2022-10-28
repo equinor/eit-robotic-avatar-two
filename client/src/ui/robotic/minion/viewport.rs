@@ -1,8 +1,8 @@
+use common::{Drive, Head, Tracking};
 use stylist::css;
 use wasm_bindgen::prelude::{wasm_bindgen, Closure};
 use web_sys::{HtmlCanvasElement, HtmlVideoElement, MediaStream};
 use yew::prelude::*;
-use common::{Tracking, Head, Drive};
 
 #[derive(PartialEq, Properties)]
 pub struct Props {
@@ -67,18 +67,16 @@ impl Component for Viewport {
         let right = self.right_ref.cast().unwrap();
 
         if first_render {
-            let callback = props.on_track.reform(|value: ViewportTracking| {
-                Tracking {
-                    head: Head {
-                        rx: value.rx,
-                        ry: value.ry,
-                        rz: value.rz,
-                    },
-                    drive: Drive {
-                        speed: value.l.y,
-                        turn: value.l.x,
-                    },
-                }
+            let callback = props.on_track.reform(|value: ViewportTracking| Tracking {
+                head: Head {
+                    rx: value.rx,
+                    ry: value.ry,
+                    rz: value.rz,
+                },
+                drive: Drive {
+                    speed: value.l.y,
+                    turn: value.l.x,
+                },
             });
             setup_3d(
                 self.canvas_ref.cast().unwrap(),

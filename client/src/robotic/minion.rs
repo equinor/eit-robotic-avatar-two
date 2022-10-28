@@ -35,7 +35,7 @@ impl MinionModel {
             started: false,
             streams: Rc::default(),
             sending: Rc::default(),
-            server
+            server,
         };
         model.get_devices();
         model
@@ -144,7 +144,7 @@ pub enum MinionAction {
     RightCamChange(String),
     StartSending,
     StartReceiving,
-    Tracking(Tracking)
+    Tracking(Tracking),
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]
