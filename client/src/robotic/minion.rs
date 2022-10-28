@@ -1,5 +1,6 @@
 use std::{cell::RefCell, rc::Rc};
 
+use common::Tracking;
 use futures::join;
 use gloo_storage::{LocalStorage, Storage};
 use wasm_bindgen_futures::spawn_local;
@@ -16,6 +17,8 @@ pub struct MinionModel {
     devices: Rc<RefCell<Vec<MediaDeviceInfo>>>,
     started: bool,
     streams: Rc<RefCell<(Option<MediaStream>, Option<MediaStream>)>>,
+    sending: Rc<RefCell<bool>>,
+    server: Server,
 }
 
 impl MinionModel {
@@ -27,10 +30,12 @@ impl MinionModel {
             on_change,
             cam_id,
             media,
-            webrtc: WebRtc::new(server),
+            webrtc: WebRtc::new(server.clone()),
             devices: Rc::default(),
             started: false,
             streams: Rc::default(),
+            sending: Rc::default(),
+            server
         };
         model.get_devices();
         model
@@ -50,6 +55,7 @@ impl MinionModel {
             }
             MinionAction::StartSending => self.start_source(),
             MinionAction::StartReceiving => self.start_receiver(),
+            MinionAction::Tracking(value) => self.send_tracking(value),
         }
     }
 
@@ -115,6 +121,22 @@ impl MinionModel {
             on_change.emit(());
         });
     }
+
+    fn send_tracking(&mut self, tracking: Tracking) {
+        let mut sending = self.sending.borrow_mut();
+        if *sending {
+            return;
+        }
+        *sending = true;
+        drop(sending);
+
+        let sending = self.sending.clone();
+        let server = self.server.clone();
+        spawn_local(async move {
+            server.post_minion_tracking(&tracking).await;
+            *sending.borrow_mut() = false;
+        });
+    }
 }
 
 pub enum MinionAction {
@@ -122,6 +144,7 @@ pub enum MinionAction {
     RightCamChange(String),
     StartSending,
     StartReceiving,
+    Tracking(Tracking)
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]
