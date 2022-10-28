@@ -1,18 +1,25 @@
 mod cameras;
+mod rtc;
+mod server;
 mod viewport;
 
 use std::{cell::RefCell, rc::Rc};
 
 use gloo_storage::{LocalStorage, Storage};
-use js_sys::Reflect;
 use stylist::css;
-use wasm_bindgen::{prelude::wasm_bindgen, JsCast, JsValue};
+use wasm_bindgen::JsCast;
 use wasm_bindgen_futures::spawn_local;
 use web_sys::{EventTarget, HtmlInputElement, MediaStream};
+use weblog::console_log;
 use yew::prelude::*;
 
+use crate::ui::robotic::minion::rtc::Connection;
+
 use self::cameras::{list_devices, load_cams};
-use self::viewport::Viewport;
+use self::server::{
+    post_answer, post_offers, post_tracking, pull_answer, pull_offers, Drive, Head, Tracking,
+};
+use self::viewport::{Viewport, ViewportTracking};
 
 #[derive(PartialEq, Eq, Properties)]
 pub struct Props;
@@ -24,7 +31,7 @@ pub enum Msg {
     Source,
     Receiver,
     Cams((MediaStream, MediaStream)),
-    Tracking(JsValue),
+    Tracking(ViewportTracking),
 }
 
 pub struct Minion {
@@ -80,18 +87,7 @@ impl Component for Minion {
                 self.started = true;
 
                 let callback = link.callback(Msg::Cams);
-                spawn_local(async move {
-                    let streams = receiver().await;
-                    let left = Reflect::get(&streams, &JsValue::from_str("left"))
-                        .unwrap()
-                        .dyn_into()
-                        .unwrap();
-                    let right = Reflect::get(&streams, &JsValue::from_str("right"))
-                        .unwrap()
-                        .dyn_into()
-                        .unwrap();
-                    callback.emit((left, right));
-                });
+                start_receiver(callback);
             }
             Msg::Cams(cams) => self.cams = (Some(cams.0), Some(cams.1)),
             Msg::Tracking(value) => {
@@ -102,7 +98,18 @@ impl Component for Minion {
 
                     let sending = self.sending.clone();
                     spawn_local(async move {
-                        tracking(value).await;
+                        let tracking = Tracking {
+                            head: Head {
+                                rx: value.rx,
+                                ry: value.ry,
+                                rz: value.rz,
+                            },
+                            drive: Drive {
+                                speed: value.l.y,
+                                turn: value.l.x,
+                            },
+                        };
+                        post_tracking(tracking).await;
                         *sending.borrow_mut() = false;
                     });
                 }
@@ -183,13 +190,24 @@ fn start_source(callback: Callback<(MediaStream, MediaStream)>, cam_id: (String,
     spawn_local(async move {
         let streams = load_cams(&cam_id.0, &cam_id.1).await;
         callback.emit(streams.clone());
-        source(streams.0, streams.1).await
+        let con = Connection::from_streams(&streams);
+        let offers = con.create_offers().await;
+        console_log!(&offers.0, &offers.1);
+        post_offers(offers).await;
+        let answer = pull_answer().await;
+        console_log!(&answer);
+        con.set_answers(answer).await;
     });
 }
 
-#[wasm_bindgen(raw_module = "/js/view/RoboticAvatar.mjs")]
-extern "C" {
-    async fn source(leftCam: MediaStream, rightCamId: MediaStream);
-    async fn receiver() -> JsValue;
-    async fn tracking(track: JsValue);
+fn start_receiver(callback: Callback<(MediaStream, MediaStream)>) {
+    spawn_local(async move {
+        let offers = pull_offers().await;
+        console_log!(&offers.0, &offers.1);
+        let con = Connection::from_offer(&offers).await;
+        let answer = con.create_answers().await;
+        console_log!(&answer);
+        post_answer(answer).await;
+        callback.emit(con.streams());
+    });
 }
