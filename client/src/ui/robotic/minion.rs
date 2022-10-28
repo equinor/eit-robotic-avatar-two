@@ -1,4 +1,3 @@
-mod cameras;
 mod viewport;
 
 use std::{cell::RefCell, rc::Rc};
@@ -7,13 +6,12 @@ use common::{Drive, Head, Tracking};
 use stylist::css;
 use wasm_bindgen::JsCast;
 use wasm_bindgen_futures::spawn_local;
-use web_sys::{EventTarget, HtmlInputElement, MediaStream};
+use web_sys::{EventTarget, HtmlInputElement};
 use yew::prelude::*;
 
 use crate::robotic::{MinionAction, MinionState};
-use crate::services::{Server, WebRtc};
+use crate::services::Server;
 
-use self::cameras::load_cams;
 use self::viewport::{Viewport, ViewportTracking};
 
 #[derive(PartialEq, Properties)]
@@ -23,18 +21,12 @@ pub struct Props {
 }
 
 pub enum Msg {
-    Source,
-    Receiver,
-    Cams((MediaStream, MediaStream)),
     Tracking(ViewportTracking),
 }
 
 pub struct Minion {
-    started: bool,
-    cams: (Option<MediaStream>, Option<MediaStream>),
     sending: Rc<RefCell<bool>>,
     server: Server,
-    webrtc: WebRtc,
 }
 
 impl Component for Minion {
@@ -45,32 +37,13 @@ impl Component for Minion {
         let server = Server::new("");
 
         Minion {
-            started: false,
-            cams: (None, None),
             sending: Rc::default(),
-            server: server.clone(),
-            webrtc: WebRtc::new(server),
+            server,
         }
     }
 
-    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
-        let link = ctx.link();
-        let state = &ctx.props().state;
+    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
-            Msg::Source => {
-                self.started = true;
-
-                let cam_id = state.cam_id.clone();
-                let callback = link.callback(Msg::Cams);
-                start_source(callback, cam_id, self.webrtc.clone());
-            }
-            Msg::Receiver => {
-                self.started = true;
-
-                let callback = link.callback(Msg::Cams);
-                start_receiver(callback, self.webrtc.clone());
-            }
-            Msg::Cams(cams) => self.cams = (Some(cams.0), Some(cams.1)),
             Msg::Tracking(value) => {
                 let mut sending = self.sending.borrow_mut();
                 if !(*sending) {
@@ -160,30 +133,12 @@ impl Component for Minion {
                         </ul>
                     </p>
                     <p>
-                        <button disabled={self.started} onclick={link.callback(|_| Msg::Source)}>{"Start as source"}</button>
-                        <button disabled={self.started} onclick={link.callback(|_| Msg::Receiver)}>{"Start as receiver"}</button>
+                        <button disabled={state.started} onclick={actions.reform(|_| MinionAction::StartSending)}>{"Start sending video."}</button>
+                        <button disabled={state.started} onclick={actions.reform(|_| MinionAction::StartReceiving)}>{"Start receiving video"}</button>
                     </p>
                 </div>
-                <Viewport class={"view"} left={self.cams.0.clone()} right={self.cams.1.clone()} on_track={link.callback(Msg::Tracking)}></Viewport>
+                <Viewport class={"view"} left={state.streams.0.clone()} right={state.streams.1.clone()} on_track={link.callback(Msg::Tracking)}></Viewport>
             </div>
         }
     }
-}
-
-fn start_source(
-    callback: Callback<(MediaStream, MediaStream)>,
-    cam_id: (String, String),
-    webrtc: WebRtc,
-) {
-    spawn_local(async move {
-        let streams = load_cams(&cam_id.0, &cam_id.1).await;
-        callback.emit(streams.clone());
-        webrtc.send_video(streams).await;
-    });
-}
-
-fn start_receiver(callback: Callback<(MediaStream, MediaStream)>, webrtc: WebRtc) {
-    spawn_local(async move {
-        callback.emit(webrtc.receive().await);
-    });
 }

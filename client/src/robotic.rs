@@ -33,7 +33,7 @@ impl Robotic {
     pub fn new(on_change: Callback<()>, server: Server) -> Robotic {
         Robotic {
             media: MediaModel::new(on_change.clone()),
-            minion: MinionModel::new(on_change.clone()),
+            minion: MinionModel::new(on_change.clone(), server.clone()),
             robot: Robot::new(server.clone(), on_change),
             server,
         }
