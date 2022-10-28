@@ -13,7 +13,7 @@ use yew::prelude::*;
 use crate::robotic::{MinionAction, MinionState};
 use crate::services::{Server, WebRtc};
 
-use self::cameras::{list_devices, load_cams};
+use self::cameras::load_cams;
 use self::viewport::{Viewport, ViewportTracking};
 
 #[derive(PartialEq, Properties)]
@@ -23,7 +23,6 @@ pub struct Props {
 }
 
 pub enum Msg {
-    Devices(Vec<(String, String)>),
     Source,
     Receiver,
     Cams((MediaStream, MediaStream)),
@@ -31,7 +30,6 @@ pub enum Msg {
 }
 
 pub struct Minion {
-    devices: Vec<(String, String)>,
     started: bool,
     cams: (Option<MediaStream>, Option<MediaStream>),
     sending: Rc<RefCell<bool>>,
@@ -43,17 +41,10 @@ impl Component for Minion {
     type Message = Msg;
     type Properties = Props;
 
-    fn create(ctx: &Context<Self>) -> Self {
-        let callback = ctx.link().callback(Msg::Devices);
-        spawn_local(async move {
-            let devices = list_devices().await;
-            callback.emit(devices)
-        });
-
+    fn create(_ctx: &Context<Self>) -> Self {
         let server = Server::new("");
 
         Minion {
-            devices: Vec::new(),
             started: false,
             cams: (None, None),
             sending: Rc::default(),
@@ -66,7 +57,6 @@ impl Component for Minion {
         let link = ctx.link();
         let state = &ctx.props().state;
         match msg {
-            Msg::Devices(devices) => self.devices = devices,
             Msg::Source => {
                 self.started = true;
 
@@ -152,9 +142,9 @@ impl Component for Minion {
             MinionAction::RightCamChange(target.unchecked_into::<HtmlInputElement>().value())
         });
 
-        let devices = self.devices.iter().map(|(a, b)| {
+        let devices = state.devices.iter().map(|device_info| {
             html! {
-                <li>{a}{": "}{b}</li>
+                <li>{device_info.label()}{": "}{device_info.device_id()}</li>
             }
         });
 

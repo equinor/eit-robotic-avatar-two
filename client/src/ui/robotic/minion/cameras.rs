@@ -23,12 +23,3 @@ pub async fn load_cams(left: &str, right: &str) -> (MediaStream, MediaStream) {
 
     join!(left, right)
 }
-
-pub async fn list_devices() -> Vec<(String, String)> {
-    let media = Media::new();
-    let video_info = media.list_video().await;
-    video_info
-        .into_iter()
-        .map(|info| (info.label(), info.device_id()))
-        .collect()
-}
