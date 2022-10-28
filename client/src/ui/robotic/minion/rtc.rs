@@ -1,19 +1,14 @@
 use futures::join;
 use gloo_timers::future::TimeoutFuture;
-use js_sys::Reflect;
-use wasm_bindgen::{
-    prelude::{wasm_bindgen, Closure},
-    JsCast, JsValue,
-};
+use wasm_bindgen::{prelude::Closure, JsCast, JsValue};
 use wasm_bindgen_futures::JsFuture;
 use web_sys::{
-    MediaStream, RtcIceGatheringState, RtcPeerConnection, RtcSessionDescription,
+    MediaStream, RtcIceGatheringState, RtcPeerConnection, RtcRtpReceiver, RtcSessionDescription,
     RtcSessionDescriptionInit,
 };
 use weblog::console_log;
 
 pub struct Connection {
-    inner_js: JsConnection,
     left: MyPeer,
     right: MyPeer,
 }
@@ -37,13 +32,7 @@ impl Connection {
     fn new(left: MyPeer, right: MyPeer) -> Connection {
         left.register_events("left");
         right.register_events("right");
-        let inner_js = JsConnection::new(&left.0, &right.0);
-
-        Connection {
-            inner_js,
-            left,
-            right,
-        }
+        Connection { left, right }
     }
 
     pub async fn create_offers(&self) -> (RtcSessionDescription, RtcSessionDescription) {
@@ -67,16 +56,7 @@ impl Connection {
     }
 
     pub fn streams(&self) -> (MediaStream, MediaStream) {
-        let streams = self.inner_js.getStreams();
-        let left = Reflect::get(&streams, &JsValue::from_str("left"))
-            .unwrap()
-            .dyn_into()
-            .unwrap();
-        let right = Reflect::get(&streams, &JsValue::from_str("right"))
-            .unwrap()
-            .dyn_into()
-            .unwrap();
-        (left, right)
+        (self.left.stream(), self.right.stream())
     }
 }
 
@@ -148,6 +128,15 @@ impl MyPeer {
         self.0.local_description().unwrap()
     }
 
+    fn stream(&self) -> MediaStream {
+        let stream = MediaStream::new().unwrap();
+        for receiver in self.0.get_receivers().iter() {
+            let receiver: RtcRtpReceiver = receiver.dyn_into().unwrap();
+            stream.add_track(&receiver.track());
+        }
+        stream
+    }
+
     fn register_events(&self, side: &'static str) {
         let events = [
             "connectionstatechange",
@@ -171,15 +160,4 @@ impl MyPeer {
             closure.forget();
         }
     }
-}
-
-#[wasm_bindgen(raw_module = "/js/modules/rtc.mjs")]
-extern "C" {
-    #[wasm_bindgen(js_name = Connection)]
-    type JsConnection;
-
-    #[wasm_bindgen(constructor, js_class = "Connection")]
-    fn new(left: &RtcPeerConnection, right: &RtcPeerConnection) -> JsConnection;
-    #[wasm_bindgen(method)]
-    fn getStreams(this: &JsConnection) -> JsValue;
 }
