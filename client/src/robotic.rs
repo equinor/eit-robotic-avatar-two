@@ -1,12 +1,14 @@
 mod media;
+mod minion;
 mod robot;
 
 use crate::server::Server;
 
 pub use self::media::MediaState;
+pub use self::minion::MinionState;
 pub use self::robot::RobotState;
 
-use self::{media::MediaService, robot::Robot};
+use self::{media::MediaService, minion::Minion, robot::Robot};
 use common::SendMessage;
 use wasm_bindgen_futures::spawn_local;
 use yew::Callback;
@@ -20,6 +22,7 @@ pub enum RoboticMsg {
 
 pub struct Robotic {
     media: MediaService,
+    minion: Minion,
     robot: Robot,
     server: Server,
 }
@@ -28,6 +31,7 @@ impl Robotic {
     pub fn new(on_change: Callback<()>, server: Server) -> Robotic {
         Robotic {
             media: MediaService::new(on_change.clone()),
+            minion: Minion::new(),
             robot: Robot::new(server.clone(), on_change),
             server,
         }
@@ -36,6 +40,7 @@ impl Robotic {
     pub fn state(&self) -> RoboticState {
         RoboticState {
             media: self.media.state(),
+            minion: self.minion.state(),
             robot: self.robot.state(),
         }
     }
@@ -58,5 +63,6 @@ impl Robotic {
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct RoboticState {
     pub media: MediaState,
+    pub minion: MinionState,
     pub robot: RobotState,
 }

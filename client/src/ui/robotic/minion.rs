@@ -14,14 +14,17 @@ use web_sys::{EventTarget, HtmlInputElement, MediaStream};
 use weblog::console_log;
 use yew::prelude::*;
 
-use crate::ui::robotic::minion::rtc::Connection;
+use crate::robotic::MinionState;
 
 use self::cameras::{list_devices, load_cams};
+use self::rtc::Connection;
 use self::server::{post_answer, post_offers, post_tracking, pull_answer, pull_offers};
 use self::viewport::{Viewport, ViewportTracking};
 
 #[derive(PartialEq, Eq, Properties)]
-pub struct Props;
+pub struct Props {
+    pub state: MinionState,
+}
 
 pub enum Msg {
     LeftCamId(String),
