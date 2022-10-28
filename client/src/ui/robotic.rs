@@ -102,7 +102,9 @@ impl Component for Robotic {
             Msg::Robot => {
                 html!(<Robot state={props.model.robot.clone()} actions={props.actions.clone()}/>)
             }
-            Msg::Minion => html!(<Minion state={props.model.minion.clone()} />),
+            Msg::Minion => {
+                html!(<Minion state={props.model.minion.clone()} actions={props.actions.reform(RoboticMsg::Minion)} />)
+            }
         };
 
         html! {

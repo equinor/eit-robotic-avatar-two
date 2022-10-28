@@ -4,27 +4,25 @@ mod viewport;
 use std::{cell::RefCell, rc::Rc};
 
 use common::{Drive, Head, Tracking};
-use gloo_storage::{LocalStorage, Storage};
 use stylist::css;
 use wasm_bindgen::JsCast;
 use wasm_bindgen_futures::spawn_local;
 use web_sys::{EventTarget, HtmlInputElement, MediaStream};
 use yew::prelude::*;
 
-use crate::robotic::MinionState;
+use crate::robotic::{MinionAction, MinionState};
 use crate::services::{Server, WebRtc};
 
 use self::cameras::{list_devices, load_cams};
 use self::viewport::{Viewport, ViewportTracking};
 
-#[derive(PartialEq, Eq, Properties)]
+#[derive(PartialEq, Properties)]
 pub struct Props {
     pub state: MinionState,
+    pub actions: Callback<MinionAction>,
 }
 
 pub enum Msg {
-    LeftCamId(String),
-    RightCamId(String),
     Devices(Vec<(String, String)>),
     Source,
     Receiver,
@@ -33,7 +31,6 @@ pub enum Msg {
 }
 
 pub struct Minion {
-    cam_id: (String, String),
     devices: Vec<(String, String)>,
     started: bool,
     cams: (Option<MediaStream>, Option<MediaStream>),
@@ -47,8 +44,6 @@ impl Component for Minion {
     type Properties = Props;
 
     fn create(ctx: &Context<Self>) -> Self {
-        let cam_id = LocalStorage::get("minion_cam_id").unwrap_or_default();
-
         let callback = ctx.link().callback(Msg::Devices);
         spawn_local(async move {
             let devices = list_devices().await;
@@ -58,7 +53,6 @@ impl Component for Minion {
         let server = Server::new("");
 
         Minion {
-            cam_id,
             devices: Vec::new(),
             started: false,
             cams: (None, None),
@@ -70,20 +64,13 @@ impl Component for Minion {
 
     fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
         let link = ctx.link();
+        let state = &ctx.props().state;
         match msg {
-            Msg::LeftCamId(id) => {
-                self.cam_id.0 = id;
-                LocalStorage::set("minion_cam_id", self.cam_id.clone()).unwrap();
-            }
-            Msg::RightCamId(id) => {
-                self.cam_id.1 = id;
-                LocalStorage::set("minion_cam_id", self.cam_id.clone()).unwrap();
-            }
             Msg::Devices(devices) => self.devices = devices,
             Msg::Source => {
                 self.started = true;
 
-                let cam_id = self.cam_id.clone();
+                let cam_id = state.cam_id.clone();
                 let callback = link.callback(Msg::Cams);
                 start_source(callback, cam_id, self.webrtc.clone());
             }
@@ -125,6 +112,8 @@ impl Component for Minion {
 
     fn view(&self, ctx: &Context<Self>) -> Html {
         let link = ctx.link();
+        let state = &ctx.props().state;
+        let actions = &ctx.props().actions;
 
         let css = css!(
             r#"
@@ -149,18 +138,18 @@ impl Component for Minion {
         "#
         );
 
-        let left_id_change = link.callback(|e: Event| {
+        let left_id_change = actions.reform(|e: Event| {
             let target: EventTarget = e
                 .target()
                 .expect("Event should have a target when dispatched");
-            Msg::LeftCamId(target.unchecked_into::<HtmlInputElement>().value())
+            MinionAction::LeftCamChange(target.unchecked_into::<HtmlInputElement>().value())
         });
 
-        let right_id_change = link.callback(|e: Event| {
+        let right_id_change = actions.reform(|e: Event| {
             let target: EventTarget = e
                 .target()
                 .expect("Event should have a target when dispatched");
-            Msg::RightCamId(target.unchecked_into::<HtmlInputElement>().value())
+            MinionAction::RightCamChange(target.unchecked_into::<HtmlInputElement>().value())
         });
 
         let devices = self.devices.iter().map(|(a, b)| {
@@ -174,8 +163,8 @@ impl Component for Minion {
                 <div class={"ui"}>
                     <h1>{"Robotic Avatar Demo"}</h1>
                     <p>
-                        {"Left Camera ID:"} <input size={64} value={self.cam_id.0.clone()} onchange={left_id_change} /><br/>
-                        {"Right Camera ID:"} <input size={64} value={self.cam_id.1.clone()} onchange={right_id_change} />
+                        {"Left Camera ID:"} <input size={64} value={state.cam_id.0.clone()} onchange={left_id_change} /><br/>
+                        {"Right Camera ID:"} <input size={64} value={state.cam_id.1.clone()} onchange={right_id_change} />
                         <ul>
                             {for devices}
                         </ul>
