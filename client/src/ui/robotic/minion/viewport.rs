@@ -100,7 +100,7 @@ pub struct Controller {
     pub d: f64,  // Grip
 }
 
-#[wasm_bindgen(raw_module = "/js/view/Viewport.mjs")]
+#[wasm_bindgen(raw_module = "/js/viewport.mjs")]
 extern "C" {
     fn setup_3d(
         canvas: HtmlCanvasElement,

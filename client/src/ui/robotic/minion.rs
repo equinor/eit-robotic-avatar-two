@@ -5,6 +5,7 @@ mod viewport;
 
 use std::{cell::RefCell, rc::Rc};
 
+use common::{Drive, Head, Tracking};
 use gloo_storage::{LocalStorage, Storage};
 use stylist::css;
 use wasm_bindgen::JsCast;
@@ -16,9 +17,7 @@ use yew::prelude::*;
 use crate::ui::robotic::minion::rtc::Connection;
 
 use self::cameras::{list_devices, load_cams};
-use self::server::{
-    post_answer, post_offers, post_tracking, pull_answer, pull_offers, Drive, Head, Tracking,
-};
+use self::server::{post_answer, post_offers, post_tracking, pull_answer, pull_offers};
 use self::viewport::{Viewport, ViewportTracking};
 
 #[derive(PartialEq, Eq, Properties)]
@@ -109,7 +108,7 @@ impl Component for Minion {
                                 turn: value.l.x,
                             },
                         };
-                        post_tracking(tracking).await;
+                        post_tracking(&tracking).await;
                         *sending.borrow_mut() = false;
                     });
                 }
