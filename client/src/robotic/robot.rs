@@ -6,7 +6,7 @@ use time::OffsetDateTime;
 use wasm_bindgen_futures::spawn_local;
 use yew::Callback;
 
-use crate::server::Server;
+use crate::services::Server;
 
 pub struct Robot {
     state: Rc<RefCell<RobotState>>,

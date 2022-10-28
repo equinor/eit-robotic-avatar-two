@@ -2,7 +2,7 @@ mod media;
 mod minion;
 mod robot;
 
-use crate::server::Server;
+use crate::services::Server;
 
 pub use self::media::MediaState;
 pub use self::minion::MinionState;

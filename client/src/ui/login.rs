@@ -3,7 +3,7 @@ use wasm_bindgen::JsCast;
 use web_sys::{EventTarget, HtmlInputElement};
 use yew::prelude::*;
 
-use crate::{auth::Auth, server::Server};
+use crate::{auth::Auth, services::Server};
 
 #[derive(PartialEq, Properties)]
 pub struct Props {

@@ -4,7 +4,7 @@ use web_sys::Url;
 use weblog::console_error;
 use yew::Callback;
 
-use crate::server::Server;
+use crate::services::Server;
 
 pub struct Auth {
     on_login: Callback<Server>,
