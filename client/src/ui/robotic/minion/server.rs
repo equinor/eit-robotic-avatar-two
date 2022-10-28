@@ -1,71 +1,46 @@
-use js_sys::{Object, Reflect};
-use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
-use web_sys::{RtcSdpType, RtcSessionDescription, RtcSessionDescriptionInit};
+use common::{RtcMessage, Tracking};
+use gloo_net::http::Request;
+use gloo_timers::future::TimeoutFuture;
 
-pub async fn post_offers(offers: (RtcSessionDescription, RtcSessionDescription)) {
-    let value = Object::new();
-    Reflect::set(&value, &"left".into(), &offers.0.into()).unwrap();
-    Reflect::set(&value, &"right".into(), &offers.1.into()).unwrap();
-
-    postOffers(value.into()).await;
+pub async fn post_offers(offers: &RtcMessage) {
+    post("/api/minion/post_offer", offers).await;
 }
-pub async fn pull_offers() -> (RtcSessionDescriptionInit, RtcSessionDescriptionInit) {
-    let value = pullOffers().await;
-    let left = Reflect::get(&value, &"left".into()).unwrap();
-    let left = into_rtc_init(&left);
-    let right = Reflect::get(&value, &"right".into()).unwrap();
-    let right = into_rtc_init(&right);
-
-    (left, right)
+pub async fn pull_offers() -> RtcMessage {
+    pull("/api/minion/get_offer").await
 }
-pub async fn post_answer(answer: JsValue) {
-    postAnswer(answer).await;
+pub async fn post_answer(answer: &RtcMessage) {
+    post("/api/minion/post_answer", answer).await;
 }
-pub async fn pull_answer() -> JsValue {
-    pullAnswer().await
-}
-pub async fn post_tracking(tracking: Tracking) {
-    postTracking(tracking).await;
+pub async fn pull_answer() -> RtcMessage {
+    pull("/api/minion/get_answer").await
 }
 
-#[wasm_bindgen]
-pub struct Tracking {
-    pub head: Head,
-    pub drive: Drive,
-}
-
-#[wasm_bindgen]
-#[derive(Debug, Default, Clone, Copy)]
-pub struct Head {
-    pub rx: f64,
-    pub ry: f64,
-    pub rz: f64,
-}
-
-#[wasm_bindgen]
-#[derive(Debug, Default, Clone, Copy)]
-pub struct Drive {
-    pub speed: f64,
-    pub turn: f64,
-}
-
-fn into_rtc_init(value: &JsValue) -> RtcSessionDescriptionInit {
-    let type_ = Reflect::get(value, &"type".into()).unwrap();
-    let type_ = RtcSdpType::from_js_value(&type_).unwrap();
-    let spd = Reflect::get(value, &"sdp".into())
+pub async fn post_tracking(tracking: &Tracking) {
+    Request::post("/api/minion/tracking")
+        .json(&tracking)
         .unwrap()
-        .as_string()
+        .send()
+        .await
         .unwrap();
-    let mut init = RtcSessionDescriptionInit::new(type_);
-    init.sdp(&spd);
-    init
 }
 
-#[wasm_bindgen(raw_module = "/js/modules/server.mjs")]
-extern "C" {
-    async fn postOffers(offers: JsValue);
-    async fn pullOffers() -> JsValue;
-    async fn postAnswer(answer: JsValue);
-    async fn pullAnswer() -> JsValue;
-    async fn postTracking(tracking: Tracking);
+async fn post(path: &str, payload: &RtcMessage) {
+    Request::post(path)
+        .json(payload)
+        .unwrap()
+        .send()
+        .await
+        .unwrap();
+}
+
+async fn pull(path: &str) -> RtcMessage {
+    loop {
+        let maybe = Request::get(path).send().await.unwrap().json().await;
+
+        if maybe.is_ok() {
+            break maybe.unwrap();
+        }
+
+        TimeoutFuture::new(5000).await
+    }
 }

@@ -37,6 +37,7 @@ features = [
     "HtmlVideoElement",
     "RtcPeerConnection",
     "RtcRtpSender",
+    "RtcRtpReceiver",
     "RtcSessionDescriptionInit",
     "RtcSdpType",
     "RtcIceGatheringState",

@@ -5,6 +5,7 @@ mod viewport;
 
 use std::{cell::RefCell, rc::Rc};
 
+use common::{Drive, Head, Tracking};
 use gloo_storage::{LocalStorage, Storage};
 use stylist::css;
 use wasm_bindgen::JsCast;
@@ -16,9 +17,7 @@ use yew::prelude::*;
 use crate::ui::robotic::minion::rtc::Connection;
 
 use self::cameras::{list_devices, load_cams};
-use self::server::{
-    post_answer, post_offers, post_tracking, pull_answer, pull_offers, Drive, Head, Tracking,
-};
+use self::server::{post_answer, post_offers, post_tracking, pull_answer, pull_offers};
 use self::viewport::{Viewport, ViewportTracking};
 
 #[derive(PartialEq, Eq, Properties)]
@@ -109,7 +108,7 @@ impl Component for Minion {
                                 turn: value.l.x,
                             },
                         };
-                        post_tracking(tracking).await;
+                        post_tracking(&tracking).await;
                         *sending.borrow_mut() = false;
                     });
                 }
@@ -192,22 +191,22 @@ fn start_source(callback: Callback<(MediaStream, MediaStream)>, cam_id: (String,
         callback.emit(streams.clone());
         let con = Connection::from_streams(&streams);
         let offers = con.create_offers().await;
-        console_log!(&offers.0, &offers.1);
-        post_offers(offers).await;
+        console_log!(format!("{:?}", &offers));
+        post_offers(&offers).await;
         let answer = pull_answer().await;
-        console_log!(&answer);
-        con.set_answers(answer).await;
+        console_log!(format!("{:?}", &answer));
+        con.set_answers(&answer).await;
     });
 }
 
 fn start_receiver(callback: Callback<(MediaStream, MediaStream)>) {
     spawn_local(async move {
         let offers = pull_offers().await;
-        console_log!(&offers.0, &offers.1);
+        console_log!(format!("{:?}", &offers));
         let con = Connection::from_offer(&offers).await;
         let answer = con.create_answers().await;
-        console_log!(&answer);
-        post_answer(answer).await;
+        console_log!(format!("{:?}", &answer));
+        post_answer(&answer).await;
         callback.emit(con.streams());
     });
 }
