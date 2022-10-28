@@ -10,12 +10,6 @@ export class Connection {
             right: getStream(this.right),
         };
     }
-
-    async setAnswers(answer) {
-        let left = this.left.setRemoteDescription(answer.left);
-        let right = this.right.setRemoteDescription(answer.right);
-        await Promise.all([left, right]);
-    }
 }
 
 /**

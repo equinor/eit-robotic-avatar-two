@@ -54,8 +54,16 @@ impl Connection {
         join!(self.left.create_answer(), self.right.create_answer())
     }
 
-    pub async fn set_answers(&self, answer: JsValue) {
-        self.inner_js.setAnswers(answer).await
+    pub async fn set_answers(
+        &self,
+        answer: (RtcSessionDescriptionInit, RtcSessionDescriptionInit),
+    ) {
+        JsFuture::from(self.left.0.set_remote_description(&answer.0))
+            .await
+            .unwrap();
+        JsFuture::from(self.right.0.set_remote_description(&answer.1))
+            .await
+            .unwrap();
     }
 
     pub fn streams(&self) -> (MediaStream, MediaStream) {
@@ -173,9 +181,5 @@ extern "C" {
     #[wasm_bindgen(constructor, js_class = "Connection")]
     fn new(left: &RtcPeerConnection, right: &RtcPeerConnection) -> JsConnection;
     #[wasm_bindgen(method)]
-    async fn setAnswers(this: &JsConnection, answer: JsValue);
-    #[wasm_bindgen(method)]
     fn getStreams(this: &JsConnection) -> JsValue;
-
-    async fn fromOffers(offer: JsValue) -> JsValue;
 }

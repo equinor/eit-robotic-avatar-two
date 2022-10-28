@@ -25,8 +25,14 @@ pub async fn post_answer(answer: (RtcSessionDescription, RtcSessionDescription))
 
     postAnswer(value.into()).await;
 }
-pub async fn pull_answer() -> JsValue {
-    pullAnswer().await
+pub async fn pull_answer() -> (RtcSessionDescriptionInit, RtcSessionDescriptionInit) {
+    let value = pullAnswer().await;
+    let left = Reflect::get(&value, &"left".into()).unwrap();
+    let left = into_rtc_init(&left);
+    let right = Reflect::get(&value, &"right".into()).unwrap();
+    let right = into_rtc_init(&right);
+
+    (left, right)
 }
 pub async fn post_tracking(tracking: Tracking) {
     postTracking(tracking).await;

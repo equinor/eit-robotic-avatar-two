@@ -195,7 +195,7 @@ fn start_source(callback: Callback<(MediaStream, MediaStream)>, cam_id: (String,
         console_log!(&offers.0, &offers.1);
         post_offers(offers).await;
         let answer = pull_answer().await;
-        console_log!(&answer);
+        console_log!(&answer.0, &answer.1);
         con.set_answers(answer).await;
     });
 }
