@@ -1,10 +1,11 @@
+use common::{RtcMessage, RtcSession};
 use futures::join;
 use gloo_timers::future::TimeoutFuture;
 use wasm_bindgen::{prelude::Closure, JsCast, JsValue};
 use wasm_bindgen_futures::JsFuture;
 use web_sys::{
-    MediaStream, RtcIceGatheringState, RtcPeerConnection, RtcRtpReceiver, RtcSessionDescription,
-    RtcSessionDescriptionInit,
+    MediaStream, RtcIceGatheringState, RtcPeerConnection, RtcRtpReceiver, RtcSdpType,
+    RtcSessionDescription, RtcSessionDescriptionInit,
 };
 use weblog::console_log;
 
@@ -21,10 +22,11 @@ impl Connection {
         Connection::new(left, right)
     }
 
-    pub async fn from_offer(
-        offer: &(RtcSessionDescriptionInit, RtcSessionDescriptionInit),
-    ) -> Connection {
-        let (left, right) = join!(MyPeer::from_offer(&offer.0), MyPeer::from_offer(&offer.1));
+    pub async fn from_offer(offer: &RtcMessage) -> Connection {
+        let (left, right) = join!(
+            MyPeer::from_offer(&offer.left),
+            MyPeer::from_offer(&offer.right)
+        );
 
         Connection::new(left, right)
     }
@@ -35,24 +37,19 @@ impl Connection {
         Connection { left, right }
     }
 
-    pub async fn create_offers(&self) -> (RtcSessionDescription, RtcSessionDescription) {
-        join!(self.left.create_offer(), self.right.create_offer())
+    pub async fn create_offers(&self) -> RtcMessage {
+        let (left, right) = join!(self.left.create_offer(), self.right.create_offer());
+        RtcMessage { left, right }
     }
 
-    pub async fn create_answers(&self) -> (RtcSessionDescription, RtcSessionDescription) {
-        join!(self.left.create_answer(), self.right.create_answer())
+    pub async fn create_answers(&self) -> RtcMessage {
+        let (left, right) = join!(self.left.create_answer(), self.right.create_answer());
+        RtcMessage { left, right }
     }
 
-    pub async fn set_answers(
-        &self,
-        answer: (RtcSessionDescriptionInit, RtcSessionDescriptionInit),
-    ) {
-        JsFuture::from(self.left.0.set_remote_description(&answer.0))
-            .await
-            .unwrap();
-        JsFuture::from(self.right.0.set_remote_description(&answer.1))
-            .await
-            .unwrap();
+    pub async fn set_answers(&self, answer: &RtcMessage) {
+        self.left.set_remote(&answer.left).await;
+        self.right.set_remote(&answer.right).await;
     }
 
     pub fn streams(&self) -> (MediaStream, MediaStream) {
@@ -72,11 +69,9 @@ impl MyPeer {
         peer
     }
 
-    async fn from_offer(offer: &RtcSessionDescriptionInit) -> MyPeer {
+    async fn from_offer(session: &RtcSession) -> MyPeer {
         let peer = MyPeer::new();
-        JsFuture::from(peer.0.set_remote_description(offer))
-            .await
-            .unwrap();
+        peer.set_remote(session).await;
         peer
     }
 
@@ -92,7 +87,7 @@ impl MyPeer {
         MyPeer(RtcPeerConnection::new().unwrap())
     }
 
-    async fn create_offer(&self) -> RtcSessionDescription {
+    async fn create_offer(&self) -> RtcSession {
         let offer: RtcSessionDescription = JsFuture::from(self.0.create_offer())
             .await
             .unwrap()
@@ -107,10 +102,10 @@ impl MyPeer {
         while self.0.ice_gathering_state() == RtcIceGatheringState::Gathering {
             TimeoutFuture::new(100).await
         }
-        self.0.local_description().unwrap()
+        self.get_local()
     }
 
-    async fn create_answer(&self) -> RtcSessionDescription {
+    async fn create_answer(&self) -> RtcSession {
         let answer: RtcSessionDescription = JsFuture::from(self.0.create_answer())
             .await
             .unwrap()
@@ -125,7 +120,7 @@ impl MyPeer {
         while self.0.ice_gathering_state() != RtcIceGatheringState::Complete {
             TimeoutFuture::new(100).await
         }
-        self.0.local_description().unwrap()
+        self.get_local()
     }
 
     fn stream(&self) -> MediaStream {
@@ -159,5 +154,31 @@ impl MyPeer {
                 .unwrap();
             closure.forget();
         }
+    }
+
+    fn get_local(&self) -> RtcSession {
+        let session = self.0.local_description().unwrap();
+        let sdp_type = match session.type_() {
+            RtcSdpType::Offer => "offer",
+            RtcSdpType::Pranswer => "pranswer",
+            RtcSdpType::Answer => "answer",
+            RtcSdpType::Rollback => "rollback",
+            _ => "",
+        }
+        .to_string();
+        RtcSession {
+            sdp_type,
+            sdp: session.sdp(),
+        }
+    }
+
+    async fn set_remote(&self, remote: &RtcSession) {
+        let type_ = RtcSdpType::from_js_value(&remote.sdp_type.as_str().into()).unwrap();
+        let mut init = RtcSessionDescriptionInit::new(type_);
+        init.sdp(&remote.sdp);
+
+        JsFuture::from(self.0.set_remote_description(&init))
+            .await
+            .unwrap();
     }
 }

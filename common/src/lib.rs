@@ -64,3 +64,15 @@ pub struct Drive {
     pub speed: f64,
     pub turn: f64,
 }
+
+#[derive(Debug, Default, Clone, Serialize, Deserialize)]
+pub struct RtcMessage {
+    pub left: RtcSession,
+    pub right: RtcSession,
+}
+
+#[derive(Debug, Default, Clone, Serialize, Deserialize)]
+pub struct RtcSession {
+    pub sdp_type: String,
+    pub sdp: String,
+}
