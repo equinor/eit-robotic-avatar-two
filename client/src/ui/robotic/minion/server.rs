@@ -18,8 +18,12 @@ pub async fn pull_offers() -> (RtcSessionDescriptionInit, RtcSessionDescriptionI
 
     (left, right)
 }
-pub async fn post_answer(answer: JsValue) {
-    postAnswer(answer).await;
+pub async fn post_answer(answer: (RtcSessionDescription, RtcSessionDescription)) {
+    let value = Object::new();
+    Reflect::set(&value, &"left".into(), &answer.0.into()).unwrap();
+    Reflect::set(&value, &"right".into(), &answer.1.into()).unwrap();
+
+    postAnswer(value.into()).await;
 }
 pub async fn pull_answer() -> JsValue {
     pullAnswer().await

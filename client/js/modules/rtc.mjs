@@ -4,15 +4,6 @@ export class Connection {
         this.right = right;
     }
 
-    async createAnswers() {
-        let left = createAnswer(this.left);
-        let right = createAnswer(this.right);
-        return {
-            left: await left,
-            right: await right,
-        };
-    }
-
     getStreams() {
         return {
             left: getStream(this.left),
@@ -25,18 +16,6 @@ export class Connection {
         let right = this.right.setRemoteDescription(answer.right);
         await Promise.all([left, right]);
     }
-}
-
-/**
- * @param {RTCPeerConnection} peer
- */
-async function createAnswer(peer) {
-    let offer = await peer.createAnswer();
-    peer.setLocalDescription(offer);
-    while (peer.iceGatheringState != "complete") {
-        await new Promise(resolve => setTimeout(resolve, 100));
-    }
-    return peer.localDescription;
 }
 
 /**

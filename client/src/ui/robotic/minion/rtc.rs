@@ -50,8 +50,8 @@ impl Connection {
         join!(self.left.create_offer(), self.right.create_offer())
     }
 
-    pub async fn create_answers(&self) -> JsValue {
-        self.inner_js.createAnswers().await
+    pub async fn create_answers(&self) -> (RtcSessionDescription, RtcSessionDescription) {
+        join!(self.left.create_answer(), self.right.create_answer())
     }
 
     pub async fn set_answers(&self, answer: JsValue) {
@@ -122,6 +122,24 @@ impl MyPeer {
         self.0.local_description().unwrap()
     }
 
+    async fn create_answer(&self) -> RtcSessionDescription {
+        let answer: RtcSessionDescription = JsFuture::from(self.0.create_answer())
+            .await
+            .unwrap()
+            .dyn_into()
+            .unwrap();
+        let mut local = RtcSessionDescriptionInit::new(answer.type_());
+        local.sdp(&answer.sdp());
+
+        JsFuture::from(self.0.set_local_description(&local))
+            .await
+            .unwrap();
+        while self.0.ice_gathering_state() != RtcIceGatheringState::Complete {
+            TimeoutFuture::new(100).await
+        }
+        self.0.local_description().unwrap()
+    }
+
     fn register_events(&self, side: &'static str) {
         let events = [
             "connectionstatechange",
@@ -154,8 +172,6 @@ extern "C" {
 
     #[wasm_bindgen(constructor, js_class = "Connection")]
     fn new(left: &RtcPeerConnection, right: &RtcPeerConnection) -> JsConnection;
-    #[wasm_bindgen(method)]
-    async fn createAnswers(this: &JsConnection) -> JsValue;
     #[wasm_bindgen(method)]
     async fn setAnswers(this: &JsConnection, answer: JsValue);
     #[wasm_bindgen(method)]

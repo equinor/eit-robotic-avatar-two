@@ -206,7 +206,7 @@ fn start_receiver(callback: Callback<(MediaStream, MediaStream)>) {
         console_log!(&offers.0, &offers.1);
         let con = Connection::from_offer(&offers).await;
         let answer = con.create_answers().await;
-        console_log!(&answer);
+        console_log!(&answer.0, &answer.1);
         post_answer(answer).await;
         callback.emit(con.streams());
     });
