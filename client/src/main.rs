@@ -1,6 +1,6 @@
 mod auth;
 mod robotic;
-mod server;
+mod services;
 mod ui;
 
 pub use robotic::Robotic;

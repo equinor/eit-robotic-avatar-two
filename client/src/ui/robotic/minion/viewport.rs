@@ -1,3 +1,4 @@
+use common::{Drive, Head, Tracking};
 use stylist::css;
 use wasm_bindgen::prelude::{wasm_bindgen, Closure};
 use web_sys::{HtmlCanvasElement, HtmlVideoElement, MediaStream};
@@ -8,7 +9,7 @@ pub struct Props {
     pub class: Classes,
     pub left: Option<MediaStream>,
     pub right: Option<MediaStream>,
-    pub on_track: Callback<ViewportTracking>,
+    pub on_track: Callback<Tracking>,
 }
 
 pub enum Msg {}
@@ -66,7 +67,17 @@ impl Component for Viewport {
         let right = self.right_ref.cast().unwrap();
 
         if first_render {
-            let callback = props.on_track.clone();
+            let callback = props.on_track.reform(|value: ViewportTracking| Tracking {
+                head: Head {
+                    rx: value.rx,
+                    ry: value.ry,
+                    rz: value.rz,
+                },
+                drive: Drive {
+                    speed: value.l.y,
+                    turn: value.l.x,
+                },
+            });
             setup_3d(
                 self.canvas_ref.cast().unwrap(),
                 &left,

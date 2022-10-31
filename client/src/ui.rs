@@ -8,7 +8,7 @@ pub use robotic::Robotic;
 
 use crate::{
     robotic::{Robotic as App, RoboticMsg},
-    server::Server,
+    services::Server,
 };
 
 use stylist::{css, yew::Global};
