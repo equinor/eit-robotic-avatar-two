@@ -6,7 +6,7 @@ use web_sys::{EventTarget, HtmlInputElement};
 use yew::prelude::*;
 use yew_agent::use_bridge;
 
-use crate::robotic::{
+use crate::agents::{
     minion::{MinionAction, MinionState},
     MinionAgent,
 };

@@ -2,7 +2,7 @@ use web_sys::MediaDeviceKind;
 use yew::{html, Component, Context, Html, Properties};
 use yew_agent::{Bridge, Bridged};
 
-use crate::robotic::{
+use crate::agents::{
     media::{MediaActions, MediaState},
     MediaAgent,
 };

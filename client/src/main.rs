@@ -1,5 +1,5 @@
+mod agents;
 mod auth;
-mod robotic;
 mod services;
 mod ui;
 
