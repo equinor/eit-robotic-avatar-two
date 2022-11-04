@@ -3,7 +3,10 @@ use time::{ext::NumericalDuration, OffsetDateTime};
 use yew::prelude::*;
 use yew_agent::use_bridge;
 
-use crate::agents::{robot::{RobotState, RobotAction}, RobotAgent};
+use crate::agents::{
+    robot::{RobotAction, RobotState},
+    RobotAgent,
+};
 
 #[function_component(Robot)]
 pub fn robot() -> Html {

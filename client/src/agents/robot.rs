@@ -4,7 +4,7 @@ use common::{Interface, RobotStatus};
 use gloo_timers::future::TimeoutFuture;
 use time::OffsetDateTime;
 use wasm_bindgen_futures::spawn_local;
-use yew_agent::{Agent, Context, AgentLink, HandlerId};
+use yew_agent::{Agent, AgentLink, Context, HandlerId};
 
 use crate::services::server;
 
@@ -45,26 +45,26 @@ impl Agent for RobotAgent {
                 self.state.last_seen = status.last_seen;
                 self.state.interfaces = status.interfaces;
                 self.send_state();
-            },
+            }
             Msg::Token(token) => {
                 self.state.token = Some(token);
                 self.send_state();
-            },
+            }
             Msg::Pin(pin) => {
                 self.state.pin = Some(pin);
                 self.send_state()
-            },
+            }
         }
     }
 
     fn handle_input(&mut self, msg: Self::Input, _id: HandlerId) {
         match msg {
-            RobotAction::GenToken => self.link.send_future(async move {
-                Msg::Token(server::get_robot_token().await)
-            }),
-            RobotAction::GenPin => self.link.send_future(async move {
-                Msg::Pin(server::get_robot_pin().await)
-            }),
+            RobotAction::GenToken => self
+                .link
+                .send_future(async move { Msg::Token(server::get_robot_token().await) }),
+            RobotAction::GenPin => self
+                .link
+                .send_future(async move { Msg::Pin(server::get_robot_pin().await) }),
         }
     }
 
@@ -85,15 +85,13 @@ impl RobotAgent {
     }
 }
 
-
-
 pub enum Msg {
     Status(RobotStatus),
     Token(String),
     Pin(String),
 }
 
-pub enum RobotAction{
+pub enum RobotAction {
     GenToken,
     GenPin,
 }

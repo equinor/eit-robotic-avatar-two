@@ -6,11 +6,10 @@ use gloo_storage::{LocalStorage, Storage};
 use web_sys::{MediaDeviceInfo, MediaStream};
 use yew_agent::{Agent, AgentLink, Context, HandlerId};
 
-use crate::services::{server, media, WebRtc};
+use crate::services::{media, server, webrtc};
 
 pub struct MinionAgent {
     cam_id: (String, String),
-    webrtc: WebRtc,
     devices: Vec<MediaDeviceInfo>,
     started: bool,
     streams: (Option<MediaStream>, Option<MediaStream>),
@@ -47,7 +46,6 @@ impl Agent for MinionAgent {
 
         MinionAgent {
             cam_id,
-            webrtc: WebRtc::new(),
             devices: Vec::new(),
             started: false,
             streams: (None, None),
@@ -66,9 +64,8 @@ impl Agent for MinionAgent {
             Msg::SendVideo(left, right) => {
                 self.streams = (Some(left.clone()), Some(right.clone()));
                 self.send_state();
-                let webrtc = self.webrtc.clone();
                 self.link.send_future(async move {
-                    webrtc.send_video((left, right)).await;
+                    webrtc::send_video((left, right)).await;
                     Msg::SendDone
                 });
             }
@@ -95,9 +92,32 @@ impl Agent for MinionAgent {
                 LocalStorage::set("minion_cam_id", self.cam_id.clone()).unwrap();
                 self.send_state();
             }
-            MinionAction::StartSending => self.start_source(),
-            MinionAction::StartReceiving => self.start_receiver(),
-            MinionAction::Tracking(value) => self.send_tracking(value),
+            MinionAction::StartSending => {
+                self.started = true;
+
+                let cam_id = self.cam_id.clone();
+                self.link.send_future(async move {
+                    let left = media::get_user_video(&cam_id.0);
+                    let right = media::get_user_video(&cam_id.1);
+                    let (left, right) = join!(left, right);
+                    Msg::SendVideo(left, right)
+                });
+            }
+            MinionAction::StartReceiving => {
+                self.started = true;
+                self.link
+                    .send_future(async move { Msg::ReceiverDone(webrtc::receive().await) });
+            }
+            MinionAction::Tracking(value) => {
+                if !self.sending {
+                    self.sending = true;
+
+                    self.link.send_future(async move {
+                        server::post_minion_tracking(&value).await;
+                        Msg::ReadyToSend
+                    });
+                }
+            }
         }
     }
 
@@ -107,40 +127,6 @@ impl Agent for MinionAgent {
 
     fn disconnected(&mut self, id: HandlerId) {
         self.subscribers.remove(&id);
-    }
-}
-
-impl MinionAgent {
-    fn start_source(&mut self) {
-        self.started = true;
-
-        let cam_id = self.cam_id.clone();
-        self.link.send_future(async move {
-            let left = media::get_user_video(&cam_id.0);
-            let right = media::get_user_video(&cam_id.1);
-            let (left, right) = join!(left, right);
-            Msg::SendVideo(left, right)
-        });
-    }
-
-    fn start_receiver(&mut self) {
-        self.started = true;
-
-        let webrtc = self.webrtc.clone();
-        self.link
-            .send_future(async move { Msg::ReceiverDone(webrtc.receive().await) });
-    }
-
-    fn send_tracking(&mut self, tracking: Tracking) {
-        if self.sending {
-            return;
-        }
-        self.sending = true;
-
-        self.link.send_future(async move {
-            server::post_minion_tracking(&tracking).await;
-            Msg::ReadyToSend
-        });
     }
 }
 
