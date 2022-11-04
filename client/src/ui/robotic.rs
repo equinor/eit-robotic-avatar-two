@@ -8,12 +8,10 @@ use stylist::css;
 use yew::prelude::*;
 
 use crate::robotic::RoboticMsg;
-use crate::RoboticState as Model;
 
 #[derive(PartialEq, Properties)]
 pub struct Props {
     pub class: Classes,
-    pub model: Model,
     pub actions: Callback<RoboticMsg>,
 }
 
@@ -101,7 +99,7 @@ impl Component for Robotic {
 
         let content = match self.page {
             Msg::Robot => {
-                html!(<Robot state={props.model.robot.clone()} actions={props.actions.clone()}/>)
+                html!(<Robot/>)
             }
             Msg::Minion => {
                 html!(<Minion/>)

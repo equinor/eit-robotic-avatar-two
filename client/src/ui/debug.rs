@@ -5,7 +5,6 @@ use stylist::css;
 use yew::prelude::*;
 
 use crate::robotic::RoboticMsg;
-use crate::RoboticState;
 
 pub use self::media_selector::MediaSelector;
 pub use self::messaging_debug::MessagingDebug;
@@ -13,7 +12,6 @@ pub use self::messaging_debug::MessagingDebug;
 #[derive(PartialEq, Properties)]
 pub struct Props {
     pub class: Classes,
-    pub state: RoboticState,
     pub actions: Callback<RoboticMsg>,
 }
 

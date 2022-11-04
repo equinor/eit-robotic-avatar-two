@@ -1,17 +1,20 @@
-use crate::robotic::{RobotState, RoboticMsg};
 use common::Interface;
 use time::{ext::NumericalDuration, OffsetDateTime};
 use yew::prelude::*;
+use yew_agent::use_bridge;
 
-#[derive(PartialEq, Properties)]
-pub struct Props {
-    pub state: RobotState,
-    pub actions: Callback<RoboticMsg>,
-}
+use crate::robotic::{robot::{RobotState, RobotAction}, RobotAgent};
 
 #[function_component(Robot)]
-pub fn robot(props: &Props) -> Html {
-    let online = props.state.last_seen.map_or_else(
+pub fn robot() -> Html {
+    let state = use_state(RobotState::default);
+    let agent = {
+        let state = state.clone();
+        use_bridge::<RobotAgent, _>(move |s| state.set(s))
+    };
+    let actions = Callback::from(move |msg| agent.send(msg));
+
+    let online = state.last_seen.map_or_else(
         || "Never".to_string(),
         |t| {
             let now = OffsetDateTime::now_utc();
@@ -21,7 +24,7 @@ pub fn robot(props: &Props) -> Html {
         },
     );
 
-    let interfaces = props.state.interfaces.iter().map(interface_to_row);
+    let interfaces = state.interfaces.iter().map(interface_to_row);
 
     html! {
         <div>
@@ -43,8 +46,8 @@ pub fn robot(props: &Props) -> Html {
                 </tbody>
             </table>
 
-            {gen_token(props.actions.clone(), props.state.token.as_ref())}
-            {gen_pin(props.actions.clone(), props.state.pin.as_ref())}
+            {gen_token(actions.clone(), state.token.as_ref())}
+            {gen_pin(actions.clone(), state.pin.as_ref())}
         </div>
     }
 }
@@ -61,23 +64,23 @@ fn interface_to_row(interface: &Interface) -> Html {
     }
 }
 
-fn gen_token(actions: Callback<RoboticMsg>, token: Option<&String>) -> Html {
+fn gen_token(actions: Callback<RobotAction>, token: Option<&String>) -> Html {
     let token = token.map(|s| &**s).unwrap_or("");
 
     html! {
         <div>
-            <button onclick={move |_| actions.emit(RoboticMsg::GenRobotToken) }>{"Generate token for Robot"}</button>
+            <button onclick={move |_| actions.emit(RobotAction::GenToken) }>{"Generate token for Robot"}</button>
             <pre>{token}</pre>
         </div>
     }
 }
 
-fn gen_pin(actions: Callback<RoboticMsg>, pin: Option<&String>) -> Html {
+fn gen_pin(actions: Callback<RobotAction>, pin: Option<&String>) -> Html {
     let pin = pin.map(|s| &**s).unwrap_or("");
 
     html! {
         <div>
-            <button onclick={move |_| actions.emit(RoboticMsg::GenPin) }>{"Generate login Pin"}</button>
+            <button onclick={move |_| actions.emit(RobotAction::GenPin) }>{"Generate login Pin"}</button>
             <pre>{pin}</pre>
         </div>
     }

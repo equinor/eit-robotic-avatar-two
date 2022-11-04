@@ -29,8 +29,7 @@ impl Component for Ui {
         Ui { robotic: None }
     }
 
-    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
-        let link = ctx.link();
+    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
             Msg::State => true,
             Msg::Action(action) => {
@@ -42,7 +41,7 @@ impl Component for Ui {
                 }
             }
             Msg::Login => {
-                let robotic = App::new(link.callback(|_| Msg::State));
+                let robotic = App::new();
                 self.robotic = Some(robotic);
                 true
             }
@@ -70,12 +69,11 @@ impl Component for Ui {
             "#
         );
 
-        let page = if let Some(robotic) = &self.robotic {
-            let state = robotic.state();
+        let page = if let Some(_robotic) = &self.robotic {
             html! {
                 <>
-                    <Robotic class={css!("grid-area: main;")} model={state.clone()} actions={link.callback(Msg::Action)}/>
-                    <DebugTools class={css!("grid-area: debug;")} state={state} actions={link.callback(Msg::Action)}/>
+                    <Robotic class={css!("grid-area: main;")} actions={link.callback(Msg::Action)}/>
+                    <DebugTools class={css!("grid-area: debug;")} actions={link.callback(Msg::Action)}/>
                 </>
             }
         } else {
