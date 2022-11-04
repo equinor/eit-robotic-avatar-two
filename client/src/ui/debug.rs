@@ -23,6 +23,7 @@ pub struct DebugTools {
     current_tab: Tab,
 }
 
+#[allow(clippy::let_unit_value)]
 impl Component for DebugTools {
     type Message = Tab;
     type Properties = Props;
