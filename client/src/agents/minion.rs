@@ -6,11 +6,10 @@ use gloo_storage::{LocalStorage, Storage};
 use web_sys::{MediaDeviceInfo, MediaStream};
 use yew_agent::{Agent, AgentLink, Context, HandlerId};
 
-use crate::services::{server, Media, WebRtc};
+use crate::services::{server, media, WebRtc};
 
 pub struct MinionAgent {
     cam_id: (String, String),
-    media: Media,
     webrtc: WebRtc,
     devices: Vec<MediaDeviceInfo>,
     started: bool,
@@ -44,13 +43,10 @@ impl Agent for MinionAgent {
 
     fn create(link: AgentLink<Self>) -> Self {
         let cam_id = LocalStorage::get("minion_cam_id").unwrap_or_default();
-        let media = Media::new();
-
-        link.send_future(async move { Msg::NewDevices(media.list_video().await) });
+        link.send_future(async move { Msg::NewDevices(media::list_video().await) });
 
         MinionAgent {
             cam_id,
-            media: Media::new(),
             webrtc: WebRtc::new(),
             devices: Vec::new(),
             started: false,
@@ -118,11 +114,10 @@ impl MinionAgent {
     fn start_source(&mut self) {
         self.started = true;
 
-        let media = self.media.clone();
         let cam_id = self.cam_id.clone();
         self.link.send_future(async move {
-            let left = media.get_user_video(&cam_id.0);
-            let right = media.get_user_video(&cam_id.1);
+            let left = media::get_user_video(&cam_id.0);
+            let right = media::get_user_video(&cam_id.1);
             let (left, right) = join!(left, right);
             Msg::SendVideo(left, right)
         });

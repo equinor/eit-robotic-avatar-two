@@ -3,10 +3,9 @@ use std::collections::HashSet;
 use web_sys::{MediaDeviceInfo, MediaStream};
 use yew_agent::{Agent, AgentLink, Context, HandlerId};
 
-use crate::services::Media;
+use crate::services::media;
 
 pub struct MediaAgent {
-    media: Media,
     link: AgentLink<Self>,
     subscribers: HashSet<HandlerId>,
 }
@@ -27,7 +26,6 @@ impl Agent for MediaAgent {
 
     fn create(link: AgentLink<Self>) -> Self {
         MediaAgent {
-            media: Media::new(),
             link,
             subscribers: HashSet::new(),
         }
@@ -41,15 +39,12 @@ impl Agent for MediaAgent {
 
     fn handle_input(&mut self, msg: Self::Input, _id: HandlerId) {
         match msg {
-            MediaActions::GetMedia => {
-                let media = self.media.clone();
-                self.link.send_future(async move {
-                    Msg::SetState(MediaState {
-                        left: media.get_user_video("").await,
-                        devices: media.list_devices().await,
-                    })
+            MediaActions::GetMedia => self.link.send_future(async move {
+                Msg::SetState(MediaState {
+                    left: media::get_user_video("").await,
+                    devices: media::list_devices().await,
                 })
-            }
+            }),
         }
     }
 
