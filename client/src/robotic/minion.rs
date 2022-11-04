@@ -1,57 +1,107 @@
-use std::{cell::RefCell, rc::Rc};
+use std::collections::HashSet;
 
 use common::Tracking;
 use futures::join;
 use gloo_storage::{LocalStorage, Storage};
-use wasm_bindgen_futures::spawn_local;
 use web_sys::{MediaDeviceInfo, MediaStream};
-use yew::Callback;
+use yew_agent::{Agent, AgentLink, Context, HandlerId};
 
 use crate::services::{Media, Server, WebRtc};
 
-pub struct MinionModel {
-    on_change: Callback<()>,
+pub struct MinionAgent {
     cam_id: (String, String),
     media: Media,
     webrtc: WebRtc,
-    devices: Rc<RefCell<Vec<MediaDeviceInfo>>>,
+    devices: Vec<MediaDeviceInfo>,
     started: bool,
-    streams: Rc<RefCell<(Option<MediaStream>, Option<MediaStream>)>>,
-    sending: Rc<RefCell<bool>>,
+    streams: (Option<MediaStream>, Option<MediaStream>),
+    sending: bool,
     server: Server,
+    link: AgentLink<Self>,
+    subscribers: HashSet<HandlerId>,
 }
 
-impl MinionModel {
-    pub fn new(on_change: Callback<()>, server: Server) -> MinionModel {
+impl MinionAgent {
+    fn send_state(&self) {
+        for sub in self.subscribers.iter() {
+            self.link.respond(
+                *sub,
+                MinionState {
+                    cam_id: self.cam_id.clone(),
+                    devices: self.devices.clone(),
+                    streams: self.streams.clone(),
+                    started: self.started,
+                },
+            );
+        }
+    }
+}
+
+impl Agent for MinionAgent {
+    type Reach = Context<Self>;
+    type Message = Msg;
+    type Input = MinionAction;
+    type Output = MinionState;
+
+    fn create(link: AgentLink<Self>) -> Self {
         let cam_id = LocalStorage::get("minion_cam_id").unwrap_or_default();
         let media = Media::new();
+        // TODO Get a server with token somehow.
+        let server = Server::new("");
 
-        let model = MinionModel {
-            on_change,
+        link.send_future(async move { Msg::NewDevices(media.list_video().await) });
+
+        MinionAgent {
             cam_id,
-            media,
+            media: Media::new(),
             webrtc: WebRtc::new(server.clone()),
-            devices: Rc::default(),
+            devices: Vec::new(),
             started: false,
-            streams: Rc::default(),
-            sending: Rc::default(),
+            streams: (None, None),
+            sending: false,
             server,
-        };
-        model.get_devices();
-        model
+            link,
+            subscribers: HashSet::new(),
+        }
     }
 
-    pub fn action(&mut self, action: MinionAction) {
-        match action {
+    fn update(&mut self, msg: Self::Message) {
+        match msg {
+            Msg::NewDevices(devices) => {
+                self.devices = devices;
+                self.send_state();
+            }
+            Msg::SendVideo(left, right) => {
+                self.streams = (Some(left.clone()), Some(right.clone()));
+                self.send_state();
+                let webrtc = self.webrtc.clone();
+                self.link.send_future(async move {
+                    webrtc.send_video((left, right)).await;
+                    Msg::SendDone
+                });
+            }
+            Msg::SendDone => {}
+            Msg::ReceiverDone((left, right)) => {
+                self.streams = (Some(left), Some(right));
+                self.send_state();
+            }
+            Msg::ReadyToSend => {
+                self.sending = false;
+            }
+        }
+    }
+
+    fn handle_input(&mut self, msg: Self::Input, _id: HandlerId) {
+        match msg {
             MinionAction::LeftCamChange(id) => {
                 self.cam_id.0 = id;
                 LocalStorage::set("minion_cam_id", self.cam_id.clone()).unwrap();
-                self.on_change.emit(());
+                self.send_state();
             }
             MinionAction::RightCamChange(id) => {
                 self.cam_id.1 = id;
                 LocalStorage::set("minion_cam_id", self.cam_id.clone()).unwrap();
-                self.on_change.emit(());
+                self.send_state();
             }
             MinionAction::StartSending => self.start_source(),
             MinionAction::StartReceiving => self.start_receiver(),
@@ -59,84 +109,57 @@ impl MinionModel {
         }
     }
 
-    pub fn state(&self) -> MinionState {
-        MinionState {
-            cam_id: self.cam_id.clone(),
-            devices: self.devices.borrow().clone(),
-            streams: self.streams.borrow().clone(),
-            started: self.started,
-        }
+    fn connected(&mut self, id: HandlerId) {
+        self.subscribers.insert(id);
     }
 
-    fn get_devices(&self) {
-        let media = self.media.clone();
-        let on_change = self.on_change.clone();
-        let devices = self.devices.clone();
-        spawn_local(async move {
-            let new_devices = media.list_video().await;
-            {
-                *devices.borrow_mut() = new_devices;
-            }
-            on_change.emit(());
-        });
+    fn disconnected(&mut self, id: HandlerId) {
+        self.subscribers.remove(&id);
     }
+}
 
+impl MinionAgent {
     fn start_source(&mut self) {
         self.started = true;
-        self.on_change.emit(());
 
         let media = self.media.clone();
         let cam_id = self.cam_id.clone();
-        let streams = self.streams.clone();
-        let on_change = self.on_change.clone();
-        let webrtc = self.webrtc.clone();
-        spawn_local(async move {
+        self.link.send_future(async move {
             let left = media.get_user_video(&cam_id.0);
             let right = media.get_user_video(&cam_id.1);
-            let new_streams = join!(left, right);
-            {
-                let mut streams_ref = streams.borrow_mut();
-                streams_ref.0 = Some(new_streams.0.clone());
-                streams_ref.1 = Some(new_streams.1.clone());
-            }
-            on_change.emit(());
-            webrtc.send_video(new_streams).await;
+            let (left, right) = join!(left, right);
+            Msg::SendVideo(left, right)
         });
     }
 
     fn start_receiver(&mut self) {
         self.started = true;
-        self.on_change.emit(());
 
-        let streams = self.streams.clone();
-        let on_change = self.on_change.clone();
         let webrtc = self.webrtc.clone();
-        spawn_local(async move {
-            let new_streams = webrtc.receive().await;
-            {
-                let mut streams_ref = streams.borrow_mut();
-                streams_ref.0 = Some(new_streams.0.clone());
-                streams_ref.1 = Some(new_streams.1.clone());
-            }
-            on_change.emit(());
-        });
+        self.link
+            .send_future(async move { Msg::ReceiverDone(webrtc.receive().await) });
     }
 
     fn send_tracking(&mut self, tracking: Tracking) {
-        let mut sending = self.sending.borrow_mut();
-        if *sending {
+        if self.sending {
             return;
         }
-        *sending = true;
-        drop(sending);
+        self.sending = true;
 
-        let sending = self.sending.clone();
         let server = self.server.clone();
-        spawn_local(async move {
+        self.link.send_future(async move {
             server.post_minion_tracking(&tracking).await;
-            *sending.borrow_mut() = false;
+            Msg::ReadyToSend
         });
     }
+}
+
+pub enum Msg {
+    NewDevices(Vec<MediaDeviceInfo>),
+    SendVideo(MediaStream, MediaStream),
+    SendDone,
+    ReceiverDone((MediaStream, MediaStream)),
+    ReadyToSend,
 }
 
 pub enum MinionAction {
@@ -147,7 +170,7 @@ pub enum MinionAction {
     Tracking(Tracking),
 }
 
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone, Default)]
 pub struct MinionState {
     pub cam_id: (String, String),
     pub devices: Vec<MediaDeviceInfo>,
