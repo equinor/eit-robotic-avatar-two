@@ -2,7 +2,7 @@ pub mod media;
 pub mod minion;
 mod robot;
 
-use crate::services::Server;
+use crate::services::server;
 
 pub use self::media::MediaAgent;
 pub use self::minion::MinionAgent;
@@ -21,14 +21,12 @@ pub enum RoboticMsg {
 
 pub struct Robotic {
     robot: Robot,
-    server: Server,
 }
 
 impl Robotic {
-    pub fn new(on_change: Callback<()>, server: Server) -> Robotic {
+    pub fn new(on_change: Callback<()>) -> Robotic {
         Robotic {
-            robot: Robot::new(server.clone(), on_change),
-            server,
+            robot: Robot::new(on_change),
         }
     }
 
@@ -47,8 +45,7 @@ impl Robotic {
     }
 
     fn send_message(&mut self, msg: SendMessage) {
-        let server = self.server.clone();
-        spawn_local(async move { server.post_message(&msg).await })
+        spawn_local(async move { server::post_message(&msg).await })
     }
 }
 

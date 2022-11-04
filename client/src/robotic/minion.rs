@@ -6,7 +6,7 @@ use gloo_storage::{LocalStorage, Storage};
 use web_sys::{MediaDeviceInfo, MediaStream};
 use yew_agent::{Agent, AgentLink, Context, HandlerId};
 
-use crate::services::{Media, Server, WebRtc};
+use crate::services::{server, Media, WebRtc};
 
 pub struct MinionAgent {
     cam_id: (String, String),
@@ -16,7 +16,6 @@ pub struct MinionAgent {
     started: bool,
     streams: (Option<MediaStream>, Option<MediaStream>),
     sending: bool,
-    server: Server,
     link: AgentLink<Self>,
     subscribers: HashSet<HandlerId>,
 }
@@ -46,20 +45,17 @@ impl Agent for MinionAgent {
     fn create(link: AgentLink<Self>) -> Self {
         let cam_id = LocalStorage::get("minion_cam_id").unwrap_or_default();
         let media = Media::new();
-        // TODO Get a server with token somehow.
-        let server = Server::new("");
 
         link.send_future(async move { Msg::NewDevices(media.list_video().await) });
 
         MinionAgent {
             cam_id,
             media: Media::new(),
-            webrtc: WebRtc::new(server.clone()),
+            webrtc: WebRtc::new(),
             devices: Vec::new(),
             started: false,
             streams: (None, None),
             sending: false,
-            server,
             link,
             subscribers: HashSet::new(),
         }
@@ -146,9 +142,8 @@ impl MinionAgent {
         }
         self.sending = true;
 
-        let server = self.server.clone();
         self.link.send_future(async move {
-            server.post_minion_tracking(&tracking).await;
+            server::post_minion_tracking(&tracking).await;
             Msg::ReadyToSend
         });
     }

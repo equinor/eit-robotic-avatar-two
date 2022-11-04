@@ -6,10 +6,7 @@ pub use debug::DebugTools;
 pub use login::Login;
 pub use robotic::Robotic;
 
-use crate::{
-    robotic::{Robotic as App, RoboticMsg},
-    services::Server,
-};
+use crate::robotic::{Robotic as App, RoboticMsg};
 
 use stylist::{css, yew::Global};
 use yew::prelude::*;
@@ -21,7 +18,7 @@ pub struct Ui {
 pub enum Msg {
     State,
     Action(RoboticMsg),
-    Login(Server),
+    Login,
 }
 
 impl Component for Ui {
@@ -44,8 +41,8 @@ impl Component for Ui {
                     false
                 }
             }
-            Msg::Login(server) => {
-                let robotic = App::new(link.callback(|_| Msg::State), server);
+            Msg::Login => {
+                let robotic = App::new(link.callback(|_| Msg::State));
                 self.robotic = Some(robotic);
                 true
             }
@@ -82,7 +79,7 @@ impl Component for Ui {
                 </>
             }
         } else {
-            html!(<Login class={css!("grid-area: main;")} on_login={link.callback(Msg::Login)}/>)
+            html!(<Login class={css!("grid-area: main;")} on_login={link.callback(|_|Msg::Login)}/>)
         };
 
         html! {

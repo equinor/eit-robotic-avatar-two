@@ -4,14 +4,14 @@ use web_sys::Url;
 use weblog::console_error;
 use yew::Callback;
 
-use crate::services::Server;
+use crate::services::server;
 
 pub struct Auth {
-    on_login: Callback<Server>,
+    on_login: Callback<()>,
 }
 
 impl Auth {
-    pub fn new(on_login: Callback<Server>) -> Auth {
+    pub fn new(on_login: Callback<()>) -> Auth {
         let token = if let Some(token) = token_from_url() {
             LocalStorage::set("robotic_token", token.clone()).unwrap();
             Some(token)
@@ -23,7 +23,8 @@ impl Auth {
 
         // if token is set run the callback now.
         if let Some(token) = token {
-            on_login.emit(Server::new(&token))
+            server::set_token(&token);
+            on_login.emit(())
         }
 
         Auth { on_login }
@@ -32,17 +33,18 @@ impl Auth {
     pub fn pin(&self, pin: String) {
         let on_login = self.on_login.clone();
         spawn_local(async move {
-            let token = Server::post_auth_pin(pin).await;
+            let token = server::post_auth_pin(pin).await;
             if !token.is_empty() {
                 LocalStorage::set("robotic_token", token.clone()).unwrap();
-                on_login.emit(Server::new(&token))
+                server::set_token(&token);
+                on_login.emit(())
             }
         });
     }
 
     pub fn start_azure_ad(&self) {
         spawn_local(async move {
-            let url = Server::get_auth_login().await;
+            let url = server::get_auth_login().await;
             if !url.is_empty() {
                 let window = web_sys::window().unwrap();
                 let location = window.location();
