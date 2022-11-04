@@ -11,4 +11,5 @@ wget -qO- https://github.com/thedodd/trunk/releases/download/v0.16.0/trunk-x86_6
 mv ./trunk /usr/local/bin/
 
 # Minion robot needs Python.
+apt update
 apt -y install python3-dev
