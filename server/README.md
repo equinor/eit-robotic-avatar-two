@@ -71,7 +71,7 @@ The Client Secret for a Azure AD App.
 * Required: Yes if AVATAR_AZURE_AD_ID is set.
 
 ### AVATAR_AZURE_AD_URL
-OpenID Connect base url. Will look something like this: `https://login.microsoftonline.com/<Azure AD tenant ID>/v2.0/`
+OpenID Connect base url. Will look something like this: `https://login.microsoftonline.com/<Azure AD tenant ID>/v2.0`
 
 * Type: Url
 * Default value: 
