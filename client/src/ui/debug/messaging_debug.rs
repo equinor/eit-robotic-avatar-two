@@ -1,14 +1,13 @@
 use common::SendMessage;
 use wasm_bindgen::JsCast;
+use wasm_bindgen_futures::spawn_local;
 use web_sys::{EventTarget, HtmlInputElement, HtmlTextAreaElement};
-use yew::{events::Event, html, Callback, Component, Context, Html, Properties};
+use yew::{events::Event, html, Component, Context, Html, Properties};
 
-use crate::robotic::RoboticMsg;
+use crate::services::server;
 
-#[derive(PartialEq, Properties)]
-pub struct Props {
-    pub actions: Callback<RoboticMsg>,
-}
+#[derive(PartialEq, Eq, Properties)]
+pub struct Props {}
 
 pub struct MessagingDebug {
     to_send: SendMessage,
@@ -35,15 +34,15 @@ impl Component for MessagingDebug {
         }
     }
 
-    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
-        let props = ctx.props();
+    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
             Msg::Topic(topic) => self.to_send.topic = topic,
             Msg::Type(msg_type) => self.to_send.msg_type = msg_type,
             Msg::Payload(payload) => self.to_send.payload = payload,
-            Msg::Send => props
-                .actions
-                .emit(RoboticMsg::SendMessage(self.to_send.clone())),
+            Msg::Send => {
+                let msg = self.to_send.clone();
+                spawn_local(async move { server::post_message(&msg).await })
+            }
         }
         true
     }

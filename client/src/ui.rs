@@ -6,18 +6,14 @@ pub use debug::DebugTools;
 pub use login::Login;
 pub use robotic::Robotic;
 
-use crate::robotic::{Robotic as App, RoboticMsg};
-
 use stylist::{css, yew::Global};
 use yew::prelude::*;
 
 pub struct Ui {
-    robotic: Option<App>,
+    logged_in: bool,
 }
 
 pub enum Msg {
-    State,
-    Action(RoboticMsg),
     Login,
 }
 
@@ -26,23 +22,13 @@ impl Component for Ui {
     type Properties = ();
 
     fn create(_ctx: &Context<Self>) -> Self {
-        Ui { robotic: None }
+        Ui { logged_in: false }
     }
 
     fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
-            Msg::State => true,
-            Msg::Action(action) => {
-                if let Some(robotic) = &mut self.robotic {
-                    robotic.action(action);
-                    true
-                } else {
-                    false
-                }
-            }
             Msg::Login => {
-                let robotic = App::new();
-                self.robotic = Some(robotic);
+                self.logged_in = true;
                 true
             }
         }
@@ -69,11 +55,11 @@ impl Component for Ui {
             "#
         );
 
-        let page = if let Some(_robotic) = &self.robotic {
+        let page = if self.logged_in {
             html! {
                 <>
-                    <Robotic class={css!("grid-area: main;")} actions={link.callback(Msg::Action)}/>
-                    <DebugTools class={css!("grid-area: debug;")} actions={link.callback(Msg::Action)}/>
+                    <Robotic class={css!("grid-area: main;")}/>
+                    <DebugTools class={css!("grid-area: debug;")}/>
                 </>
             }
         } else {

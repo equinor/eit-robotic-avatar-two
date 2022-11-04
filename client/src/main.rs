@@ -3,7 +3,6 @@ mod robotic;
 mod services;
 mod ui;
 
-pub use robotic::Robotic;
 pub use ui::Ui;
 
 fn main() {

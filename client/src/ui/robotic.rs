@@ -7,12 +7,9 @@ pub use self::robot::Robot;
 use stylist::css;
 use yew::prelude::*;
 
-use crate::robotic::RoboticMsg;
-
 #[derive(PartialEq, Properties)]
 pub struct Props {
     pub class: Classes,
-    pub actions: Callback<RoboticMsg>,
 }
 
 #[derive(PartialEq, Eq)]
