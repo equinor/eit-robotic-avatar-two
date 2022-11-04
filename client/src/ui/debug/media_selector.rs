@@ -1,34 +1,48 @@
 use web_sys::MediaDeviceKind;
-use yew::{html, Callback, Component, Context, Html, Properties};
+use yew::{html, Component, Context, Html, Properties};
+use yew_agent::{Bridge, Bridged};
 
-use crate::robotic::{MediaState, RoboticMsg};
+use crate::robotic::{
+    media::{MediaActions, MediaState},
+    MediaAgent,
+};
 
-#[derive(PartialEq, Properties)]
-pub struct Props {
-    pub media: MediaState,
-    pub actions: Callback<RoboticMsg>,
+#[derive(Properties, PartialEq, Eq)]
+pub struct Props {}
+
+pub enum Msg {
+    State(MediaState),
 }
 
-pub struct MediaSelector {}
+pub struct MediaSelector {
+    _agent: Box<dyn Bridge<MediaAgent>>,
+    state: MediaState,
+}
 
 impl Component for MediaSelector {
-    type Message = ();
+    type Message = Msg;
     type Properties = Props;
 
     fn create(ctx: &Context<Self>) -> Self {
-        let props = ctx.props();
-        props.actions.emit(RoboticMsg::Media);
+        let mut agent = MediaAgent::bridge(ctx.link().callback(Msg::State));
+        agent.send(MediaActions::GetMedia);
 
-        MediaSelector {}
+        MediaSelector {
+            _agent: agent,
+            state: MediaState::default(),
+        }
     }
 
-    fn update(&mut self, _ctx: &Context<Self>, _msg: Self::Message) -> bool {
-        false
+    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
+        match msg {
+            Msg::State(state) => {
+                self.state = state;
+                true
+            }
+        }
     }
 
-    fn view(&self, ctx: &Context<Self>) -> Html {
-        let props = ctx.props();
-
+    fn view(&self, _ctx: &Context<Self>) -> Html {
         fn kind_name(kind: MediaDeviceKind) -> &'static str {
             match kind {
                 MediaDeviceKind::Audioinput => "Microphone",
@@ -38,7 +52,7 @@ impl Component for MediaSelector {
             }
         }
 
-        let devices = props.media.devices.iter().map(|info| {
+        let devices = self.state.devices.iter().map(|info| {
             html!(
                 <tr>
                     <td>{kind_name(info.kind())}</td>

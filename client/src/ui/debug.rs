@@ -66,7 +66,7 @@ impl Component for DebugTools {
         let tab = match self.current_tab {
             Tab::None => html!(),
             Tab::Media => {
-                html!(<MediaSelector media={props.state.media.clone()} actions={props.actions.clone()}/>)
+                html!(<MediaSelector />)
             }
             Tab::Message => html!(<MessagingDebug actions={props.actions.clone()} />),
         };

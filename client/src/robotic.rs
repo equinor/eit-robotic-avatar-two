@@ -1,21 +1,20 @@
-mod media;
+pub mod media;
 mod minion;
 mod robot;
 
 use crate::services::Server;
 
-pub use self::media::MediaState;
+pub use self::media::MediaAgent;
 pub use self::minion::MinionAction;
 pub use self::minion::MinionState;
 pub use self::robot::RobotState;
 
-use self::{media::MediaModel, minion::MinionModel, robot::Robot};
+use self::{minion::MinionModel, robot::Robot};
 use common::SendMessage;
 use wasm_bindgen_futures::spawn_local;
 use yew::Callback;
 
 pub enum RoboticMsg {
-    Media,
     SendMessage(SendMessage),
     GenRobotToken,
     GenPin,
@@ -23,7 +22,6 @@ pub enum RoboticMsg {
 }
 
 pub struct Robotic {
-    media: MediaModel,
     minion: MinionModel,
     robot: Robot,
     server: Server,
@@ -32,7 +30,6 @@ pub struct Robotic {
 impl Robotic {
     pub fn new(on_change: Callback<()>, server: Server) -> Robotic {
         Robotic {
-            media: MediaModel::new(on_change.clone()),
             minion: MinionModel::new(on_change.clone(), server.clone()),
             robot: Robot::new(server.clone(), on_change),
             server,
@@ -41,7 +38,6 @@ impl Robotic {
 
     pub fn state(&self) -> RoboticState {
         RoboticState {
-            media: self.media.state(),
             minion: self.minion.state(),
             robot: self.robot.state(),
         }
@@ -49,7 +45,6 @@ impl Robotic {
 
     pub fn action(&mut self, action: RoboticMsg) {
         match action {
-            RoboticMsg::Media => self.media.get_media(),
             RoboticMsg::SendMessage(msg) => self.send_message(msg),
             RoboticMsg::GenRobotToken => self.robot.gen_token(),
             RoboticMsg::GenPin => self.robot.gen_pin(),
@@ -65,7 +60,6 @@ impl Robotic {
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct RoboticState {
-    pub media: MediaState,
     pub minion: MinionState,
     pub robot: RobotState,
 }

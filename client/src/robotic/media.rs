@@ -1,44 +1,73 @@
-use std::{cell::RefCell, rc::Rc};
+use std::collections::HashSet;
 
-use wasm_bindgen_futures::spawn_local;
 use web_sys::{MediaDeviceInfo, MediaStream};
-use yew::Callback;
+use yew_agent::{Agent, AgentLink, Context, HandlerId};
 
 use crate::services::Media;
 
-pub struct MediaModel {
+pub struct MediaAgent {
     media: Media,
-    on_change: Callback<()>,
-    state: Rc<RefCell<MediaState>>,
+    link: AgentLink<Self>,
+    subscribers: HashSet<HandlerId>,
 }
 
-impl MediaModel {
-    pub fn new(on_change: Callback<()>) -> MediaModel {
-        MediaModel {
+impl MediaAgent {
+    fn send_all(&self, state: &MediaState) {
+        for sub in self.subscribers.iter() {
+            self.link.respond(*sub, state.clone());
+        }
+    }
+}
+
+impl Agent for MediaAgent {
+    type Reach = Context<Self>;
+    type Message = Msg;
+    type Input = MediaActions;
+    type Output = MediaState;
+
+    fn create(link: AgentLink<Self>) -> Self {
+        MediaAgent {
             media: Media::new(),
-            on_change,
-            state: Default::default(),
+            link,
+            subscribers: HashSet::new(),
         }
     }
 
-    pub fn state(&self) -> MediaState {
-        self.state.borrow().clone()
+    fn update(&mut self, msg: Self::Message) {
+        match msg {
+            Msg::SetState(state) => self.send_all(&state),
+        }
     }
 
-    pub fn get_media(&mut self) {
-        let media = self.media.clone();
-        let state = self.state.clone();
-        let on_change = self.on_change.clone();
-        spawn_local(async move {
-            let stream = media.get_user_video("").await;
-            let devices = media.list_devices().await;
-            let mut state_ref = state.borrow_mut();
-            state_ref.left = stream;
-            state_ref.devices = devices;
-            drop(state_ref);
-            on_change.emit(())
-        })
+    fn handle_input(&mut self, msg: Self::Input, _id: HandlerId) {
+        match msg {
+            MediaActions::GetMedia => {
+                let media = self.media.clone();
+                self.link.send_future(async move {
+                    Msg::SetState(MediaState {
+                        left: media.get_user_video("").await,
+                        devices: media.list_devices().await,
+                    })
+                })
+            }
+        }
     }
+
+    fn connected(&mut self, id: HandlerId) {
+        self.subscribers.insert(id);
+    }
+
+    fn disconnected(&mut self, id: HandlerId) {
+        self.subscribers.remove(&id);
+    }
+}
+
+pub enum Msg {
+    SetState(MediaState),
+}
+
+pub enum MediaActions {
+    GetMedia,
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]
