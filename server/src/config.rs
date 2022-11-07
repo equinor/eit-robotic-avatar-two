@@ -17,10 +17,14 @@ impl Config {
         let key_string = env::var("AVATAR_TOKEN_KEY").unwrap_or_default();
         let key = validate_key(&key_string)?;
 
+        let bind_address =
+            env::var("AVATAR_BIND_ADDRESS").unwrap_or_else(|_| "127.0.0.1:3000".to_string());
+        let bind_address = bind_address
+            .parse()
+            .context("Failed to parse AVATAR_BIND_ADDRESS")?;
+
         let config = Config {
-            bind_address: "127.0.0.1:3000"
-                .parse()
-                .expect("Invalid hardcoded bind_address."),
+            bind_address,
             token_key: key,
             azure_ad: AzureAdConfig::load()?,
         };
