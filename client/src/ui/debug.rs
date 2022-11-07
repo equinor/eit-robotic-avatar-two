@@ -4,17 +4,12 @@ mod messaging_debug;
 use stylist::css;
 use yew::prelude::*;
 
-use crate::robotic::RoboticMsg;
-use crate::RoboticState;
-
 pub use self::media_selector::MediaSelector;
 pub use self::messaging_debug::MessagingDebug;
 
 #[derive(PartialEq, Properties)]
 pub struct Props {
     pub class: Classes,
-    pub state: RoboticState,
-    pub actions: Callback<RoboticMsg>,
 }
 
 #[derive(PartialEq, Eq)]
@@ -28,6 +23,7 @@ pub struct DebugTools {
     current_tab: Tab,
 }
 
+#[allow(clippy::let_unit_value)]
 impl Component for DebugTools {
     type Message = Tab;
     type Properties = Props;
@@ -66,9 +62,9 @@ impl Component for DebugTools {
         let tab = match self.current_tab {
             Tab::None => html!(),
             Tab::Media => {
-                html!(<MediaSelector media={props.state.media.clone()} actions={props.actions.clone()}/>)
+                html!(<MediaSelector />)
             }
-            Tab::Message => html!(<MessagingDebug actions={props.actions.clone()} />),
+            Tab::Message => html!(<MessagingDebug/>),
         };
 
         let header_css = css!(

@@ -1,10 +1,8 @@
+mod agents;
 mod auth;
-mod robotic;
 mod services;
 mod ui;
 
-pub use robotic::Robotic;
-pub use robotic::RoboticState;
 pub use ui::Ui;
 
 fn main() {

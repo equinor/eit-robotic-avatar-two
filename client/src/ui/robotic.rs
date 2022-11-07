@@ -7,14 +7,9 @@ pub use self::robot::Robot;
 use stylist::css;
 use yew::prelude::*;
 
-use crate::robotic::RoboticMsg;
-use crate::RoboticState as Model;
-
 #[derive(PartialEq, Properties)]
 pub struct Props {
     pub class: Classes,
-    pub model: Model,
-    pub actions: Callback<RoboticMsg>,
 }
 
 #[derive(PartialEq, Eq)]
@@ -44,6 +39,7 @@ impl Component for Robotic {
         }
     }
 
+    #[allow(clippy::let_unit_value)]
     fn view(&self, ctx: &Context<Self>) -> Html {
         let props = ctx.props();
         let link = ctx.link();
@@ -100,10 +96,10 @@ impl Component for Robotic {
 
         let content = match self.page {
             Msg::Robot => {
-                html!(<Robot state={props.model.robot.clone()} actions={props.actions.clone()}/>)
+                html!(<Robot/>)
             }
             Msg::Minion => {
-                html!(<Minion state={props.model.minion.clone()} actions={props.actions.reform(RoboticMsg::Minion)} />)
+                html!(<Minion/>)
             }
         };
 

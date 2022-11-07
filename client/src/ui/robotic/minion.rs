@@ -4,21 +4,23 @@ use stylist::css;
 use wasm_bindgen::JsCast;
 use web_sys::{EventTarget, HtmlInputElement};
 use yew::prelude::*;
+use yew_agent::use_bridge;
 
-use crate::robotic::{MinionAction, MinionState};
+use crate::agents::{
+    minion::{MinionAction, MinionState},
+    MinionAgent,
+};
 
 use self::viewport::Viewport;
 
-#[derive(PartialEq, Properties)]
-pub struct Props {
-    pub state: MinionState,
-    pub actions: Callback<MinionAction>,
-}
-
 #[function_component(Minion)]
-pub fn minion(props: &Props) -> Html {
-    let state = &props.state;
-    let actions = &props.actions;
+pub fn minion() -> Html {
+    let state = use_state(MinionState::default);
+    let agent = {
+        let state = state.clone();
+        use_bridge::<MinionAgent, _>(move |s| state.set(s))
+    };
+    let actions = Callback::from(move |a| agent.send(a));
 
     let css = css!(
         r#"

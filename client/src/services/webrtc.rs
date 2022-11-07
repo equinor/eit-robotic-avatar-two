@@ -9,37 +9,26 @@ use web_sys::{
 };
 use weblog::console_log;
 
-use super::Server;
+use super::server;
 
-#[derive(Clone)]
-pub struct WebRtc {
-    server: Server,
+pub async fn send_video(video: (MediaStream, MediaStream)) {
+    let con = Connection::from_streams(&video);
+    let offers = con.create_offers().await;
+    console_log!(format!("{:?}", &offers));
+    server::post_minion_post_offers(&offers).await;
+    let answer = server::get_minion_pull_answer().await;
+    console_log!(format!("{:?}", &answer));
+    con.set_answers(&answer).await;
 }
 
-impl WebRtc {
-    pub fn new(server: Server) -> WebRtc {
-        WebRtc { server }
-    }
-
-    pub async fn send_video(&self, video: (MediaStream, MediaStream)) {
-        let con = Connection::from_streams(&video);
-        let offers = con.create_offers().await;
-        console_log!(format!("{:?}", &offers));
-        self.server.post_minion_post_offers(&offers).await;
-        let answer = self.server.get_minion_pull_answer().await;
-        console_log!(format!("{:?}", &answer));
-        con.set_answers(&answer).await;
-    }
-
-    pub async fn receive(&self) -> (MediaStream, MediaStream) {
-        let offers = self.server.get_minion_pull_offers().await;
-        console_log!(format!("{:?}", &offers));
-        let con = Connection::from_offer(&offers).await;
-        let answer = con.create_answers().await;
-        console_log!(format!("{:?}", &answer));
-        self.server.post_minion_post_answer(&answer).await;
-        con.streams()
-    }
+pub async fn receive() -> (MediaStream, MediaStream) {
+    let offers = server::get_minion_pull_offers().await;
+    console_log!(format!("{:?}", &offers));
+    let con = Connection::from_offer(&offers).await;
+    let answer = con.create_answers().await;
+    console_log!(format!("{:?}", &answer));
+    server::post_minion_post_answer(&answer).await;
+    con.streams()
 }
 
 struct Connection {
