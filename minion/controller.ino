@@ -6,10 +6,10 @@ struct Motor
 };
 
 // Motor pins
-const Motor front_left = {2,1,3};
-const Motor front_right = {4,5,6};
-const Motor back_left = {7,8,9};
-const Motor back_right = {11,12,10};
+const Motor front_left = {8,7,9};
+const Motor front_right = {12,11,10};
+const Motor back_left = {5,4,6};
+const Motor back_right = {1,2,3};
 
 void setupMotor(Motor motor) {
   pinMode(motor.pin_forward, OUTPUT);
@@ -29,7 +29,7 @@ void runMotor(Motor motor) {
     else
     {
       digitalWrite(motor.pin_forward, LOW);
-      digitalWrite(motor.pin_forward, HIGH);
+      digitalWrite(motor.pin_backward, HIGH);
     }
     analogWrite(motor.pin_speed, speed);
 }
