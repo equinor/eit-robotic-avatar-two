@@ -1,6 +1,6 @@
 use anyhow::Result;
 use common::{RobotConfig, RobotRegister, SendMessage};
-use reqwest::{header, Client, Url};
+use reqwest::{header, Client, RequestBuilder, Url};
 
 use crate::config::LocalConfig;
 
@@ -48,5 +48,9 @@ impl Server {
             .await?;
 
         Ok(())
+    }
+
+    pub fn get(&self, path: &str) -> RequestBuilder {
+        self.client.get(self.base_url.join(path).unwrap())
     }
 }

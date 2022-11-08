@@ -2,6 +2,8 @@ mod config;
 mod network;
 mod server;
 
+pub use server::Server;
+
 use std::process::exit;
 
 use anyhow::Result;
@@ -9,7 +11,6 @@ use common::RobotRegister;
 use config::LocalConfig;
 use log::error;
 use network::get_networking_interfaces;
-use server::Server;
 
 pub async fn setup() -> Server {
     // Setup log.

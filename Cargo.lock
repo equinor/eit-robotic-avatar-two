@@ -1032,13 +1032,12 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "common",
- "dotenvy",
- "parking_lot",
  "pyo3",
- "reqwest",
+ "robot",
  "serde",
  "serde_json",
  "serialport",
+ "tokio",
 ]
 
 [[package]]
