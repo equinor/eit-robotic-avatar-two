@@ -1570,6 +1570,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "common",
+ "dotenvy",
  "env_logger",
  "log",
  "network-interface",
