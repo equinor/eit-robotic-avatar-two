@@ -1,6 +1,7 @@
-use std::env::args;
+use std::env;
 
-use anyhow::{anyhow, Context, Result};
+use anyhow::{Context, Result};
+use dotenvy::dotenv;
 use reqwest::Url;
 
 pub struct LocalConfig {
@@ -9,20 +10,16 @@ pub struct LocalConfig {
 }
 
 impl LocalConfig {
-    pub fn from_args() -> Result<LocalConfig> {
-        let args: Vec<_> = args().collect();
-        let server_url = args.get(1).ok_or_else(|| {
-            anyhow!("No base_url was passed in as argument 'robot <base_url> <token>' ")
-        })?;
+    pub fn from_env() -> Result<LocalConfig> {
+        dotenv().ok();
 
-        let token = args.get(2).ok_or_else(|| {
-            anyhow!("No token was passed in as argument 'robot <base_url> <token>' ")
-        })?;
+        let server_url = env::var("ROBOT_SERVER_URL").context("Environment variable ROBOT_SERVER_URL was not found. Please set with the url to the server.")?;
 
-        println!("{:?}", args);
+        let token = env::var("ROBOT_TOKEN").context("Environment variable ROBOT_TOKEN was not found. Please set with a valid authentication token.")?;
+
         Ok(LocalConfig {
-            server_url: Url::parse(server_url).context("Base_url argument mut be a valid url")?,
-            token: token.to_owned(),
+            server_url: Url::parse(&server_url).context("Server url mut be a valid url")?,
+            token,
         })
     }
 }

@@ -23,7 +23,7 @@ pub async fn setup() -> Server {
 }
 
 async fn setup_failable() -> Result<Server> {
-    let config = LocalConfig::from_args();
+    let config = LocalConfig::from_env();
 
     #[cfg(debug_assertions)]
     let config = config.unwrap_or_default();
