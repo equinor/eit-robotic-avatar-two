@@ -1,6 +1,10 @@
 use common::{Drive, Head, Tracking};
+use js_sys::Reflect;
 use stylist::css;
-use wasm_bindgen::prelude::{wasm_bindgen, Closure};
+use wasm_bindgen::{
+    prelude::{wasm_bindgen, Closure},
+    JsValue,
+};
 use web_sys::{HtmlCanvasElement, HtmlVideoElement, MediaStream};
 use yew::prelude::*;
 
@@ -67,48 +71,38 @@ impl Component for Viewport {
         let right = self.right_ref.cast().unwrap();
 
         if first_render {
-            let callback = props.on_track.reform(|value: ViewportTracking| Tracking {
-                head: Head {
-                    rx: value.rx,
-                    ry: value.ry,
-                    rz: value.rz,
-                },
-                drive: Drive {
-                    speed: value.l.y,
-                    turn: value.l.x,
-                },
+            let callback = props.on_track.reform(|value: JsValue| {
+                let left = Reflect::get(&value, &"l".into()).unwrap();
+
+                Tracking {
+                    head: Head {
+                        rx: Reflect::get(&value, &"rx".into())
+                            .unwrap()
+                            .as_f64()
+                            .unwrap(),
+                        ry: Reflect::get(&value, &"ry".into())
+                            .unwrap()
+                            .as_f64()
+                            .unwrap(),
+                        rz: Reflect::get(&value, &"rz".into())
+                            .unwrap()
+                            .as_f64()
+                            .unwrap(),
+                    },
+                    drive: Drive {
+                        speed: Reflect::get(&left, &"y".into()).unwrap().as_f64().unwrap(),
+                        turn: Reflect::get(&left, &"x".into()).unwrap().as_f64().unwrap(),
+                    },
+                }
             });
-            setup_3d(
-                self.canvas_ref.cast().unwrap(),
-                &left,
-                &right,
-                &Closure::new(move |value| callback.emit(value)),
-            )
+            let closure = Closure::new(move |value| callback.emit(value));
+            setup_3d(self.canvas_ref.cast().unwrap(), &left, &right, &closure);
+            closure.forget();
         }
 
         left.set_src_object(props.left.as_ref());
         right.set_src_object(props.right.as_ref());
     }
-}
-
-#[wasm_bindgen]
-pub struct ViewportTracking {
-    pub rx: f64,
-    pub ry: f64,
-    pub rz: f64,
-    pub l: Controller,
-    pub r: Controller,
-}
-
-#[wasm_bindgen]
-#[derive(Clone, Copy)]
-pub struct Controller {
-    pub x: f64,  // Thumb Sticks X
-    pub y: f64,  // Thumb Sticks X
-    pub a: bool, // A or X button
-    pub b: bool, // B or Y button
-    pub c: f64,  // Trigger
-    pub d: f64,  // Grip
 }
 
 #[wasm_bindgen(raw_module = "/js/viewport.mjs")]
@@ -117,6 +111,6 @@ extern "C" {
         canvas: HtmlCanvasElement,
         left: &HtmlVideoElement,
         right: &HtmlVideoElement,
-        onTrack: &Closure<dyn FnMut(ViewportTracking)>,
+        onTrack: &Closure<dyn FnMut(JsValue)>,
     );
 }
