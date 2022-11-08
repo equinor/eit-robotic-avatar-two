@@ -1,23 +1,48 @@
-const int pin_front_left_forward = 2;
-const int pin_front_left_backwards = 1;
-const int pin_front_left_speed = 3;
-const int pin_front_right_forward = 4;
-const int pin_front_right_backwards = 5;
-const int pin_front_right_speed = 6;
-const int pin_back_left_forward = 7;
-const int pin_back_left_backwards = 8;
-const int pin_back_left_speed = 9;
-const int pin_back_right_forward = 11;
-const int pin_back_right_backwards = 12;
-const int pin_back_right_speed = 10;
+struct Motor
+{
+  int pin_forward;
+  int pin_backward;
+  int pin_speed;
+};
+
+// Motor pins
+const Motor front_left = {2,1,3};
+const Motor front_right = {4,5,6};
+const Motor back_left = {7,8,9};
+const Motor back_right = {11,12,10};
+
+void setupMotor(Motor motor) {
+  pinMode(motor.pin_forward, OUTPUT);
+  pinMode(motor.pin_backward, OUTPUT);
+  pinMode(motor.pin_speed, OUTPUT);
+}
+
+void runMotor(Motor motor) {
+  int direction = Serial.read();
+  int speed = Serial.read();
+
+  if (direction == 1)
+    {
+      digitalWrite(motor.pin_forward, HIGH);
+      digitalWrite(motor.pin_backward, LOW);
+    }
+    else
+    {
+      digitalWrite(motor.pin_forward, LOW);
+      digitalWrite(motor.pin_forward, HIGH);
+    }
+    analogWrite(motor.pin_speed, speed);
+}
+
 
 void setup()
 {
   pinMode(LED_BUILTIN, OUTPUT);
 
-  pinMode(pin_front_left_forward, OUTPUT);
-  pinMode(pin_front_left_backwards, OUTPUT);
-  pinMode(pin_front_left_speed, OUTPUT);
+  setupMotor(front_left);
+  setupMotor(front_right);
+  setupMotor(back_left);
+  setupMotor(back_right);
 
   Serial.begin(115200);
   while (!Serial)
@@ -28,63 +53,11 @@ void loop()
 {
   if (Serial.available() >= 8)
   {
-    int front_left_direction = Serial.read();
-    int front_left_speed = Serial.read();
-    int front_right_direction = Serial.read();
-    int front_right_speed = Serial.read();
-    int back_left_direction = Serial.read();
-    int back_left_speed = Serial.read();
-    int back_right_direction = Serial.read();
-    int back_right_speed = Serial.read();
+    runMotor(front_left);
+    runMotor(front_right);
+    runMotor(back_left);
+    runMotor(back_right); 
 
-    if (front_left_direction == 1)
-    {
-      digitalWrite(pin_front_left_forward, HIGH);
-      digitalWrite(pin_front_left_backwards, LOW);
-    }
-    else
-    {
-      digitalWrite(pin_front_left_forward, LOW);
-      digitalWrite(pin_front_left_backwards, HIGH);
-    }
-    analogWrite(pin_front_left_speed, front_left_speed);
-
-    if (front_right_direction == 1)
-    {
-      digitalWrite(pin_front_right_forward, HIGH);
-      digitalWrite(pin_front_right_backwards, LOW);
-    }
-    else
-    {
-      digitalWrite(pin_front_right_forward, LOW);
-      digitalWrite(pin_front_right_backwards, HIGH);
-    }
-    analogWrite(pin_front_right_speed, front_right_speed);
-
-    if (back_left_direction == 1)
-    {
-      digitalWrite(pin_back_left_forward, HIGH);
-      digitalWrite(pin_back_left_backwards, LOW);
-    }
-    else
-    {
-      digitalWrite(pin_back_left_forward, LOW);
-      digitalWrite(pin_back_left_backwards, HIGH);
-    }
-    analogWrite(pin_back_left_speed, back_left_speed);
-
-    if (back_right_direction == 1)
-    {
-      digitalWrite(pin_back_right_forward, HIGH);
-      digitalWrite(pin_back_right_backwards, LOW);
-    }
-    else
-    {
-      digitalWrite(pin_back_right_forward, LOW);
-      digitalWrite(pin_back_right_backwards, HIGH);
-    }
-    analogWrite(pin_back_right_speed, back_right_speed);
-    
     Serial.write('Y');
   }
 }
