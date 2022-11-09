@@ -19,6 +19,7 @@ struct Motor
   int update;
 };
 
+
 // GLOBALS
 
 unsigned long current_loop = 0;
@@ -28,6 +29,7 @@ Motor front_left = {8,7,9,0,0,0};
 Motor front_right = {12,11,10,0,0,0};
 Motor back_left = {5,4,6,0,0,0};
 Motor back_right = {1,2,3,0,0,0};
+
 
 // FUNCTIONS
 void setupTime() {
