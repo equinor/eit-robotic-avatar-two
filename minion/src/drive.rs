@@ -31,7 +31,7 @@ impl Drive {
                 println!("Failed write to arduino: {} ", err);
             }
             Ok(_) => {
-                println!("Drive write: {:?}", motor_buffer);
+                //println!("Drive write: {:?}", motor_buffer);
             }
         }
     }

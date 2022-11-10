@@ -22,6 +22,7 @@ async fn get_tracking(server: &Server, send: &Sender<Tracking>) -> Result<()> {
         .await?
         .json()
         .await?;
+    println!("Tracking: {:?}", tracking);
     send.send(tracking)?;
     Ok(())
 }
