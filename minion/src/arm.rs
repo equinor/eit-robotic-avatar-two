@@ -29,6 +29,7 @@ pub fn arm_start() -> Arm {
 }
 
 pub fn arm_run(arm: &Arm, data: Head) {
+    println!("Head: {:?}", data);
     Python::with_gil(|py| -> PyResult<()> {
         // Copy data into PyDict
         let py_data = PyDict::new(py);
