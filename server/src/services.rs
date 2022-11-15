@@ -1,8 +1,10 @@
 mod auth;
 mod messaging;
+mod minion;
 mod robot;
 
 pub use messaging::Messaging;
+pub use minion::Minion;
 pub use robot::Robot;
 
 use anyhow::Result;
@@ -12,22 +14,24 @@ use self::auth::Auth;
 use crate::Config;
 
 #[derive(Clone)]
-pub struct Robotic(Arc<Inner>);
+pub struct Service(Arc<Inner>);
 
 struct Inner {
     auth: Auth,
     messaging: Messaging,
+    minion: Minion,
     robot: Robot,
 }
 
-impl Robotic {
-    pub async fn new(config: &Config) -> Result<Robotic> {
+impl Service {
+    pub async fn new(config: &Config) -> Result<Service> {
         let inner = Inner {
             auth: Auth::new(config).await?,
             messaging: Messaging::new(),
+            minion: Minion::new(),
             robot: Robot::new(),
         };
-        Ok(Robotic(Arc::new(inner)))
+        Ok(Service(Arc::new(inner)))
     }
 
     pub fn auth(&self) -> &Auth {
@@ -40,5 +44,9 @@ impl Robotic {
 
     pub fn robot(&self) -> &Robot {
         &self.0.robot
+    }
+
+    pub fn minion(&self) -> &Minion {
+        &self.0.minion
     }
 }

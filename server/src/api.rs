@@ -7,9 +7,9 @@ use anyhow::Result;
 use axum::{Extension, Router};
 use log::debug;
 
-use crate::{Config, Robotic};
+use crate::{Config, Service};
 
-pub async fn serve(config: Config, robotic: Robotic) -> Result<()> {
+pub async fn serve(config: Config, robotic: Service) -> Result<()> {
     debug!("Setting up routes");
     let api = Router::new();
     let api = messaging::routes(api);

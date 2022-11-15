@@ -10,7 +10,7 @@ use axum::{
 use log::warn;
 use serde::Deserialize;
 
-use crate::Robotic;
+use crate::Service;
 
 pub fn routes(router: Router) -> Router {
     router
@@ -20,7 +20,7 @@ pub fn routes(router: Router) -> Router {
         .route("/api/auth/pin", post(pin_handler))
 }
 
-async fn login_handler(Extension(service): Extension<Robotic>) -> String {
+async fn login_handler(Extension(service): Extension<Service>) -> String {
     let url = service.auth().gen_login().map(|u| u.to_string());
     url.unwrap_or_default()
 }
@@ -32,7 +32,7 @@ pub struct AuthQuery {
 }
 
 async fn azure_ad_handler(
-    Extension(service): Extension<Robotic>,
+    Extension(service): Extension<Service>,
     Query(query): Query<AuthQuery>,
 ) -> Redirect {
     let token = match service
@@ -50,7 +50,7 @@ async fn azure_ad_handler(
     Redirect::temporary(&url)
 }
 
-async fn pin_handler(Extension(service): Extension<Robotic>, pin: String) -> String {
+async fn pin_handler(Extension(service): Extension<Service>, pin: String) -> String {
     match service.auth().token_from_pin(pin) {
         Ok(token) => token,
         Err(err) => {
@@ -61,7 +61,7 @@ async fn pin_handler(Extension(service): Extension<Robotic>, pin: String) -> Str
 }
 
 pub async fn middleware<B>(req: Request<B>, next: Next<B>) -> Result<Response, StatusCode> {
-    let service: &Robotic = req
+    let service: &Service = req
         .extensions()
         .get()
         .expect("No Robotic Service in request.");
