@@ -4,7 +4,7 @@ use log::info;
 use serde::Deserialize;
 use uuid::Uuid;
 
-use crate::Robotic;
+use crate::Service;
 
 pub fn routes(router: Router) -> Router {
     router.route("/api/messaging", get(query_message).post(post_message))
@@ -17,13 +17,13 @@ struct MessageQuery {
 }
 
 async fn query_message(
-    Extension(service): Extension<Robotic>,
+    Extension(service): Extension<Service>,
     Query(params): Query<MessageQuery>,
 ) -> Json<Vec<Message>> {
     Json(service.messaging().query(params.topics, params.from_id))
 }
 
-async fn post_message(Extension(service): Extension<Robotic>, Json(message): Json<SendMessage>) {
+async fn post_message(Extension(service): Extension<Service>, Json(message): Json<SendMessage>) {
     info!(
         "New message {} to {} with {} ",
         message.msg_type, message.topic, message.payload

@@ -5,7 +5,7 @@ use axum::{
 use common::{RobotConfig, RobotRegister, RobotStatus};
 use log::{info, warn};
 
-use crate::Robotic;
+use crate::Service;
 
 pub fn routes(router: Router) -> Router {
     // Just a simple hello world for now.
@@ -16,12 +16,12 @@ pub fn routes(router: Router) -> Router {
         .route("/api/robot/pin", get(get_pin))
 }
 
-async fn status(Extension(service): Extension<Robotic>) -> Json<RobotStatus> {
+async fn status(Extension(service): Extension<Service>) -> Json<RobotStatus> {
     Json(service.robot().status())
 }
 
 async fn register(
-    Extension(service): Extension<Robotic>,
+    Extension(service): Extension<Service>,
     Json(robot_register): Json<RobotRegister>,
 ) -> Json<RobotConfig> {
     info!("A robot called {} registered", robot_register.name);
@@ -33,7 +33,7 @@ async fn register(
     Json(RobotConfig {})
 }
 
-async fn get_token(Extension(service): Extension<Robotic>) -> String {
+async fn get_token(Extension(service): Extension<Service>) -> String {
     match service.auth().gen_token_for_robot() {
         Ok(token) => token,
         Err(err) => {
@@ -43,6 +43,6 @@ async fn get_token(Extension(service): Extension<Robotic>) -> String {
     }
 }
 
-async fn get_pin(Extension(service): Extension<Robotic>) -> String {
+async fn get_pin(Extension(service): Extension<Service>) -> String {
     service.auth().issue_pin()
 }

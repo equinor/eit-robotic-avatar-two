@@ -4,7 +4,7 @@ use axum::{
 };
 use common::Tracking;
 
-use crate::Robotic;
+use crate::Service;
 
 pub fn routes(router: Router) -> Router {
     router
@@ -18,27 +18,27 @@ pub fn routes(router: Router) -> Router {
         )
 }
 
-async fn tracking_get(Extension(service): Extension<Robotic>) -> Json<Tracking> {
+async fn tracking_get(Extension(service): Extension<Service>) -> Json<Tracking> {
     let (head, drive) = service.minion().movement();
     Json(Tracking { head, drive })
 }
 
-async fn tracking_post(Extension(service): Extension<Robotic>, Json(tracking): Json<Tracking>) {
+async fn tracking_post(Extension(service): Extension<Service>, Json(tracking): Json<Tracking>) {
     service.minion().movement_set(tracking.head, tracking.drive)
 }
 
-async fn post_offer(Extension(service): Extension<Robotic>, body: String) {
+async fn post_offer(Extension(service): Extension<Service>, body: String) {
     service.minion().set_offer(body)
 }
 
-async fn get_offer(Extension(service): Extension<Robotic>) -> String {
+async fn get_offer(Extension(service): Extension<Service>) -> String {
     service.minion().offer()
 }
 
-async fn post_answer(Extension(service): Extension<Robotic>, body: String) {
+async fn post_answer(Extension(service): Extension<Service>, body: String) {
     service.minion().set_answer(body)
 }
 
-async fn get_answer(Extension(service): Extension<Robotic>) -> String {
+async fn get_answer(Extension(service): Extension<Service>) -> String {
     service.minion().answer()
 }

@@ -1,13 +1,13 @@
 mod api;
 mod config;
-mod robotic;
+mod services;
 
 use anyhow::Result;
 use dotenvy::dotenv;
 use log::debug;
 
 pub use crate::config::Config;
-pub use crate::robotic::Robotic;
+pub use crate::services::Service;
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -21,7 +21,7 @@ async fn main() -> Result<()> {
     let config = Config::load()?;
 
     debug!("Loading App");
-    let robotic = Robotic::new(&config).await?;
+    let robotic = Service::new(&config).await?;
 
     debug!("Stating API Server");
     api::serve(config, robotic).await
