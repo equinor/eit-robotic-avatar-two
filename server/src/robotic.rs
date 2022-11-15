@@ -1,8 +1,10 @@
 mod auth;
 mod messaging;
+mod minion;
 mod robot;
 
 pub use messaging::Messaging;
+pub use minion::Minion;
 pub use robot::Robot;
 
 use anyhow::Result;
@@ -17,6 +19,7 @@ pub struct Robotic(Arc<Inner>);
 struct Inner {
     auth: Auth,
     messaging: Messaging,
+    minion: Minion,
     robot: Robot,
 }
 
@@ -25,6 +28,7 @@ impl Robotic {
         let inner = Inner {
             auth: Auth::new(config).await?,
             messaging: Messaging::new(),
+            minion: Minion::new(),
             robot: Robot::new(),
         };
         Ok(Robotic(Arc::new(inner)))
@@ -40,5 +44,9 @@ impl Robotic {
 
     pub fn robot(&self) -> &Robot {
         &self.0.robot
+    }
+
+    pub fn minion(&self) -> &Minion {
+        &self.0.minion
     }
 }

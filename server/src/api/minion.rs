@@ -1,14 +1,13 @@
-use std::sync::Arc;
-
 use axum::{
     routing::{get, post},
     Extension, Json, Router,
 };
-use common::{Drive, Head, Tracking};
+use common::Tracking;
 use parking_lot::{const_mutex, Mutex};
 
+use crate::Robotic;
+
 pub fn routes(router: Router) -> Router {
-    let minion = Minion::default();
     router
         .route("/api/minion/post_offer", post(post_offer))
         .route("/api/minion/get_offer", get(get_offer))
@@ -18,31 +17,15 @@ pub fn routes(router: Router) -> Router {
             "/api/minion/tracking",
             get(tracking_get).post(tracking_post),
         )
-        .layer(Extension(minion))
 }
 
-#[derive(Clone, Default)]
-struct Minion {
-    movement: Arc<Mutex<(Head, Drive)>>,
-}
-
-impl Minion {
-    pub fn movement(&self) -> (Head, Drive) {
-        *self.movement.lock()
-    }
-
-    pub fn movement_set(&mut self, head: Head, drive: Drive) {
-        *self.movement.lock() = (head, drive)
-    }
-}
-
-async fn tracking_get(Extension(minion): Extension<Minion>) -> Json<Tracking> {
-    let (head, drive) = minion.movement();
+async fn tracking_get(Extension(service): Extension<Robotic>) -> Json<Tracking> {
+    let (head, drive) = service.minion().movement();
     Json(Tracking { head, drive })
 }
 
-async fn tracking_post(Extension(mut minion): Extension<Minion>, Json(tracking): Json<Tracking>) {
-    minion.movement_set(tracking.head, tracking.drive)
+async fn tracking_post(Extension(service): Extension<Robotic>, Json(tracking): Json<Tracking>) {
+    service.minion().movement_set(tracking.head, tracking.drive)
 }
 
 static OFFER: Mutex<String> = const_mutex(String::new());
