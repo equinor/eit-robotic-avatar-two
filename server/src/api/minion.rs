@@ -3,7 +3,6 @@ use axum::{
     Extension, Json, Router,
 };
 use common::Tracking;
-use parking_lot::{const_mutex, Mutex};
 
 use crate::Robotic;
 
@@ -28,38 +27,18 @@ async fn tracking_post(Extension(service): Extension<Robotic>, Json(tracking): J
     service.minion().movement_set(tracking.head, tracking.drive)
 }
 
-static OFFER: Mutex<String> = const_mutex(String::new());
-
-async fn post_offer(body: String) {
-    ANSWER.lock().clear();
-    let mut offer = OFFER.lock();
-    offer.clear();
-    offer.push_str(&body);
+async fn post_offer(Extension(service): Extension<Robotic>, body: String) {
+    service.minion().set_offer(body)
 }
 
-async fn get_offer() -> String {
-    let offer = OFFER.lock();
-    if offer.is_empty() {
-        "{}".to_string()
-    } else {
-        offer.clone()
-    }
+async fn get_offer(Extension(service): Extension<Robotic>) -> String {
+    service.minion().offer()
 }
 
-static ANSWER: Mutex<String> = const_mutex(String::new());
-
-async fn post_answer(body: String) {
-    OFFER.lock().clear();
-    let mut answer = ANSWER.lock();
-    answer.clear();
-    answer.push_str(&body);
+async fn post_answer(Extension(service): Extension<Robotic>, body: String) {
+    service.minion().set_answer(body)
 }
 
-async fn get_answer() -> String {
-    let answer = ANSWER.lock();
-    if answer.is_empty() {
-        "{}".to_string()
-    } else {
-        answer.clone()
-    }
+async fn get_answer(Extension(service): Extension<Robotic>) -> String {
+    service.minion().answer()
 }

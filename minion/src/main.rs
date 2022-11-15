@@ -26,14 +26,11 @@ fn main() {
         }
 
         let arm = arm_start();
-        {
-            let tracking = tracking.clone();
-            task::spawn_blocking(move || loop {
-                let head = { tracking.borrow().head };
-                println!("Head: {:?}", head);
-                arm_run(&arm, head);
-            });
-        }
+        task::spawn_blocking(move || loop {
+            let head = { tracking.borrow().head };
+            println!("Head: {:?}", head);
+            arm_run(&arm, head);
+        });
     });
 
     runtime.block_on(signal::ctrl_c()).unwrap();
