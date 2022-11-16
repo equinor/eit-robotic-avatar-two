@@ -1,6 +1,6 @@
 use std::sync::Mutex;
 
-use common::{RobotStatus, RtcMessage, SendMessage, Tracking};
+use common::{RobotStatus, RtcIce, RtcMessage, SendMessage, Tracking};
 use gloo_net::http::Request;
 use gloo_timers::future::TimeoutFuture;
 
@@ -81,6 +81,16 @@ pub async fn post_minion_post_answer(answer: &RtcMessage) {
 }
 pub async fn get_minion_pull_answer() -> RtcMessage {
     pull_rtc("/api/minion/get_answer").await
+}
+
+pub async fn get_minion_ice() -> RtcIce {
+    get("/api/minion/ice")
+        .send()
+        .await
+        .unwrap()
+        .json()
+        .await
+        .unwrap()
 }
 
 pub async fn post_minion_tracking(tracking: &Tracking) {

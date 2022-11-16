@@ -12,6 +12,7 @@ spec:
       secrets:
         - AVATAR_TOKEN_KEY
         - AVATAR_AZURE_AD_SECRET
+        - AVATAR_ICE
       variables:
         AVATAR_AZURE_AD_ID: ""
         AVATAR_AZURE_AD_URL: ""

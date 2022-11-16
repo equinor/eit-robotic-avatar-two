@@ -214,6 +214,7 @@ dependencies = [
  "js-sys",
  "stylist",
  "time",
+ "url",
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
@@ -238,6 +239,7 @@ version = "0.1.0"
 dependencies = [
  "serde",
  "time",
+ "url",
  "uuid",
 ]
 

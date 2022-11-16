@@ -2,7 +2,7 @@ use axum::{
     routing::{get, post},
     Extension, Json, Router,
 };
-use common::Tracking;
+use common::{RtcIce, Tracking};
 
 use crate::Service;
 
@@ -16,6 +16,7 @@ pub fn routes(router: Router) -> Router {
             "/api/minion/tracking",
             get(tracking_get).post(tracking_post),
         )
+        .route("/api/minion/ice", get(get_ice))
 }
 
 async fn tracking_get(Extension(service): Extension<Service>) -> Json<Tracking> {
@@ -41,4 +42,8 @@ async fn post_answer(Extension(service): Extension<Service>, body: String) {
 
 async fn get_answer(Extension(service): Extension<Service>) -> String {
     service.minion().answer()
+}
+
+async fn get_ice(Extension(service): Extension<Service>) -> Json<RtcIce> {
+    Json(service.minion().ice())
 }
