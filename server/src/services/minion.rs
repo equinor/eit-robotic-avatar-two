@@ -1,18 +1,22 @@
 use common::{Drive, Head, RtcIce};
 use parking_lot::Mutex;
 
+use crate::Config;
+
 pub struct Minion {
     movement: Mutex<(Head, Drive)>,
     offer: Mutex<String>,
     answer: Mutex<String>,
+    ice: RtcIce,
 }
 
 impl Minion {
-    pub fn new() -> Self {
+    pub fn new(config: &Config) -> Self {
         Self {
             movement: Default::default(),
             offer: Default::default(),
             answer: Default::default(),
+            ice: config.ice.clone(),
         }
     }
 
@@ -57,12 +61,6 @@ impl Minion {
     }
 
     pub fn ice(&self) -> RtcIce {
-        RtcIce::default()
-    } 
-}
-
-impl Default for Minion {
-    fn default() -> Self {
-        Self::new()
+        self.ice.clone()
     }
 }

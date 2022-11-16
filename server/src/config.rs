@@ -1,6 +1,7 @@
 use std::{env, net::SocketAddr};
 
 use anyhow::{Context, Ok, Result};
+use common::RtcIce;
 use hmac::{Hmac, Mac};
 use log::warn;
 use reqwest::Url;
@@ -10,6 +11,7 @@ pub struct Config {
     pub bind_address: SocketAddr,
     pub token_key: Hmac<Sha256>,
     pub azure_ad: Option<AzureAdConfig>,
+    pub ice: RtcIce,
 }
 
 impl Config {
@@ -27,9 +29,24 @@ impl Config {
             bind_address,
             token_key: key,
             azure_ad: AzureAdConfig::load()?,
+            ice: Self::load_ice()?,
         };
 
         Ok(config)
+    }
+
+    fn load_ice() -> Result<RtcIce> {
+        if let Result::Ok(urls) = env::var("AVATAR_ICE") {
+            let urls: Result<Vec<_>, _> = urls
+                .split(',')
+                .map(Url::parse)
+                .collect::<Result<Vec<_>, _>>();
+            let urls = urls.context("One of the URLS in AVATAR_ICE was not a valid URL")?;
+
+            Ok(RtcIce(urls))
+        } else {
+            Ok(RtcIce::default())
+        }
     }
 }
 

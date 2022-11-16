@@ -87,3 +87,12 @@ Will try to build a value from environment if not set.
 * Type: Url
 * Default value: Auto built see notes.
 * Required: No
+
+### AVATAR_ICE
+A comma delimitated list of urls to used and STUN and TURN server for WebRTC.
+
+You can set username and passwords inside the url and they will be used for authentication with the TURN server.
+
+* Type: Urls
+* Default value: 
+* Required: No
