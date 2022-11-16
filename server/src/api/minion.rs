@@ -2,7 +2,7 @@ use axum::{
     routing::{get, post},
     Extension, Json, Router,
 };
-use common::{Tracking, RtcIce};
+use common::{RtcIce, Tracking};
 
 use crate::Service;
 
