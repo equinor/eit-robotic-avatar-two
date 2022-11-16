@@ -1,4 +1,4 @@
-use common::{Drive, Head};
+use common::{Drive, Head, RtcIce};
 use parking_lot::Mutex;
 
 pub struct Minion {
@@ -55,6 +55,10 @@ impl Minion {
         }
         *self.answer.lock() = answer;
     }
+
+    pub fn ice(&self) -> RtcIce {
+        RtcIce::default()
+    } 
 }
 
 impl Default for Minion {

@@ -1,18 +1,20 @@
-use common::{RtcMessage, RtcSession};
+use common::{RtcIce, RtcMessage, RtcSession};
 use futures::join;
 use gloo_timers::future::TimeoutFuture;
+use js_sys::Array;
+use url::Url;
 use wasm_bindgen::{prelude::Closure, JsCast, JsValue};
 use wasm_bindgen_futures::JsFuture;
 use web_sys::{
-    MediaStream, RtcIceGatheringState, RtcPeerConnection, RtcRtpReceiver, RtcSdpType,
-    RtcSessionDescription, RtcSessionDescriptionInit,
+    MediaStream, RtcConfiguration, RtcIceGatheringState, RtcIceServer, RtcPeerConnection,
+    RtcRtpReceiver, RtcSdpType, RtcSessionDescription, RtcSessionDescriptionInit,
 };
 use weblog::console_log;
 
-use super::server;
+use super::server::{self, get_minion_ice};
 
 pub async fn send_video(video: (MediaStream, MediaStream)) {
-    let con = Connection::from_streams(&video);
+    let con = Connection::from_streams(&video).await;
     let offers = con.create_offers().await;
     console_log!(format!("{:?}", &offers));
     server::post_minion_post_offers(&offers).await;
@@ -37,17 +39,19 @@ struct Connection {
 }
 
 impl Connection {
-    pub fn from_streams(streams: &(MediaStream, MediaStream)) -> Connection {
-        let left = MyPeer::from_stream(&streams.0);
-        let right = MyPeer::from_stream(&streams.1);
+    pub async fn from_streams(streams: &(MediaStream, MediaStream)) -> Connection {
+        let config = config_from_ice(get_minion_ice().await);
+        let left = MyPeer::from_stream(&streams.0, &config);
+        let right = MyPeer::from_stream(&streams.1, &config);
 
         Connection::new(left, right)
     }
 
     pub async fn from_offer(offer: &RtcMessage) -> Connection {
+        let config = config_from_ice(get_minion_ice().await);
         let (left, right) = join!(
-            MyPeer::from_offer(&offer.left),
-            MyPeer::from_offer(&offer.right)
+            MyPeer::from_offer(&offer.left, &config),
+            MyPeer::from_offer(&offer.right, &config)
         );
 
         Connection::new(left, right)
@@ -82,8 +86,8 @@ impl Connection {
 pub struct MyPeer(RtcPeerConnection);
 
 impl MyPeer {
-    fn from_stream(stream: &MediaStream) -> MyPeer {
-        let peer = MyPeer::new();
+    fn from_stream(stream: &MediaStream, config: &RtcConfiguration) -> MyPeer {
+        let peer = MyPeer::new(config);
         for track in stream.get_tracks().iter() {
             let track = track.dyn_into().unwrap();
             peer.0.add_track_0(&track, stream);
@@ -91,22 +95,14 @@ impl MyPeer {
         peer
     }
 
-    async fn from_offer(session: &RtcSession) -> MyPeer {
-        let peer = MyPeer::new();
+    async fn from_offer(session: &RtcSession, config: &RtcConfiguration) -> MyPeer {
+        let peer = MyPeer::new(config);
         peer.set_remote(session).await;
         peer
     }
 
-    fn new() -> MyPeer {
-        //Todo add Ice
-        //iceServers: [
-        //    {urls: `stun:stun.l.google.com:19302`},
-        //    {urls: `stun:stun1.l.google.com:19302`},
-        //    {urls: `stun:stun2.l.google.com:19302`},
-        //    {urls: `stun:stun3.l.google.com:19302`},
-        //    {urls: `stun:stun4.l.google.com:19302`}
-        //]
-        MyPeer(RtcPeerConnection::new().unwrap())
+    fn new(config: &RtcConfiguration) -> MyPeer {
+        MyPeer(RtcPeerConnection::new_with_configuration(config).unwrap())
     }
 
     async fn create_offer(&self) -> RtcSession {
@@ -203,4 +199,23 @@ impl MyPeer {
             .await
             .unwrap();
     }
+}
+
+fn config_from_ice(ice: RtcIce) -> RtcConfiguration {
+    let servers: Array = ice.0.into_iter().map(ice_from_url).collect();
+    let mut config = RtcConfiguration::new();
+    config.ice_servers(&servers);
+    config
+}
+
+fn ice_from_url(mut url: Url) -> RtcIceServer {
+    let mut ice = RtcIceServer::new();
+    if !url.username().is_empty() {
+        ice.username(url.username());
+        ice.credential(url.password().unwrap());
+        url.set_username("").unwrap();
+        url.set_password(None).unwrap();
+    }
+    ice.urls(&url.to_string().into());
+    ice
 }

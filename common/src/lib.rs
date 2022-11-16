@@ -79,4 +79,4 @@ pub struct RtcSession {
 }
 
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]
-pub struct RtcIce(Vec<Url>);
+pub struct RtcIce(pub Vec<Url>);
