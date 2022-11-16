@@ -202,6 +202,7 @@ impl MyPeer {
 }
 
 fn config_from_ice(ice: RtcIce) -> RtcConfiguration {
+    console_log!(format!("{:?}", &ice));
     let servers: Array = ice.0.into_iter().map(ice_from_url).collect();
     let mut config = RtcConfiguration::new();
     config.ice_servers(&servers);
@@ -210,11 +211,12 @@ fn config_from_ice(ice: RtcIce) -> RtcConfiguration {
 
 fn ice_from_url(mut url: Url) -> RtcIceServer {
     let mut ice = RtcIceServer::new();
-    if !url.username().is_empty() {
-        ice.username(url.username());
-        ice.credential(url.password().unwrap());
-        url.set_username("").unwrap();
-        url.set_password(None).unwrap();
+    if let Some((credentials, path)) = url.path().split_once('@') {
+        let path = path.to_string();
+        let (username, password) = credentials.split_once(':').unwrap();
+        ice.username(username);
+        ice.credential(password);
+        url.set_path(&path);
     }
     ice.urls(&url.to_string().into());
     ice
