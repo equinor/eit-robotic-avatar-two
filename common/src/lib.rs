@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 use time::OffsetDateTime;
+use url::Url;
 use uuid::Uuid;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -76,3 +77,6 @@ pub struct RtcSession {
     pub sdp_type: String,
     pub sdp: String,
 }
+
+#[derive(Debug, Default, Clone, Serialize, Deserialize)]
+pub struct RtcIce(Vec<Url>);
