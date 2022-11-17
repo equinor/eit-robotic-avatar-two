@@ -23,8 +23,6 @@ pub async fn list_video() -> Vec<MediaDeviceInfo> {
 pub async fn get_user_video(id: &str) -> MediaStream {
     let video = Object::new();
     Reflect::set(&video, &"deviceId".into(), &id.into()).unwrap();
-    Reflect::set(&video, &"width".into(), &1280.into()).unwrap();
-    Reflect::set(&video, &"height".into(), &720.into()).unwrap();
 
     let mut constraints = MediaStreamConstraints::new();
     constraints.video(&video);
