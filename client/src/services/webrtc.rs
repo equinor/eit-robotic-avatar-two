@@ -117,7 +117,7 @@ impl MyPeer {
         JsFuture::from(self.0.set_local_description(&local))
             .await
             .unwrap();
-        while self.0.ice_gathering_state() == RtcIceGatheringState::Gathering {
+        while self.0.ice_gathering_state() != RtcIceGatheringState::Complete {
             TimeoutFuture::new(100).await
         }
         self.get_local()
