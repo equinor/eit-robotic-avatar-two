@@ -28,7 +28,7 @@ impl Service {
         let inner = Inner {
             auth: Auth::new(config).await?,
             messaging: Messaging::new(),
-            minion: Minion::new(config),
+            minion: Minion::new(config.ice.to_owned()),
             robot: Robot::new(),
         };
         Ok(Service(Arc::new(inner)))
