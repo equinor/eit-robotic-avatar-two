@@ -17,9 +17,8 @@ stylist = { version = "0.10", default-features = false, features = ["macros", "y
 gloo-utils = "0.1"
 gloo-net = {version = "0.2", default-features = false, features = ["json", "http"]}
 gloo-timers = { version = "0.2", features = ["futures"] }
-gloo-storage = "0.2.2"
+gloo-storage = "0.2"
 time = { version = "0.3", features = ["wasm-bindgen"] }
-futures = "0.3"
 yew-agent = "0.1.0"
 url = { version = "2", features = ["serde"] }
 

@@ -1,5 +1,4 @@
 use common::{RtcIce, RtcMessage, RtcSession};
-use futures::join;
 use gloo_console::log;
 use gloo_timers::future::TimeoutFuture;
 use js_sys::Array;
@@ -49,9 +48,9 @@ impl Connection {
 
     pub async fn from_offer(offer: &RtcMessage) -> Connection {
         let config = config_from_ice(get_minion_ice().await);
-        let (left, right) = join!(
-            MyPeer::from_offer(&offer.left, &config),
-            MyPeer::from_offer(&offer.right, &config)
+        let (left, right) = (
+            MyPeer::from_offer(&offer.left, &config).await,
+            MyPeer::from_offer(&offer.right, &config).await
         );
 
         Connection::new(left, right)
@@ -64,12 +63,12 @@ impl Connection {
     }
 
     pub async fn create_offers(&self) -> RtcMessage {
-        let (left, right) = join!(self.left.create_offer(), self.right.create_offer());
+        let (left, right) = (self.left.create_offer().await, self.right.create_offer().await);
         RtcMessage { left, right }
     }
 
     pub async fn create_answers(&self) -> RtcMessage {
-        let (left, right) = join!(self.left.create_answer(), self.right.create_answer());
+        let (left, right) = (self.left.create_answer().await, self.right.create_answer().await);
         RtcMessage { left, right }
     }
 

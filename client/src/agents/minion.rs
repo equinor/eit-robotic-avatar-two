@@ -1,7 +1,6 @@
 use std::collections::HashSet;
 
 use common::Tracking;
-use futures::join;
 use gloo_storage::{LocalStorage, Storage};
 use web_sys::{MediaDeviceInfo, MediaStream};
 use yew_agent::{Agent, AgentLink, Context, HandlerId};
@@ -99,7 +98,7 @@ impl Agent for MinionAgent {
                 self.link.send_future(async move {
                     let left = media::get_user_video(&cam_id.0);
                     let right = media::get_user_video(&cam_id.1);
-                    let (left, right) = join!(left, right);
+                    let (left, right) = (left.await, right.await);
                     Msg::SendVideo(left, right)
                 });
             }
