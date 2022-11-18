@@ -8,8 +8,8 @@ edition = "2021"
 [dependencies]
 common = { path = "../common" }
 
-axum = "0.5.17"
-tokio = { version = "1.21", features = ["full"] }
+axum = {version = "0.5", default-features = false, features = ["query", "json" ] }
+tokio = { version = "1", default-features = false, features = ["rt", "macros"]}
 anyhow = "1.0"
 log = "0.4"
 env_logger = "0.9"
