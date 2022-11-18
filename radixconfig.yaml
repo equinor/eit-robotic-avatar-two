@@ -16,6 +16,7 @@ spec:
       variables:
         AVATAR_AZURE_AD_ID: ""
         AVATAR_AZURE_AD_URL: ""
+        AVATAR_BIND_ADDRESS: "0.0.0.0:8080"
       src: .
       ports:
         - name: http
