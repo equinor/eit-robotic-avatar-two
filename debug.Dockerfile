@@ -7,15 +7,15 @@ COPY . .
 RUN chmod +x tools/build-dependency.sh
 RUN tools/build-dependency.sh
 
-#Build the binaries
-RUN cargo build --bin server
-
 #Build webapp
 RUN trunk build
 
+#Build the binaries
+RUN cargo build --bin server
+
 FROM nginxinc/nginx-unprivileged:1.21.1
 WORKDIR /app
-COPY --from=builder /app/client/dist ./www
+COPY --from=builder /app/server/static ./www
 COPY --from=builder /app/target/debug/server .
 COPY ./client/proxy ./proxy
 COPY ./client/proxy/server.conf /etc/nginx/conf.d/default.conf

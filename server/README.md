@@ -23,7 +23,9 @@ There are no tests yet.
 ## Production
 
 You may only deploy this server behind a HTTPS proxy.
-You should not use .env files in production. 
+You should not use .env files in production.
+
+If you want to bundle client inside the server. Build the client before the server.
 
 ## Configuration
 The server is configured using environment variables and/or .env files.
