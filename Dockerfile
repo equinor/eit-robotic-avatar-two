@@ -1,4 +1,9 @@
-FROM rust:1.64 AS frontend 
+FROM rust:1.64 AS builder 
+
+#Tools to build server
+RUN rustup target add x86_64-unknown-linux-musl
+RUN apt update && apt install -y musl-tools musl-dev
+RUN update-ca-certificates
 
 #Copy over src
 WORKDIR /app
@@ -10,19 +15,6 @@ RUN tools/build-dependency.sh
 
 #Build webapp
 RUN trunk build --release
-
-
-FROM rust:1.64 AS server 
-
-#Tools to build server
-RUN rustup target add x86_64-unknown-linux-musl
-RUN apt update && apt install -y musl-tools musl-dev
-RUN update-ca-certificates
-
-#Copy over src
-WORKDIR /app
-COPY . .
-COPY --from=frontend /app/server/static /app/server/static
 
 #Build the server
 RUN cargo build --target x86_64-unknown-linux-musl --release --bin server
