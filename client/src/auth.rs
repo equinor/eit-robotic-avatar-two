@@ -1,7 +1,7 @@
+use gloo_console::error;
 use gloo_storage::{LocalStorage, Storage};
 use wasm_bindgen_futures::spawn_local;
 use web_sys::Url;
-use weblog::console_error;
 use yew::Callback;
 
 use crate::services::server;
@@ -49,7 +49,7 @@ impl Auth {
                 let window = web_sys::window().unwrap();
                 let location = window.location();
                 if let Err(err) = location.assign(&url) {
-                    console_error!("Location assign error: ", err);
+                    error!("Location assign error: ", err);
                 }
             }
         });
