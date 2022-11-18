@@ -22,7 +22,7 @@ RUN cargo build --target x86_64-unknown-linux-musl --release --bin server
 
 FROM scratch
 WORKDIR /app
-COPY --from=server /app/target/x86_64-unknown-linux-musl/release/server .
+COPY --from=builder /app/target/x86_64-unknown-linux-musl/release/server .
 
 USER 101:101
 
