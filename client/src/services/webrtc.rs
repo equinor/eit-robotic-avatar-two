@@ -50,7 +50,7 @@ impl Connection {
         let config = config_from_ice(get_minion_ice().await);
         let (left, right) = (
             MyPeer::from_offer(&offer.left, &config).await,
-            MyPeer::from_offer(&offer.right, &config).await
+            MyPeer::from_offer(&offer.right, &config).await,
         );
 
         Connection::new(left, right)
@@ -63,12 +63,18 @@ impl Connection {
     }
 
     pub async fn create_offers(&self) -> RtcMessage {
-        let (left, right) = (self.left.create_offer().await, self.right.create_offer().await);
+        let (left, right) = (
+            self.left.create_offer().await,
+            self.right.create_offer().await,
+        );
         RtcMessage { left, right }
     }
 
     pub async fn create_answers(&self) -> RtcMessage {
-        let (left, right) = (self.left.create_answer().await, self.right.create_answer().await);
+        let (left, right) = (
+            self.left.create_answer().await,
+            self.right.create_answer().await,
+        );
         RtcMessage { left, right }
     }
 
