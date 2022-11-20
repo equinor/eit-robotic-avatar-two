@@ -80,8 +80,9 @@ body {
     grid-area: ui;
 }
 
-.minion>.viewport {
+.viewport {
     grid-area: view;
+    position: relative;
 }
 
 .viewport>canvas {
