@@ -1,6 +1,6 @@
 use std::sync::Mutex;
 
-use common::{RobotStatus, RtcIce, RtcMessage, SendMessage, Tracking};
+use common::{RobotStatus, RtcIce, RtcMessage, Tracking};
 use gloo_net::http::Request;
 use gloo_timers::future::TimeoutFuture;
 
@@ -29,15 +29,6 @@ pub async fn post_auth_pin(pin: String) -> String {
         .text()
         .await
         .unwrap()
-}
-
-pub async fn post_message(msg: &SendMessage) {
-    post("/api/messaging")
-        .json(&msg)
-        .unwrap()
-        .send()
-        .await
-        .unwrap();
 }
 
 pub async fn get_robot() -> RobotStatus {

@@ -1,8 +1,6 @@
-mod debug;
 mod login;
 mod robotic;
 
-pub use debug::DebugTools;
 pub use login::Login;
 pub use robotic::Robotic;
 
@@ -56,12 +54,7 @@ impl Component for Ui {
         );
 
         let page = if self.logged_in {
-            html! {
-                <>
-                    <Robotic class={css!("grid-area: main;")}/>
-                    <DebugTools class={css!("grid-area: debug;")}/>
-                </>
-            }
+            html! (<Robotic class={css!("grid-area: main;")}/>)
         } else {
             html!(<Login class={css!("grid-area: main;")} on_login={link.callback(|_|Msg::Login)}/>)
         };
