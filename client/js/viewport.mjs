@@ -67,5 +67,5 @@ export function setup_3d(canvas, left_video, right_video, onTrack) {
         }
         renderer.render(scene, camera);
     });
-    document.body.appendChild(VRButton.createButton(renderer));
+    canvas.parentElement.appendChild(VRButton.createButton(renderer));
 }

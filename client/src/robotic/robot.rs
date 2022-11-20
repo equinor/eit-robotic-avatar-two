@@ -48,7 +48,6 @@ pub fn robot() -> Html {
             </table>
 
             {gen_token(actions.clone(), state.token.as_ref())}
-            {gen_pin(actions.clone(), state.pin.as_ref())}
         </div>
     }
 }
@@ -72,17 +71,6 @@ fn gen_token(actions: Callback<RobotAction>, token: Option<&String>) -> Html {
         <div>
             <button onclick={move |_| actions.emit(RobotAction::GenToken) }>{"Generate token for Robot"}</button>
             <pre>{token}</pre>
-        </div>
-    }
-}
-
-fn gen_pin(actions: Callback<RobotAction>, pin: Option<&String>) -> Html {
-    let pin = pin.map(|s| &**s).unwrap_or("");
-
-    html! {
-        <div>
-            <button onclick={move |_| actions.emit(RobotAction::GenPin) }>{"Generate login Pin"}</button>
-            <pre>{pin}</pre>
         </div>
     }
 }

@@ -69,10 +69,6 @@ impl Agent for MinionAgent {
                 });
             }
             Msg::SendDone => {}
-            Msg::ReceiverDone((left, right)) => {
-                self.streams = (Some(left), Some(right));
-                self.send_state();
-            }
             Msg::ReadyToSend => {
                 self.sending = false;
             }
@@ -102,11 +98,6 @@ impl Agent for MinionAgent {
                     Msg::SendVideo(left, right)
                 });
             }
-            MinionAction::StartReceiving => {
-                self.started = true;
-                self.link
-                    .send_future(async move { Msg::ReceiverDone(webrtc::receive().await) });
-            }
             MinionAction::Tracking(value) => {
                 if !self.sending {
                     self.sending = true;
@@ -133,7 +124,6 @@ pub enum Msg {
     NewDevices(Vec<MediaDeviceInfo>),
     SendVideo(MediaStream, MediaStream),
     SendDone,
-    ReceiverDone((MediaStream, MediaStream)),
     ReadyToSend,
 }
 
@@ -141,7 +131,6 @@ pub enum MinionAction {
     LeftCamChange(String),
     RightCamChange(String),
     StartSending,
-    StartReceiving,
     Tracking(Tracking),
 }
 

@@ -1,7 +1,7 @@
 mod viewport;
 
 use wasm_bindgen::JsCast;
-use web_sys::{EventTarget, HtmlInputElement};
+use web_sys::{EventTarget, HtmlInputElement, MediaStream};
 use yew::prelude::*;
 use yew_agent::use_bridge;
 
@@ -12,8 +12,14 @@ use crate::agents::{
 
 use self::viewport::Viewport;
 
+#[derive(Properties, PartialEq, Eq)]
+pub struct MinionProps {
+    pub left: Option<MediaStream>,
+    pub right: Option<MediaStream>,
+}
+
 #[function_component(Minion)]
-pub fn minion() -> Html {
+pub fn minion(props: &MinionProps) -> Html {
     let state = use_state(MinionState::default);
     let agent = {
         let state = state.clone();
@@ -41,8 +47,12 @@ pub fn minion() -> Html {
         }
     });
 
+    let left = props.left.clone().or_else(|| state.streams.0.clone());
+    let right = props.right.clone().or_else(|| state.streams.1.clone());
+
     html! {
         <div class={"minion"}>
+            <Viewport left={left} right={right} on_track={actions.reform(MinionAction::Tracking)}></Viewport>
             <div class={"ui"}>
                 <p>
                     {"Left Camera ID:"} <input size={64} value={state.cam_id.0.clone()} onchange={left_id_change} /><br/>
@@ -53,10 +63,8 @@ pub fn minion() -> Html {
                 </p>
                 <p>
                     <button disabled={state.started} onclick={actions.reform(|_| MinionAction::StartSending)}>{"Start sending video."}</button>
-                    <button disabled={state.started} onclick={actions.reform(|_| MinionAction::StartReceiving)}>{"Start receiving video"}</button>
                 </p>
             </div>
-            <Viewport left={state.streams.0.clone()} right={state.streams.1.clone()} on_track={actions.reform(MinionAction::Tracking)}></Viewport>
         </div>
     }
 }

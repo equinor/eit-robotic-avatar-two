@@ -1,5 +1,6 @@
 mod agents;
 mod auth;
+mod components;
 mod login;
 mod robotic;
 mod services;

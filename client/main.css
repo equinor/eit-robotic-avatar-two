@@ -35,6 +35,10 @@ body {
     font-size: 0.85em;
 }
 
+.pin {
+    font-size: 4em;
+}
+
 .robotic {
     height: 100%;
     display: grid;
@@ -64,10 +68,10 @@ body {
     display: grid;
     box-sizing: border-box;
     grid-template-columns: 1fr;
-    grid-template-rows: auto 1fr;
+    grid-template-rows: 1fr auto;
     grid-template-areas:
-        "ui"
-        "view";
+        "view"
+        "ui";
     gap: 16px 16px;
     padding: 8px;
 }
@@ -76,8 +80,9 @@ body {
     grid-area: ui;
 }
 
-.minion>.viewport {
+.viewport {
     grid-area: view;
+    position: relative;
 }
 
 .viewport>canvas {
