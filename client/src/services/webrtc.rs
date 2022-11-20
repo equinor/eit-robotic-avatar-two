@@ -1,5 +1,5 @@
 use common::{RtcIce, RtcMessage, RtcSession};
-use futures::join;
+use gloo_console::log;
 use gloo_timers::future::TimeoutFuture;
 use js_sys::Array;
 use url::Url;
@@ -9,26 +9,25 @@ use web_sys::{
     MediaStream, RtcConfiguration, RtcIceGatheringState, RtcIceServer, RtcPeerConnection,
     RtcRtpReceiver, RtcSdpType, RtcSessionDescription, RtcSessionDescriptionInit,
 };
-use weblog::console_log;
 
 use super::server::{self, get_minion_ice};
 
 pub async fn send_video(video: (MediaStream, MediaStream)) {
     let con = Connection::from_streams(&video).await;
     let offers = con.create_offers().await;
-    console_log!(format!("{:?}", &offers));
+    log!(format!("{:?}", &offers));
     server::post_minion_post_offers(&offers).await;
     let answer = server::get_minion_pull_answer().await;
-    console_log!(format!("{:?}", &answer));
+    log!(format!("{:?}", &answer));
     con.set_answers(&answer).await;
 }
 
 pub async fn receive() -> (MediaStream, MediaStream) {
     let offers = server::get_minion_pull_offers().await;
-    console_log!(format!("{:?}", &offers));
+    log!(format!("{:?}", &offers));
     let con = Connection::from_offer(&offers).await;
     let answer = con.create_answers().await;
-    console_log!(format!("{:?}", &answer));
+    log!(format!("{:?}", &answer));
     server::post_minion_post_answer(&answer).await;
     con.streams()
 }
@@ -49,9 +48,9 @@ impl Connection {
 
     pub async fn from_offer(offer: &RtcMessage) -> Connection {
         let config = config_from_ice(get_minion_ice().await);
-        let (left, right) = join!(
-            MyPeer::from_offer(&offer.left, &config),
-            MyPeer::from_offer(&offer.right, &config)
+        let (left, right) = (
+            MyPeer::from_offer(&offer.left, &config).await,
+            MyPeer::from_offer(&offer.right, &config).await,
         );
 
         Connection::new(left, right)
@@ -64,12 +63,18 @@ impl Connection {
     }
 
     pub async fn create_offers(&self) -> RtcMessage {
-        let (left, right) = join!(self.left.create_offer(), self.right.create_offer());
+        let (left, right) = (
+            self.left.create_offer().await,
+            self.right.create_offer().await,
+        );
         RtcMessage { left, right }
     }
 
     pub async fn create_answers(&self) -> RtcMessage {
-        let (left, right) = join!(self.left.create_answer(), self.right.create_answer());
+        let (left, right) = (
+            self.left.create_answer().await,
+            self.right.create_answer().await,
+        );
         RtcMessage { left, right }
     }
 
@@ -165,7 +170,7 @@ impl MyPeer {
 
         for event in events {
             let closure: Closure<dyn Fn(JsValue)> = Closure::new(move |e: JsValue| {
-                console_log!(side, event, e);
+                log!(side, event, e);
             });
             self.0
                 .add_event_listener_with_callback(event, closure.as_ref().unchecked_ref())
@@ -202,7 +207,7 @@ impl MyPeer {
 }
 
 fn config_from_ice(ice: RtcIce) -> RtcConfiguration {
-    console_log!(format!("{:?}", &ice));
+    log!(format!("{:?}", &ice));
     let servers: Array = ice.0.into_iter().map(ice_from_url).collect();
     let mut config = RtcConfiguration::new();
     config.ice_servers(&servers);
