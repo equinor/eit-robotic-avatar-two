@@ -37,26 +37,18 @@ impl Component for Ui {
 
         let global_css = css!(
             r#"
-                html, body, #robotic-avatar{
+                html, body{
                     height: 100%;
                     width: 100%;
                     margin: 0;
-                }
-
-                #robotic-avatar {
-                    display: grid;
-                    grid-template-rows: 1fr min-content;
-                    grid-template-areas: 
-                        "main"
-                        "debug"
                 }
             "#
         );
 
         let page = if self.logged_in {
-            html! (<Robotic class={css!("grid-area: main;")}/>)
+            html! (<Robotic/>)
         } else {
-            html!(<Login class={css!("grid-area: main;")} on_login={link.callback(|_|Msg::Login)}/>)
+            html!(<Login on_login={link.callback(|_|Msg::Login)}/>)
         };
 
         html! {

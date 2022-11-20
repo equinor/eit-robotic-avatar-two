@@ -7,7 +7,6 @@ use crate::auth::Auth;
 
 #[derive(PartialEq, Properties)]
 pub struct Props {
-    pub class: Classes,
     pub on_login: Callback<()>,
 }
 
@@ -53,11 +52,11 @@ impl Component for Login {
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
-        let props = ctx.props();
         let link = ctx.link();
 
         let css = css!(
             r#"
+                height: 100%;
                 display: flex;
                 align-items: center;
                 justify-content: center;
@@ -87,7 +86,7 @@ impl Component for Login {
             "#
         );
 
-        let class = classes!(props.class.clone(), css);
+        let class = classes!(css);
 
         let pin_change = link.callback(|e: Event| {
             let target: EventTarget = e

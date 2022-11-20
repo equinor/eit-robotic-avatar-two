@@ -7,10 +7,8 @@ pub use self::robot::Robot;
 use stylist::css;
 use yew::prelude::*;
 
-#[derive(PartialEq, Properties)]
-pub struct Props {
-    pub class: Classes,
-}
+#[derive(PartialEq, Eq, Properties)]
+pub struct Props {}
 
 #[derive(PartialEq, Eq)]
 pub enum Msg {
@@ -41,11 +39,11 @@ impl Component for Robotic {
 
     #[allow(clippy::let_unit_value)]
     fn view(&self, ctx: &Context<Self>) -> Html {
-        let props = ctx.props();
         let link = ctx.link();
 
         let css = css!(
             r#"
+            height: 100%;
             display: grid;
             grid-template-columns: min-content 1fr;
             grid-template-rows: min-content 1fr;
@@ -92,7 +90,7 @@ impl Component for Robotic {
         "#
         );
 
-        let class = classes!(props.class.clone(), css);
+        let class = classes!(css);
 
         let content = match self.page {
             Msg::Robot => {
