@@ -50,10 +50,6 @@ impl Agent for RobotAgent {
                 self.state.token = Some(token);
                 self.send_state();
             }
-            Msg::Pin(pin) => {
-                self.state.pin = Some(pin);
-                self.send_state()
-            }
         }
     }
 
@@ -62,9 +58,6 @@ impl Agent for RobotAgent {
             RobotAction::GenToken => self
                 .link
                 .send_future(async move { Msg::Token(server::get_robot_token().await) }),
-            RobotAction::GenPin => self
-                .link
-                .send_future(async move { Msg::Pin(server::get_robot_pin().await) }),
         }
     }
 
@@ -88,12 +81,10 @@ impl RobotAgent {
 pub enum Msg {
     Status(RobotStatus),
     Token(String),
-    Pin(String),
 }
 
 pub enum RobotAction {
     GenToken,
-    GenPin,
 }
 
 #[derive(Debug, PartialEq, Eq, Clone, Default)]

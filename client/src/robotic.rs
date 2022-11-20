@@ -6,6 +6,8 @@ pub use self::robot::Robot;
 
 use yew::prelude::*;
 
+use crate::components::GenPin;
+
 #[derive(PartialEq, Eq, Properties)]
 pub struct Props {}
 
@@ -29,6 +31,14 @@ impl Component for Robotic {
             <div class={"robotic"}>
                 <h1 class="header">{"Robotic Avatar"}</h1>
                 <content>
+                    <ol>
+                        <li>{"Generate pin for Meta Quest 2 headset: "} <GenPin/> </li>
+                        <li>{"Start video link with minion robot"}</li>
+                        <li>{"When you see the video click the ENTER VR button at the bottom of the screen"}</li>
+                    </ol>
+
+
+
                     <Robot/>
                     <Minion/>
                 </content>
