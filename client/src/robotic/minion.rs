@@ -44,7 +44,6 @@ pub fn minion() -> Html {
     html! {
         <div class={"minion"}>
             <div class={"ui"}>
-                <h1>{"Robotic Avatar Demo"}</h1>
                 <p>
                     {"Left Camera ID:"} <input size={64} value={state.cam_id.0.clone()} onchange={left_id_change} /><br/>
                     {"Right Camera ID:"} <input size={64} value={state.cam_id.1.clone()} onchange={right_id_change} />

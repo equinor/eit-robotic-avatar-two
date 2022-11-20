@@ -53,29 +53,6 @@ body {
     padding: 0.2em;
 }
 
-.robotic>menu {
-    grid-area: menu;
-    border-right: black solid 1px;
-    margin: 0;
-    padding: 0.2em;
-    width: 15em;
-}
-
-.robotic>menu>button {
-    width: 100%;
-    margin: 1em 0;
-}
-
-.robotic>menu>button>img {
-    width: 100%;
-    object-fit: contain;
-}
-
-.robotic>menu>button>.icon {
-    font-size: 10em;
-    margin: 0;
-}
-
 .robotic>content {
     grid-area: robot;
     margin: 0;
