@@ -13,9 +13,11 @@ wasm-bindgen = "0.2"
 wasm-bindgen-futures = "0.4"
 js-sys = "0.3"
 gloo-console = "0.2"
-stylist = { version = "0.10", default-features = false, features = ["macros", "yew_integration"] }
 gloo-utils = "0.1"
-gloo-net = {version = "0.2", default-features = false, features = ["json", "http"]}
+gloo-net = { version = "0.2", default-features = false, features = [
+    "json",
+    "http",
+] }
 gloo-timers = { version = "0.2", features = ["futures"] }
 gloo-storage = "0.2"
 time = { version = "0.3", features = ["wasm-bindgen"] }

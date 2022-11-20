@@ -1,6 +1,5 @@
 use common::{Drive, Head, Tracking};
 use js_sys::Reflect;
-use stylist::css;
 use wasm_bindgen::{
     prelude::{wasm_bindgen, Closure},
     JsValue,
@@ -10,7 +9,6 @@ use yew::prelude::*;
 
 #[derive(PartialEq, Properties)]
 pub struct Props {
-    pub class: Classes,
     pub left: Option<MediaStream>,
     pub right: Option<MediaStream>,
     pub on_track: Callback<Tracking>,
@@ -36,27 +34,9 @@ impl Component for Viewport {
         }
     }
 
-    fn view(&self, ctx: &Context<Self>) -> Html {
-        let props = ctx.props();
-
-        let css = css!(
-            r#"
-            & > canvas {
-                background-color: #000;
-                height: 100%;
-                width: 100%;
-            }
-            
-            & > video {
-                display: none;
-            }
-        "#
-        );
-
-        let class = classes!(props.class.clone(), css);
-
+    fn view(&self, _ctx: &Context<Self>) -> Html {
         html! {
-            <div class={class}>
+            <div class={"viewport"}>
                 <canvas ref={self.canvas_ref.clone()} />
                 <video autoplay={true} ref={self.left_ref.clone()} />
                 <video autoplay={true} ref={self.right_ref.clone()} />

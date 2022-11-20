@@ -4,7 +4,6 @@ mod robot;
 pub use self::minion::Minion;
 pub use self::robot::Robot;
 
-use stylist::css;
 use yew::prelude::*;
 
 #[derive(PartialEq, Eq, Properties)]
@@ -41,57 +40,6 @@ impl Component for Robotic {
     fn view(&self, ctx: &Context<Self>) -> Html {
         let link = ctx.link();
 
-        let css = css!(
-            r#"
-            height: 100%;
-            display: grid;
-            grid-template-columns: min-content 1fr;
-            grid-template-rows: min-content 1fr;
-            grid-template-areas: 
-                "header header"
-                "menu robot";
-            
-            & > h1 {
-                grid-area: header;
-                background-color: lightblue;
-                border-bottom: black solid 1px;
-                margin: 0;
-                padding: 0.2em;
-            }
-
-            & > menu {
-                grid-area: menu;
-                border-right: black solid 1px;
-                margin: 0;
-                padding: 0.2em;
-                width: 15em;
-            }
-
-            & > menu > button{
-                width: 100%;
-                margin: 1em 0;
-            }
-
-            & > menu > button > img{
-                width: 100%;
-                object-fit: contain;
-            }
-
-            & > menu > button > .icon{
-                font-size: 10em;
-                margin: 0;
-            }
-
-            & > content {
-                grid-area: robot;
-                margin: 0;
-                padding: 0.2em;
-            }
-        "#
-        );
-
-        let class = classes!(css);
-
         let content = match self.page {
             Msg::Robot => {
                 html!(<Robot/>)
@@ -102,7 +50,7 @@ impl Component for Robotic {
         };
 
         html! {
-            <div class={class}>
+            <div class={"robotic"}>
                 <h1 class="header">{"Robotic Avatar"}</h1>
                 <menu>
                     <button onclick={link.callback(|_| Msg::Robot)}>

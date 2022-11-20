@@ -4,7 +4,6 @@ mod robotic;
 pub use login::Login;
 pub use robotic::Robotic;
 
-use stylist::{css, yew::Global};
 use yew::prelude::*;
 
 pub struct Ui {
@@ -35,16 +34,6 @@ impl Component for Ui {
     fn view(&self, ctx: &Context<Self>) -> Html {
         let link = ctx.link();
 
-        let global_css = css!(
-            r#"
-                html, body{
-                    height: 100%;
-                    width: 100%;
-                    margin: 0;
-                }
-            "#
-        );
-
         let page = if self.logged_in {
             html! (<Robotic/>)
         } else {
@@ -52,10 +41,7 @@ impl Component for Ui {
         };
 
         html! {
-            <>
-                <Global css={global_css} />
                 {page}
-            </>
         }
     }
 }
