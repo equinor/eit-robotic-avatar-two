@@ -1,0 +1,91 @@
+html,
+body {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+}
+
+.login {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5em;
+}
+
+.login>div {
+    border: black solid 1px;
+    border-radius: 10px 10px 0 0;
+    overflow: hidden;
+}
+
+.login h1 {
+    background-color: lightblue;
+    border-bottom: black solid 1px;
+    margin: 0;
+    padding: 0.2em;
+}
+
+.login p {
+    margin: 0;
+    padding: 0.2em;
+}
+
+.login button {
+    font-size: 0.85em;
+}
+
+.robotic {
+    height: 100%;
+    display: grid;
+    grid-template-columns: min-content 1fr;
+    grid-template-rows: min-content 1fr;
+    grid-template-areas:
+        "header header"
+        "menu robot";
+}
+
+.robotic>h1 {
+    grid-area: header;
+    background-color: lightblue;
+    border-bottom: black solid 1px;
+    margin: 0;
+    padding: 0.2em;
+}
+
+.robotic>content {
+    grid-area: robot;
+    margin: 0;
+    padding: 0.2em;
+}
+
+.minion {
+    height: 100%;
+    display: grid;
+    box-sizing: border-box;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+    grid-template-areas:
+        "ui"
+        "view";
+    gap: 16px 16px;
+    padding: 8px;
+}
+
+.minion>.ui {
+    grid-area: ui;
+}
+
+.minion>.viewport {
+    grid-area: view;
+}
+
+.viewport>canvas {
+    background-color: #000;
+    height: 100%;
+    width: 100%;
+}
+
+.viewport>video {
+    display: none;
+}

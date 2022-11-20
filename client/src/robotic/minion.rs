@@ -1,6 +1,5 @@
 mod viewport;
 
-use stylist::css;
 use wasm_bindgen::JsCast;
 use web_sys::{EventTarget, HtmlInputElement};
 use yew::prelude::*;
@@ -21,29 +20,6 @@ pub fn minion() -> Html {
         use_bridge::<MinionAgent, _>(move |s| state.set(s))
     };
     let actions = Callback::from(move |a| agent.send(a));
-
-    let css = css!(
-        r#"
-        height: 100%;
-        display: grid;
-        box-sizing: border-box;
-        grid-template-columns: 1fr;
-        grid-template-rows: auto 1fr;
-        grid-template-areas: 
-            "ui"
-            "view";
-        gap: 16px 16px;
-        padding: 8px;
-
-        & > .ui {
-            grid-area: ui;
-        }
-        
-        & > .view {
-            grid-area: view;
-        }
-    "#
-    );
 
     let left_id_change = actions.reform(|e: Event| {
         let target: EventTarget = e
@@ -66,9 +42,8 @@ pub fn minion() -> Html {
     });
 
     html! {
-        <div class={css}>
+        <div class={"minion"}>
             <div class={"ui"}>
-                <h1>{"Robotic Avatar Demo"}</h1>
                 <p>
                     {"Left Camera ID:"} <input size={64} value={state.cam_id.0.clone()} onchange={left_id_change} /><br/>
                     {"Right Camera ID:"} <input size={64} value={state.cam_id.1.clone()} onchange={right_id_change} />
@@ -81,7 +56,7 @@ pub fn minion() -> Html {
                     <button disabled={state.started} onclick={actions.reform(|_| MinionAction::StartReceiving)}>{"Start receiving video"}</button>
                 </p>
             </div>
-            <Viewport class={"view"} left={state.streams.0.clone()} right={state.streams.1.clone()} on_track={actions.reform(MinionAction::Tracking)}></Viewport>
+            <Viewport left={state.streams.0.clone()} right={state.streams.1.clone()} on_track={actions.reform(MinionAction::Tracking)}></Viewport>
         </div>
     }
 }

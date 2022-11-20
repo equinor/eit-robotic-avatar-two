@@ -31,9 +31,7 @@ pub fn robot() -> Html {
 
     html! {
         <div>
-            <h1>{"Robot the tester."}</h1>
             <h2>{"Last Seen Online: "}{online}</h2>
-
             <table>
                 <thead>
                     <tr>
