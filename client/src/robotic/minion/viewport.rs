@@ -1,5 +1,5 @@
-use common::{Drive, Head, Tracking};
-use js_sys::Reflect;
+use std::rc::Rc;
+
 use wasm_bindgen::{
     prelude::{wasm_bindgen, Closure},
     JsValue,
@@ -7,11 +7,12 @@ use wasm_bindgen::{
 use web_sys::{HtmlCanvasElement, HtmlVideoElement, MediaStream};
 use yew::prelude::*;
 
-#[derive(PartialEq, Properties)]
+use crate::services::tracking::Track;
+
+#[derive(PartialEq, Eq, Properties)]
 pub struct Props {
     pub left: Option<MediaStream>,
     pub right: Option<MediaStream>,
-    pub on_track: Callback<Tracking>,
 }
 
 pub enum Msg {}
@@ -20,6 +21,7 @@ pub struct Viewport {
     canvas_ref: NodeRef,
     left_ref: NodeRef,
     right_ref: NodeRef,
+    track: Rc<Track>,
 }
 
 impl Component for Viewport {
@@ -31,6 +33,7 @@ impl Component for Viewport {
             canvas_ref: NodeRef::default(),
             left_ref: NodeRef::default(),
             right_ref: NodeRef::default(),
+            track: Default::default(),
         }
     }
 
@@ -51,31 +54,8 @@ impl Component for Viewport {
         let right = self.right_ref.cast().unwrap();
 
         if first_render {
-            let callback = props.on_track.reform(|value: JsValue| {
-                let left = Reflect::get(&value, &"l".into()).unwrap();
-
-                Tracking {
-                    head: Head {
-                        rx: Reflect::get(&value, &"rx".into())
-                            .unwrap()
-                            .as_f64()
-                            .unwrap(),
-                        ry: Reflect::get(&value, &"ry".into())
-                            .unwrap()
-                            .as_f64()
-                            .unwrap(),
-                        rz: Reflect::get(&value, &"rz".into())
-                            .unwrap()
-                            .as_f64()
-                            .unwrap(),
-                    },
-                    drive: Drive {
-                        speed: Reflect::get(&left, &"y".into()).unwrap().as_f64().unwrap(),
-                        turn: Reflect::get(&left, &"x".into()).unwrap().as_f64().unwrap(),
-                    },
-                }
-            });
-            let closure = Closure::new(move |value| callback.emit(value));
+            let track = self.track.clone();
+            let closure = Closure::new(move |value| track.send(value));
             setup_3d(self.canvas_ref.cast().unwrap(), &left, &right, &closure);
             closure.forget();
         }

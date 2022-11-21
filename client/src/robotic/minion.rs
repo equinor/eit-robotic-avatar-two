@@ -2,9 +2,6 @@ mod viewport;
 
 use web_sys::MediaStream;
 use yew::prelude::*;
-use yew_agent::use_bridge;
-
-use crate::agents::{minion::MinionAction, MinionAgent};
 
 use self::viewport::Viewport;
 
@@ -16,12 +13,9 @@ pub struct MinionProps {
 
 #[function_component(Minion)]
 pub fn minion(props: &MinionProps) -> Html {
-    let agent = use_bridge::<MinionAgent, _>(|_| ());
-    let actions = Callback::from(move |a| agent.send(a));
-
     html! {
         <div class={"minion"}>
-            <Viewport left={props.left.clone()} right={props.right.clone()} on_track={actions.reform(MinionAction::Tracking)}></Viewport>
+            <Viewport left={props.left.clone()} right={props.right.clone()}></Viewport>
         </div>
     }
 }
