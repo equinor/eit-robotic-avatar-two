@@ -5,7 +5,9 @@ pub use self::robot::Robot;
 use web_sys::MediaStream;
 use yew::prelude::*;
 
-use crate::components::{DeviceList, GenPin, HeadsetStream, MediaSelect, MinionStream, Viewport};
+use crate::components::{
+    DeviceList, GenPin, GenToken, HeadsetStream, MediaSelect, MinionStream, Viewport,
+};
 
 #[derive(PartialEq, Eq, Properties)]
 pub struct Props {}
@@ -63,6 +65,7 @@ impl Component for Robotic {
                     <MinionStream callback={link.callback(Msg::SetStreams)}/>
 
                     <Robot/>
+                    <GenToken/>
                 }
             </div>
         }

@@ -19,7 +19,7 @@ impl Agent for RobotAgent {
 
     type Message = Msg;
 
-    type Input = RobotAction;
+    type Input = ();
 
     type Output = RobotState;
 
@@ -46,20 +46,10 @@ impl Agent for RobotAgent {
                 self.state.interfaces = status.interfaces;
                 self.send_state();
             }
-            Msg::Token(token) => {
-                self.state.token = Some(token);
-                self.send_state();
-            }
         }
     }
 
-    fn handle_input(&mut self, msg: Self::Input, _id: HandlerId) {
-        match msg {
-            RobotAction::GenToken => self
-                .link
-                .send_future(async move { Msg::Token(server::get_robot_token().await) }),
-        }
-    }
+    fn handle_input(&mut self, _msg: Self::Input, _id: HandlerId) {}
 
     fn connected(&mut self, id: HandlerId) {
         self.subscribers.insert(id);
@@ -80,16 +70,10 @@ impl RobotAgent {
 
 pub enum Msg {
     Status(RobotStatus),
-    Token(String),
-}
-
-pub enum RobotAction {
-    GenToken,
 }
 
 #[derive(Debug, PartialEq, Eq, Clone, Default)]
 pub struct RobotState {
     pub last_seen: Option<OffsetDateTime>,
     pub interfaces: Vec<Interface>,
-    pub token: Option<String>,
 }

@@ -3,19 +3,15 @@ use time::{ext::NumericalDuration, OffsetDateTime};
 use yew::prelude::*;
 use yew_agent::use_bridge;
 
-use crate::agents::{
-    robot::{RobotAction, RobotState},
-    RobotAgent,
-};
+use crate::agents::{robot::RobotState, RobotAgent};
 
 #[function_component(Robot)]
 pub fn robot() -> Html {
     let state = use_state(RobotState::default);
-    let agent = {
+    let _ = {
         let state = state.clone();
         use_bridge::<RobotAgent, _>(move |s| state.set(s))
     };
-    let actions = Callback::from(move |msg| agent.send(msg));
 
     let online = state.last_seen.map_or_else(
         || "Never".to_string(),
@@ -46,8 +42,6 @@ pub fn robot() -> Html {
                     {interfaces.collect::<Html>()}
                 </tbody>
             </table>
-
-            {gen_token(actions.clone(), state.token.as_ref())}
         </div>
     }
 }
@@ -61,16 +55,5 @@ fn interface_to_row(interface: &Interface) -> Html {
             <td>{&interface.netmask}</td>
             <td>{&interface.mac}</td>
         </tr>
-    }
-}
-
-fn gen_token(actions: Callback<RobotAction>, token: Option<&String>) -> Html {
-    let token = token.map(|s| &**s).unwrap_or("");
-
-    html! {
-        <div>
-            <button onclick={move |_| actions.emit(RobotAction::GenToken) }>{"Generate token for Robot"}</button>
-            <pre>{token}</pre>
-        </div>
     }
 }

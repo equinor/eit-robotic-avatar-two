@@ -22,7 +22,7 @@ pub fn gen_pin() -> Html {
     };
 
     match &*pin {
-        Some(s) => html! {<span class={"gen_pin"}>{s}</span>},
+        Some(s) => html! {<span class={"pin"}>{s}</span>},
         None => html! {<button {onclick}>{"Generate login Pin"}</button>},
     }
 }
@@ -189,4 +189,22 @@ extern "C" {
         right: &HtmlVideoElement,
         onTrack: &Closure<dyn FnMut(JsValue)>,
     );
+}
+
+#[function_component(GenToken)]
+pub fn gen_token() -> Html {
+    let pin = use_state(|| None);
+
+    let onclick = {
+        let pin = pin.clone();
+        Callback::from(move |_| {
+            let pin = pin.clone();
+            spawn_local(async move { pin.set(Some(server::get_robot_token().await)) })
+        })
+    };
+
+    match &*pin {
+        Some(s) => html! {<pre>{s}</pre>},
+        None => html! {<button {onclick}>{"Generate robot token"}</button>},
+    }
 }
