@@ -1,0 +1,29 @@
+.login {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5em;
+
+    >div {
+        border: black solid 1px;
+        border-radius: 10px 10px 0 0;
+        overflow: hidden;
+    }
+
+    h1 {
+        background-color: lightblue;
+        border-bottom: black solid 1px;
+        margin: 0;
+        padding: 0.2em;
+    }
+
+    p {
+        margin: 0;
+        padding: 0.2em;
+    }
+
+    button {
+        font-size: 0.85em;
+    }
+}

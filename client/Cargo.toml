@@ -21,7 +21,6 @@ gloo-net = { version = "0.2", default-features = false, features = [
 gloo-timers = { version = "0.2", features = ["futures"] }
 gloo-storage = "0.2"
 time = { version = "0.3", features = ["wasm-bindgen"] }
-yew-agent = "0.1.0"
 url = { version = "2", features = ["serde"] }
 
 [dependencies.web-sys]

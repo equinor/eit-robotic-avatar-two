@@ -1,0 +1,18 @@
+.pin {
+    font-size: 4em;
+}
+
+.viewport {
+    grid-area: view;
+    position: relative;
+
+    >canvas {
+        background-color: #000;
+        height: 100%;
+        width: 100%;
+    }
+
+    >video {
+        display: none;
+    }
+}
