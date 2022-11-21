@@ -1,7 +1,6 @@
 use serde::{Deserialize, Serialize};
 use time::OffsetDateTime;
 use url::Url;
-use uuid::Uuid;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RobotRegister {
@@ -21,31 +20,11 @@ pub struct Interface {
     pub mac: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct RobotConfig {}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SendMessage {
-    pub topic: String,
-    pub msg_type: String,
-    pub payload: String,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Message {
-    pub id: Uuid,
-    pub topic: String,
-    pub msg_type: String,
-    pub payload: String,
-}
-
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]
 pub struct RobotStatus {
     pub last_seen: Option<OffsetDateTime>,
     pub interfaces: Vec<Interface>,
 }
-
-// Legacy types from the old robotic avatar
 
 #[derive(Debug, Default, Clone, Copy, Serialize, Deserialize, PartialEq)]
 pub struct Tracking {

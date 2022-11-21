@@ -1,9 +1,7 @@
 mod auth;
-mod messaging;
 mod minion;
 mod robot;
 
-pub use messaging::Messaging;
 pub use minion::Minion;
 pub use robot::Robot;
 
@@ -18,7 +16,6 @@ pub struct Service(Arc<Inner>);
 
 struct Inner {
     auth: Auth,
-    messaging: Messaging,
     minion: Minion,
     robot: Robot,
 }
@@ -27,7 +24,6 @@ impl Service {
     pub async fn new(config: &Config) -> Result<Service> {
         let inner = Inner {
             auth: Auth::new(config).await?,
-            messaging: Messaging::new(),
             minion: Minion::new(config.ice.to_owned()),
             robot: Robot::new(),
         };
@@ -36,10 +32,6 @@ impl Service {
 
     pub fn auth(&self) -> &Auth {
         &self.0.auth
-    }
-
-    pub fn messaging(&self) -> &Messaging {
-        &self.0.messaging
     }
 
     pub fn robot(&self) -> &Robot {

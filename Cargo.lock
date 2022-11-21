@@ -222,7 +222,6 @@ dependencies = [
  "serde",
  "time",
  "url",
- "uuid",
 ]
 
 [[package]]
