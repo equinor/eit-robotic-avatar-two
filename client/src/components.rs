@@ -22,7 +22,7 @@ pub fn gen_pin() -> Html {
     };
 
     match &*pin {
-        Some(s) => html! {<span class={"pin"}>{s}</span>},
+        Some(s) => html! {<span class={"gen_pin"}>{s}</span>},
         None => html! {<button {onclick}>{"Generate login Pin"}</button>},
     }
 }
