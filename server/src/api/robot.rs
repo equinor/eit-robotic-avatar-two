@@ -2,7 +2,7 @@ use axum::{
     routing::{get, post},
     Extension, Json, Router,
 };
-use common::{RobotConfig, RobotRegister, RobotStatus};
+use common::{RobotRegister, RobotStatus};
 use log::{info, warn};
 
 use crate::Service;
@@ -23,14 +23,13 @@ async fn status(Extension(service): Extension<Service>) -> Json<RobotStatus> {
 async fn register(
     Extension(service): Extension<Service>,
     Json(robot_register): Json<RobotRegister>,
-) -> Json<RobotConfig> {
+) {
     info!("A robot called {} registered", robot_register.name);
     info!(
         "With current networking: {:?}",
         robot_register.network_interfaces
     );
     service.robot().register(robot_register);
-    Json(RobotConfig {})
 }
 
 async fn get_token(Extension(service): Extension<Service>) -> String {

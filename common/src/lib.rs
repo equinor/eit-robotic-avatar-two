@@ -20,16 +20,11 @@ pub struct Interface {
     pub mac: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct RobotConfig {}
-
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]
 pub struct RobotStatus {
     pub last_seen: Option<OffsetDateTime>,
     pub interfaces: Vec<Interface>,
 }
-
-// Legacy types from the old robotic avatar
 
 #[derive(Debug, Default, Clone, Copy, Serialize, Deserialize, PartialEq)]
 pub struct Tracking {
