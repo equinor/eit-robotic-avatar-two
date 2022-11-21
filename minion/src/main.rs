@@ -1,5 +1,8 @@
 mod arm;
+mod config;
 mod drive;
+mod network;
+mod server;
 mod tracking;
 
 use std::time::Duration;
@@ -7,8 +10,10 @@ use std::time::Duration;
 use arm::{arm_run, arm_start};
 
 use common::RobotRegister;
+use config::LocalConfig;
 use drive::{drive_run, drive_start};
-use robot::{config::LocalConfig, network::get_networking_interfaces, Server};
+use network::get_networking_interfaces;
+use server::Server;
 use tokio::{runtime::Builder, signal, task};
 
 fn main() {

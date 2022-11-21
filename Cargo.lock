@@ -883,8 +883,10 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "common",
+ "dotenvy",
+ "network-interface",
  "pyo3",
- "robot",
+ "reqwest",
  "serde",
  "serde_json",
  "serialport",
@@ -1302,20 +1304,6 @@ dependencies = [
  "untrusted",
  "web-sys",
  "winapi",
-]
-
-[[package]]
-name = "robot"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "common",
- "dotenvy",
- "env_logger",
- "log",
- "network-interface",
- "reqwest",
- "tokio",
 ]
 
 [[package]]

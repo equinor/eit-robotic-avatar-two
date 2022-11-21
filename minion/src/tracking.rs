@@ -1,7 +1,8 @@
 use anyhow::Result;
 use common::Tracking;
-use robot::Server;
 use tokio::sync::watch::{channel, Receiver, Sender};
+
+use crate::server::Server;
 
 pub fn tracking(server: Server) -> Receiver<Tracking> {
     let (sender, receiver) = channel(Tracking::default());
