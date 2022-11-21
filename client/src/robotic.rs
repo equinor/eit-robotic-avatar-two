@@ -7,7 +7,7 @@ pub use self::robot::Robot;
 use web_sys::MediaStream;
 use yew::prelude::*;
 
-use crate::components::{GenPin, HeadsetStream, MediaSelect, MinionStream};
+use crate::components::{DeviceList, GenPin, HeadsetStream, MediaSelect, MinionStream};
 
 #[derive(PartialEq, Eq, Properties)]
 pub struct Props {}
@@ -52,7 +52,7 @@ impl Component for Robotic {
                 <ol>
                     <li>{"Generate pin for Meta Quest 2 headset: "} <GenPin/> </li>
                     <li><HeadsetStream callback={link.callback(Msg::SetStreams)}/></li>
-                    <li>{"When you see the video click the ENTER VR button at the bottom of the screen"}</li>
+                    <li>{"When you see the video click the ENTER VR button at the bottom of the viewport"}</li>
                 </ol>
 
                 {
@@ -66,6 +66,7 @@ impl Component for Robotic {
 
                 if self.show_advanced {
                     <MediaSelect/>
+                    <DeviceList/>
                     <MinionStream callback={link.callback(Msg::SetStreams)}/>
 
                     <Robot/>

@@ -103,3 +103,28 @@ pub fn media_select() -> Html {
         </p>
     }
 }
+
+#[function_component(DeviceList)]
+pub fn device_list() -> Html {
+    let devices = use_state(Vec::new);
+    let first = use_mut_ref(|| true);
+    if *first.borrow() {
+        *first.borrow_mut() = false;
+        let devices = devices.clone();
+        spawn_local(async move {
+            devices.set(media::list_video().await);
+        })
+    }
+
+    let devices = devices.iter().map(|device_info| {
+        html! {
+            <li>{device_info.label()}{": "}{device_info.device_id()}</li>
+        }
+    });
+
+    html! {
+        <ul>
+            {for devices}
+        </ul>
+    }
+}
