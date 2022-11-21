@@ -1,12 +1,8 @@
-mod robot;
-
-pub use self::robot::Robot;
-
 use web_sys::MediaStream;
 use yew::prelude::*;
 
 use crate::components::{
-    DeviceList, GenPin, GenToken, HeadsetStream, MediaSelect, MinionStream, Viewport,
+    DeviceList, GenPin, GenToken, HeadsetStream, MediaSelect, MinionStatus, MinionStream, Viewport,
 };
 
 #[derive(PartialEq, Eq, Properties)]
@@ -64,7 +60,7 @@ impl Component for Robotic {
                     <DeviceList/>
                     <MinionStream callback={link.callback(Msg::SetStreams)}/>
 
-                    <Robot/>
+                    <MinionStatus/>
                     <GenToken/>
                 }
             </div>

@@ -1,4 +1,6 @@
+use common::{Interface, RobotStatus};
 use gloo_storage::{LocalStorage, Storage};
+use time::{ext::NumericalDuration, OffsetDateTime};
 use wasm_bindgen::{
     prelude::{wasm_bindgen, Closure},
     JsCast, JsValue,
@@ -206,5 +208,62 @@ pub fn gen_token() -> Html {
     match &*pin {
         Some(s) => html! {<pre>{s}</pre>},
         None => html! {<button {onclick}>{"Generate robot token"}</button>},
+    }
+}
+
+#[function_component(MinionStatus)]
+pub fn minion_status() -> Html {
+    let status = use_state(RobotStatus::default);
+    let first = use_mut_ref(|| true);
+    if *first.borrow() {
+        *first.borrow_mut() = false;
+        let status = status.clone();
+        spawn_local(async move {
+            status.set(server::get_robot().await);
+        })
+    }
+
+    let online = status.last_seen.map_or_else(
+        || "Never".to_string(),
+        |t| {
+            let now = OffsetDateTime::now_utc();
+            let time_since = now - t;
+            let time_since = time_since.whole_seconds().seconds();
+            format!("{} ago", time_since)
+        },
+    );
+
+    let interfaces = status.interfaces.iter().map(interface_to_row);
+
+    html! {
+        <div>
+            <h2>{"Last Seen Online: "}{online}</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>{"Interface name"}</th>
+                        <th>{"IP Address"}</th>
+                        <th>{"Broadcast"}</th>
+                        <th>{"Netmask"}</th>
+                        <th>{"Mac Address"}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {interfaces.collect::<Html>()}
+                </tbody>
+            </table>
+        </div>
+    }
+}
+
+fn interface_to_row(interface: &Interface) -> Html {
+    html! {
+        <tr>
+            <td>{&interface.name}</td>
+            <td>{&interface.ip}</td>
+            <td>{&interface.broadcast}</td>
+            <td>{&interface.netmask}</td>
+            <td>{&interface.mac}</td>
+        </tr>
     }
 }

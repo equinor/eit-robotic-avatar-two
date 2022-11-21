@@ -39,7 +39,7 @@ pub struct Message {
     pub payload: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Default, Clone, Serialize, Deserialize)]
 pub struct RobotStatus {
     pub last_seen: Option<OffsetDateTime>,
     pub interfaces: Vec<Interface>,
