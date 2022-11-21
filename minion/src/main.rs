@@ -1,7 +1,6 @@
 mod arm;
 mod config;
 mod drive;
-mod network;
 mod server;
 mod tracking;
 
@@ -9,10 +8,8 @@ use std::time::Duration;
 
 use arm::{arm_run, arm_start};
 
-use common::RobotRegister;
-use config::LocalConfig;
+use config::Config;
 use drive::{drive_run, drive_start};
-use network::get_networking_interfaces;
 use server::Server;
 use tokio::{runtime::Builder, signal, task};
 
@@ -26,18 +23,9 @@ fn main() {
 }
 
 async fn start() {
-    let config = LocalConfig::from_env();
-    #[cfg(debug_assertions)]
-    let config = config.unwrap_or_default();
-    #[cfg(not(debug_assertions))]
-    let config = config.unwrap();
+    let config = Config::get_config();
+    let server = Server::connect(config).await;
 
-    let register = RobotRegister {
-        name: "Minion".to_string(),
-        network_interfaces: get_networking_interfaces(),
-    };
-
-    let server = Server::connect(config, register).await.unwrap();
     let tracking = tracking::tracking(server);
 
     let mut drive = drive_start();
