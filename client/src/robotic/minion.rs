@@ -47,12 +47,9 @@ pub fn minion(props: &MinionProps) -> Html {
         }
     });
 
-    let left = props.left.clone().or_else(|| state.streams.0.clone());
-    let right = props.right.clone().or_else(|| state.streams.1.clone());
-
     html! {
         <div class={"minion"}>
-            <Viewport left={left} right={right} on_track={actions.reform(MinionAction::Tracking)}></Viewport>
+            <Viewport left={props.left.clone()} right={props.right.clone()} on_track={actions.reform(MinionAction::Tracking)}></Viewport>
             <div class={"ui"}>
                 <p>
                     {"Left Camera ID:"} <input size={64} value={state.cam_id.0.clone()} onchange={left_id_change} /><br/>
@@ -60,9 +57,6 @@ pub fn minion(props: &MinionProps) -> Html {
                     <ul>
                         {for devices}
                     </ul>
-                </p>
-                <p>
-                    <button disabled={state.started} onclick={actions.reform(|_| MinionAction::StartSending)}>{"Start sending video."}</button>
                 </p>
             </div>
         </div>

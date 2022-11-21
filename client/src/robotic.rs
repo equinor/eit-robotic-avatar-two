@@ -7,7 +7,7 @@ pub use self::robot::Robot;
 use web_sys::MediaStream;
 use yew::prelude::*;
 
-use crate::components::{GenPin, HeadsetStream};
+use crate::components::{GenPin, HeadsetStream, MinionStream};
 
 #[derive(PartialEq, Eq, Properties)]
 pub struct Props {}
@@ -65,6 +65,8 @@ impl Component for Robotic {
                 <h2 onclick={link.callback(|_| Msg::ToggleAdvanced)}>{"Advanced and minion settings."}</h2>
 
                 if self.show_advanced {
+                    <MinionStream callback={link.callback(Msg::SetStreams)}/>
+
                     <Robot/>
                 }
             </div>

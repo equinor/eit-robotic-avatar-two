@@ -2,16 +2,14 @@ use std::collections::HashSet;
 
 use common::Tracking;
 use gloo_storage::{LocalStorage, Storage};
-use web_sys::{MediaDeviceInfo, MediaStream};
+use web_sys::MediaDeviceInfo;
 use yew_agent::{Agent, AgentLink, Context, HandlerId};
 
-use crate::services::{media, server, webrtc};
+use crate::services::{media, server};
 
 pub struct MinionAgent {
     cam_id: (String, String),
     devices: Vec<MediaDeviceInfo>,
-    started: bool,
-    streams: (Option<MediaStream>, Option<MediaStream>),
     sending: bool,
     link: AgentLink<Self>,
     subscribers: HashSet<HandlerId>,
@@ -25,8 +23,6 @@ impl MinionAgent {
                 MinionState {
                     cam_id: self.cam_id.clone(),
                     devices: self.devices.clone(),
-                    streams: self.streams.clone(),
-                    started: self.started,
                 },
             );
         }
@@ -46,8 +42,6 @@ impl Agent for MinionAgent {
         MinionAgent {
             cam_id,
             devices: Vec::new(),
-            started: false,
-            streams: (None, None),
             sending: false,
             link,
             subscribers: HashSet::new(),
@@ -60,15 +54,6 @@ impl Agent for MinionAgent {
                 self.devices = devices;
                 self.send_state();
             }
-            Msg::SendVideo(left, right) => {
-                self.streams = (Some(left.clone()), Some(right.clone()));
-                self.send_state();
-                self.link.send_future(async move {
-                    webrtc::send_video((left, right)).await;
-                    Msg::SendDone
-                });
-            }
-            Msg::SendDone => {}
             Msg::ReadyToSend => {
                 self.sending = false;
             }
@@ -86,17 +71,6 @@ impl Agent for MinionAgent {
                 self.cam_id.1 = id;
                 LocalStorage::set("minion_cam_id", self.cam_id.clone()).unwrap();
                 self.send_state();
-            }
-            MinionAction::StartSending => {
-                self.started = true;
-
-                let cam_id = self.cam_id.clone();
-                self.link.send_future(async move {
-                    let left = media::get_user_video(&cam_id.0);
-                    let right = media::get_user_video(&cam_id.1);
-                    let (left, right) = (left.await, right.await);
-                    Msg::SendVideo(left, right)
-                });
             }
             MinionAction::Tracking(value) => {
                 if !self.sending {
@@ -122,15 +96,12 @@ impl Agent for MinionAgent {
 
 pub enum Msg {
     NewDevices(Vec<MediaDeviceInfo>),
-    SendVideo(MediaStream, MediaStream),
-    SendDone,
     ReadyToSend,
 }
 
 pub enum MinionAction {
     LeftCamChange(String),
     RightCamChange(String),
-    StartSending,
     Tracking(Tracking),
 }
 
@@ -138,6 +109,4 @@ pub enum MinionAction {
 pub struct MinionState {
     pub cam_id: (String, String),
     pub devices: Vec<MediaDeviceInfo>,
-    pub streams: (Option<MediaStream>, Option<MediaStream>),
-    pub started: bool,
 }
