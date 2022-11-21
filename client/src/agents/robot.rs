@@ -92,5 +92,4 @@ pub struct RobotState {
     pub last_seen: Option<OffsetDateTime>,
     pub interfaces: Vec<Interface>,
     pub token: Option<String>,
-    pub pin: Option<String>,
 }

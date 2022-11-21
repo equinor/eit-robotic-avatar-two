@@ -1,3 +1,5 @@
+@use 'src/robotic';
+
 html,
 body {
     height: 100%;
@@ -37,30 +39,6 @@ body {
 
 .pin {
     font-size: 4em;
-}
-
-.robotic {
-    height: 100%;
-    display: grid;
-    grid-template-columns: min-content 1fr;
-    grid-template-rows: min-content 1fr;
-    grid-template-areas:
-        "header header"
-        "menu robot";
-}
-
-.robotic>h1 {
-    grid-area: header;
-    background-color: lightblue;
-    border-bottom: black solid 1px;
-    margin: 0;
-    padding: 0.2em;
-}
-
-.robotic>content {
-    grid-area: robot;
-    margin: 0;
-    padding: 0.2em;
 }
 
 .minion {
