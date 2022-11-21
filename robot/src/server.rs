@@ -1,5 +1,5 @@
 use anyhow::Result;
-use common::{RobotConfig, RobotRegister, SendMessage};
+use common::{RobotConfig, RobotRegister};
 use reqwest::{header, Client, RequestBuilder, Url};
 
 use crate::config::LocalConfig;
@@ -38,16 +38,6 @@ impl Server {
 
     pub fn config(&self) -> &RobotConfig {
         &self.config
-    }
-
-    pub async fn send_message(&self, msg: SendMessage) -> Result<()> {
-        self.client
-            .post(self.base_url.join("api/messaging")?)
-            .json(&msg)
-            .send()
-            .await?;
-
-        Ok(())
     }
 
     pub fn get(&self, path: &str) -> RequestBuilder {
