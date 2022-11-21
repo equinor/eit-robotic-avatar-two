@@ -1,14 +1,12 @@
 use std::collections::HashSet;
 
 use common::Tracking;
-use gloo_storage::{LocalStorage, Storage};
 use web_sys::MediaDeviceInfo;
 use yew_agent::{Agent, AgentLink, Context, HandlerId};
 
 use crate::services::{media, server};
 
 pub struct MinionAgent {
-    cam_id: (String, String),
     devices: Vec<MediaDeviceInfo>,
     sending: bool,
     link: AgentLink<Self>,
@@ -21,7 +19,6 @@ impl MinionAgent {
             self.link.respond(
                 *sub,
                 MinionState {
-                    cam_id: self.cam_id.clone(),
                     devices: self.devices.clone(),
                 },
             );
@@ -36,11 +33,9 @@ impl Agent for MinionAgent {
     type Output = MinionState;
 
     fn create(link: AgentLink<Self>) -> Self {
-        let cam_id = LocalStorage::get("minion_cam_id").unwrap_or_default();
         link.send_future(async move { Msg::NewDevices(media::list_video().await) });
 
         MinionAgent {
-            cam_id,
             devices: Vec::new(),
             sending: false,
             link,
@@ -62,16 +57,6 @@ impl Agent for MinionAgent {
 
     fn handle_input(&mut self, msg: Self::Input, _id: HandlerId) {
         match msg {
-            MinionAction::LeftCamChange(id) => {
-                self.cam_id.0 = id;
-                LocalStorage::set("minion_cam_id", self.cam_id.clone()).unwrap();
-                self.send_state();
-            }
-            MinionAction::RightCamChange(id) => {
-                self.cam_id.1 = id;
-                LocalStorage::set("minion_cam_id", self.cam_id.clone()).unwrap();
-                self.send_state();
-            }
             MinionAction::Tracking(value) => {
                 if !self.sending {
                     self.sending = true;
@@ -100,13 +85,10 @@ pub enum Msg {
 }
 
 pub enum MinionAction {
-    LeftCamChange(String),
-    RightCamChange(String),
     Tracking(Tracking),
 }
 
 #[derive(Debug, PartialEq, Eq, Clone, Default)]
 pub struct MinionState {
-    pub cam_id: (String, String),
     pub devices: Vec<MediaDeviceInfo>,
 }

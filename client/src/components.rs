@@ -1,6 +1,7 @@
 use gloo_storage::{LocalStorage, Storage};
+use wasm_bindgen::JsCast;
 use wasm_bindgen_futures::spawn_local;
-use web_sys::MediaStream;
+use web_sys::{HtmlInputElement, MediaStream};
 use yew::prelude::*;
 
 use crate::services::{media, server, webrtc};
@@ -69,4 +70,36 @@ pub fn minion_stream(props: &StreamProps) -> Html {
     };
 
     html! {<button disabled={*started} {onclick}>{"Minion start sending."}</button>}
+}
+
+#[function_component(MediaSelect)]
+pub fn media_select() -> Html {
+    let cam_id: (String, String) = LocalStorage::get("minion_cam_id").unwrap_or_default();
+
+    let left_id_change = Callback::from(|e: Event| {
+        let mut cam_id: (String, String) = LocalStorage::get("minion_cam_id").unwrap_or_default();
+        cam_id.0 = e
+            .target()
+            .expect("Event should have a target when dispatched")
+            .unchecked_into::<HtmlInputElement>()
+            .value();
+        LocalStorage::set("minion_cam_id", cam_id).unwrap();
+    });
+
+    let right_id_change = Callback::from(|e: Event| {
+        let mut cam_id: (String, String) = LocalStorage::get("minion_cam_id").unwrap_or_default();
+        cam_id.1 = e
+            .target()
+            .expect("Event should have a target when dispatched")
+            .unchecked_into::<HtmlInputElement>()
+            .value();
+        LocalStorage::set("minion_cam_id", cam_id).unwrap();
+    });
+
+    html! {
+        <p>
+            {"Left Camera ID:"} <input size={64} value={cam_id.0.clone()} onchange={left_id_change} /><br/>
+            {"Right Camera ID:"} <input size={64} value={cam_id.1.clone()} onchange={right_id_change} />
+        </p>
+    }
 }
