@@ -1,13 +1,11 @@
-mod minion;
 mod robot;
 
-pub use self::minion::Minion;
 pub use self::robot::Robot;
 
 use web_sys::MediaStream;
 use yew::prelude::*;
 
-use crate::components::{DeviceList, GenPin, HeadsetStream, MediaSelect, MinionStream};
+use crate::components::{DeviceList, GenPin, HeadsetStream, MediaSelect, MinionStream, Viewport};
 
 #[derive(PartialEq, Eq, Properties)]
 pub struct Props {}
@@ -55,12 +53,7 @@ impl Component for Robotic {
                     <li>{"When you see the video click the ENTER VR button at the bottom of the viewport"}</li>
                 </ol>
 
-                {
-                    match &self.streams {
-                        Some(streams) => html!(<Minion left={streams.0.clone()} right={streams.1.clone()}/>),
-                        None =>  html!(<Minion/>)
-                    }
-                }
+                <Viewport streams={self.streams.clone()}/>
 
                 <h2 onclick={link.callback(|_| Msg::ToggleAdvanced)}>{"Advanced and minion settings."}</h2>
 

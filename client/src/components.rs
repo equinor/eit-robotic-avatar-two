@@ -1,10 +1,13 @@
 use gloo_storage::{LocalStorage, Storage};
-use wasm_bindgen::JsCast;
+use wasm_bindgen::{
+    prelude::{wasm_bindgen, Closure},
+    JsCast, JsValue,
+};
 use wasm_bindgen_futures::spawn_local;
-use web_sys::{HtmlInputElement, MediaStream};
+use web_sys::{HtmlCanvasElement, HtmlInputElement, HtmlVideoElement, MediaStream};
 use yew::prelude::*;
 
-use crate::services::{media, server, webrtc};
+use crate::services::{media, server, tracking::Track, webrtc};
 
 #[function_component(GenPin)]
 pub fn gen_pin() -> Html {
@@ -127,4 +130,63 @@ pub fn device_list() -> Html {
             {for devices}
         </ul>
     }
+}
+
+#[derive(PartialEq, Eq, Properties, Clone)]
+pub struct ViewportProps {
+    pub streams: Option<(MediaStream, MediaStream)>,
+}
+
+#[function_component(Viewport)]
+pub fn viewport(props: &ViewportProps) -> Html {
+    let streams = match &props.streams {
+        Some(s) => (Some(s.0.clone()), Some(s.1.clone())),
+        None => (None, None),
+    };
+
+    let track = use_ref(Track::default);
+    let canvas_ref = use_node_ref();
+    let left_ref = use_node_ref();
+    let right_ref = use_node_ref();
+    let first_render = use_mut_ref(|| true);
+
+    {
+        let canvas_ref = canvas_ref.clone();
+        let left_ref = left_ref.clone();
+        let right_ref = right_ref.clone();
+        use_effect(move || {
+            let left = left_ref.cast().unwrap();
+            let right = right_ref.cast().unwrap();
+
+            if *first_render.borrow() {
+                *first_render.borrow_mut() = false;
+                let track = track.clone();
+                let closure = Closure::new(move |value| track.send(value));
+                setup_3d(canvas_ref.cast().unwrap(), &left, &right, &closure);
+                closure.forget();
+            }
+
+            left.set_src_object(streams.0.as_ref());
+            right.set_src_object(streams.1.as_ref());
+            || ()
+        });
+    }
+
+    html! {
+        <div class={"viewport"}>
+            <canvas ref={canvas_ref} />
+            <video autoplay={true} ref={left_ref} />
+            <video autoplay={true} ref={right_ref} />
+        </div>
+    }
+}
+
+#[wasm_bindgen(raw_module = "/js/viewport.mjs")]
+extern "C" {
+    fn setup_3d(
+        canvas: HtmlCanvasElement,
+        left: &HtmlVideoElement,
+        right: &HtmlVideoElement,
+        onTrack: &Closure<dyn FnMut(JsValue)>,
+    );
 }
