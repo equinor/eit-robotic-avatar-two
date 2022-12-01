@@ -14,7 +14,7 @@ pub struct Track {
 
 impl Track {
     pub fn send(&self, tracking: JsValue) {
-        if !*self.sending.borrow() {
+        if *self.sending.borrow() {
             return;
         }
 
