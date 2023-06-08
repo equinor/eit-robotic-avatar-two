@@ -46,5 +46,5 @@ impl Component for App {
 }
 
 fn main() {
-    yew::start_app::<App>();
+    yew::Renderer::<App>::new().render();
 }

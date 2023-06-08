@@ -1,6 +1,5 @@
 use axum::{
     body::{boxed, Full},
-    handler::Handler,
     http::{header, StatusCode, Uri},
     response::{IntoResponse, Response},
     routing::{get, Router},
@@ -10,7 +9,7 @@ use rust_embed::RustEmbed;
 pub fn routes(api: Router) -> Router {
     api.route("/", get(index_handler))
         .route("/index.html", get(index_handler))
-        .fallback(static_handler.into_service())
+        .fallback(static_handler)
 }
 
 async fn index_handler() -> impl IntoResponse {
