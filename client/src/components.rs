@@ -146,7 +146,7 @@ pub fn viewport(props: &ViewportProps) -> Html {
         None => (None, None),
     };
 
-    let track = use_ref(Track::default);
+    let track = use_memo(|_| Track::default(), ());
     let canvas_ref = use_node_ref();
     let left_ref = use_node_ref();
     let right_ref = use_node_ref();
