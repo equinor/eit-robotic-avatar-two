@@ -1,3 +1,4 @@
+#[cfg(feature = "python")]
 mod arm;
 mod config;
 mod drive;
@@ -5,8 +6,6 @@ mod server;
 mod tracking;
 
 use std::time::Duration;
-
-use arm::{arm_run, arm_start};
 
 use config::Config;
 use drive::{drive_run, drive_start};
@@ -37,10 +36,13 @@ async fn start() {
         });
     }
 
-    let arm = arm_start();
-    task::spawn_blocking(move || loop {
-        let head = { tracking.borrow().head };
-        //println!("Head: {:?}", head);
-        arm_run(&arm, head);
-    });
+    #[cfg(feature = "python")]
+    {
+        let arm = arm::arm_start();
+        task::spawn_blocking(move || loop {
+            let head = { tracking.borrow().head };
+            //println!("Head: {:?}", head);
+            arm::arm_run(&arm, head);
+        });
+    }
 }
