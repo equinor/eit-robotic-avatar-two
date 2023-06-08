@@ -15,8 +15,8 @@ jobs:
     - name: Check format
       run: cargo fmt --check --verbose
     - name: Check compile errors
-      run: cargo check --verbose
+      run: cargo check --verbose --all-features
     - name: Run lints
-      run: cargo clippy --verbose
+      run: cargo clippy --verbose --all-features
     - name: Run tests
-      run: cargo test --verbose
+      run: cargo test --verbose --all-features
