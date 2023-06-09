@@ -8,16 +8,30 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build:
+  format:
+    name: Check format
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
-    - uses: Swatinem/rust-cache@v2
     - name: Check format
       run: cargo fmt --check --verbose
+  check:
+    name: Check compile errors
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
     - name: Check compile errors
       run: cargo check --verbose --all-features
+  lint:
+    name: Run lints
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
     - name: Run lints
       run: cargo clippy --verbose --all-features
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
     - name: Run tests
       run: cargo test --verbose --all-features
