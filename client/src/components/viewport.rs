@@ -6,7 +6,7 @@ use wasm_bindgen::{
 use web_sys::{HtmlCanvasElement, HtmlVideoElement, MediaStream};
 use yew::prelude::*;
 
-use crate::services::tracking::Track;
+use crate::{headset, services::tracking::Track};
 
 #[derive(PartialEq, Eq, Properties, Clone)]
 pub struct ViewportProps {
@@ -15,10 +15,8 @@ pub struct ViewportProps {
 
 #[function_component(Viewport)]
 pub fn viewport(props: &ViewportProps) -> Html {
-    let streams = match &props.streams {
-        Some(s) => (Some(s.0.clone()), Some(s.1.clone())),
-        None => (None, None),
-    };
+    let headset = use_mut_ref(|| headset::Wrapper::new());
+    headset.borrow_mut().set_streams(&props.streams);
 
     let track = use_memo(|_| Track::default(), ());
     let canvas_ref = use_node_ref();
@@ -42,8 +40,8 @@ pub fn viewport(props: &ViewportProps) -> Html {
                 closure.forget();
             }
 
-            left.set_src_object(streams.0.as_ref());
-            right.set_src_object(streams.1.as_ref());
+            left.set_src_object(headset.borrow().left_viewport());
+            right.set_src_object(headset.borrow().right_viewport());
             || ()
         });
     }

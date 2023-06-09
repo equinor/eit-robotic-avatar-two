@@ -1,5 +1,6 @@
 mod auth;
 mod components;
+mod headset;
 mod login;
 mod robotic;
 mod services;
