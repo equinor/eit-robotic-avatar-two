@@ -6,7 +6,7 @@ use wasm_bindgen::{
 use web_sys::{HtmlCanvasElement, HtmlVideoElement, MediaStream};
 use yew::prelude::*;
 
-use crate::{services::tracking::Track, headset};
+use crate::{headset, services::tracking::Track};
 
 #[derive(PartialEq, Eq, Properties, Clone)]
 pub struct ViewportProps {

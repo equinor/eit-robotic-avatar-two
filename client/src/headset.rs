@@ -1,12 +1,12 @@
 use web_sys::MediaStream;
 
 pub struct Wrapper {
-    streams: Option<(MediaStream, MediaStream)>
+    streams: Option<(MediaStream, MediaStream)>,
 }
 
 impl Wrapper {
     pub fn new() -> Wrapper {
-        Wrapper {streams: None}
+        Wrapper { streams: None }
     }
 
     pub fn set_streams(&mut self, streams: &Option<(MediaStream, MediaStream)>) {
