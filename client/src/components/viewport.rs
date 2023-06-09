@@ -1,3 +1,5 @@
+use std::rc::Rc;
+
 use wasm_bindgen::{
     prelude::{wasm_bindgen, Closure},
     JsValue,
@@ -13,45 +15,60 @@ pub struct ViewportProps {
     pub streams: Option<(MediaStream, MediaStream)>,
 }
 
-#[function_component(Viewport)]
-pub fn viewport(props: &ViewportProps) -> Html {
-    let headset = use_mut_ref(|| headset::Wrapper::new());
-    headset.borrow_mut().set_streams(&props.streams);
+pub struct Viewport {
+    headset: headset::Wrapper,
+    canvas_ref: NodeRef,
+    left_ref: NodeRef,
+    right_ref: NodeRef,
+    track: Rc<Track>,
+}
 
-    let track = use_memo(|_| Track::default(), ());
-    let canvas_ref = use_node_ref();
-    let left_ref = use_node_ref();
-    let right_ref = use_node_ref();
-    let first_render = use_mut_ref(|| true);
+impl Component for Viewport {
+    type Message = ();
 
-    {
-        let canvas_ref = canvas_ref.clone();
-        let left_ref = left_ref.clone();
-        let right_ref = right_ref.clone();
-        use_effect(move || {
-            let left = left_ref.cast().unwrap();
-            let right = right_ref.cast().unwrap();
+    type Properties = ViewportProps;
 
-            if *first_render.borrow() {
-                *first_render.borrow_mut() = false;
-                let track = track.clone();
-                let closure = Closure::new(move |value| track.send(value));
-                setup_3d(canvas_ref.cast().unwrap(), &left, &right, &closure);
-                closure.forget();
-            }
+    fn create(ctx: &Context<Self>) -> Self {
+        let mut headset = headset::Wrapper::new();
+        headset.set_streams(&ctx.props().streams);
 
-            left.set_src_object(headset.borrow().left_viewport());
-            right.set_src_object(headset.borrow().right_viewport());
-            || ()
-        });
+        Viewport {
+            headset,
+            canvas_ref: NodeRef::default(),
+            left_ref: NodeRef::default(),
+            right_ref: NodeRef::default(),
+            track: Rc::new(Track::default()),
+        }
     }
 
-    html! {
-        <div class={"viewport"}>
-            <canvas ref={canvas_ref} />
-            <video autoplay={true} ref={left_ref} />
-            <video autoplay={true} ref={right_ref} />
-        </div>
+    fn view(&self, _ctx: &Context<Self>) -> Html {
+        html! {
+            <div class={"viewport"}>
+                <canvas ref={self.canvas_ref.clone()} />
+                <video autoplay={true} ref={self.left_ref.clone()} />
+                <video autoplay={true} ref={self.right_ref.clone()} />
+            </div>
+        }
+    }
+
+    fn changed(&mut self, ctx: &Context<Self>, _old_props: &Self::Properties) -> bool {
+        self.headset.set_streams(&ctx.props().streams);
+        true
+    }
+
+    fn rendered(&mut self, _ctx: &Context<Self>, first_render: bool) {
+        let left = self.left_ref.cast().unwrap();
+        let right = self.right_ref.cast().unwrap();
+
+        if first_render {
+            let track = self.track.clone();
+            let closure = Closure::new(move |value| track.send(value));
+            setup_3d(self.canvas_ref.cast().unwrap(), &left, &right, &closure);
+            closure.forget();
+        }
+
+        left.set_src_object(self.headset.left_viewport());
+        right.set_src_object(self.headset.right_viewport());
     }
 }
 
