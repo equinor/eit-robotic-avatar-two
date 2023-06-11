@@ -2,8 +2,8 @@ mod viewport;
 
 pub use viewport::*;
 
-use wasm_bindgen::JsCast;
-use web_sys::MediaStream;
+use wasm_bindgen::{prelude::*, JsCast};
+use web_sys::{HtmlCanvasElement, HtmlVideoElement, MediaStream};
 
 pub struct Wrapper {
     left: MediaStream,
@@ -42,4 +42,23 @@ impl Wrapper {
     pub fn right_viewport(&self) -> Option<&MediaStream> {
         Some(&self.right)
     }
+}
+
+fn headset(
+    canvas: &HtmlCanvasElement,
+    left: &HtmlVideoElement,
+    right: &HtmlVideoElement,
+    on_track: &Closure<dyn FnMut(JsValue)>,
+) {
+    setup_3d(canvas, left, right, on_track)
+}
+
+#[wasm_bindgen(raw_module = "/js/viewport.mjs")]
+extern "C" {
+    fn setup_3d(
+        canvas: &HtmlCanvasElement,
+        left: &HtmlVideoElement,
+        right: &HtmlVideoElement,
+        onTrack: &Closure<dyn FnMut(JsValue)>,
+    );
 }
