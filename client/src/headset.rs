@@ -1,7 +1,3 @@
-mod viewport;
-
-pub use viewport::*;
-
 use wasm_bindgen::{prelude::*, JsCast};
 use web_sys::{window, HtmlCanvasElement, HtmlElement, HtmlVideoElement, MediaStream};
 
@@ -46,7 +42,7 @@ impl Wrapper {
     }
 }
 
-fn headset(root: &HtmlElement, wrapper: &Wrapper) {
+pub fn headset(root: &HtmlElement, wrapper: &Wrapper) {
     root.set_class_name("viewport");
 
     let document = window().unwrap().document().unwrap();
