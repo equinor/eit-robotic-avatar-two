@@ -12,9 +12,7 @@ pub struct ViewportProps {
 
 pub struct Viewport {
     headset: headset::Wrapper,
-    canvas_ref: NodeRef,
-    left_ref: NodeRef,
-    right_ref: NodeRef,
+    root_ref: NodeRef,
 }
 
 impl Component for Viewport {
@@ -28,18 +26,13 @@ impl Component for Viewport {
 
         Viewport {
             headset,
-            canvas_ref: NodeRef::default(),
-            left_ref: NodeRef::default(),
-            right_ref: NodeRef::default(),
+            root_ref: NodeRef::default(),
         }
     }
 
     fn view(&self, _ctx: &Context<Self>) -> Html {
         html! {
-            <div class={"viewport"}>
-                <canvas ref={self.canvas_ref.clone()} />
-                <video autoplay={true} ref={self.left_ref.clone()} />
-                <video autoplay={true} ref={self.right_ref.clone()} />
+            <div ref={self.root_ref.clone()}>
             </div>
         }
     }
@@ -51,14 +44,8 @@ impl Component for Viewport {
 
     fn rendered(&mut self, _ctx: &Context<Self>, first_render: bool) {
         if first_render {
-            let canvas = self.canvas_ref.cast().unwrap();
-            let left = self.left_ref.cast().unwrap();
-            let right = self.right_ref.cast().unwrap();
-
-            headset(&canvas, &left, &right);
-
-            left.set_src_object(self.headset.left_viewport());
-            right.set_src_object(self.headset.right_viewport());
+            let root = self.root_ref.cast().unwrap();
+            headset(&root, &self.headset);
         }
     }
 }

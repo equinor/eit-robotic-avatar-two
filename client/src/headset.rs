@@ -3,7 +3,7 @@ mod viewport;
 pub use viewport::*;
 
 use wasm_bindgen::{prelude::*, JsCast};
-use web_sys::{HtmlCanvasElement, HtmlVideoElement, MediaStream};
+use web_sys::{window, HtmlCanvasElement, HtmlElement, HtmlVideoElement, MediaStream};
 
 use crate::services::tracking::Track;
 
@@ -46,10 +46,38 @@ impl Wrapper {
     }
 }
 
-fn headset(canvas: &HtmlCanvasElement, left: &HtmlVideoElement, right: &HtmlVideoElement) {
+fn headset(root: &HtmlElement, wrapper: &Wrapper) {
+    root.set_class_name("viewport");
+
+    let document = window().unwrap().document().unwrap();
+    let canvas: HtmlCanvasElement = document
+        .create_element("canvas")
+        .unwrap()
+        .dyn_into()
+        .unwrap();
+    root.append_child(&canvas).unwrap();
+
+    let left: HtmlVideoElement = document
+        .create_element("video")
+        .unwrap()
+        .dyn_into()
+        .unwrap();
+    left.set_autoplay(true);
+    left.set_src_object(wrapper.left_viewport());
+    root.append_child(&left).unwrap();
+
+    let right: HtmlVideoElement = document
+        .create_element("video")
+        .unwrap()
+        .dyn_into()
+        .unwrap();
+    right.set_autoplay(true);
+    right.set_src_object(wrapper.right_viewport());
+    root.append_child(&right).unwrap();
+
     let track = Track::default();
     let closure = Closure::new(move |value| track.send(value));
-    setup_3d(canvas, left, right, &closure);
+    setup_3d(&canvas, &left, &right, &closure);
     closure.forget();
 }
 
