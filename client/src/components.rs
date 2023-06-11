@@ -1,7 +1,3 @@
-mod viewport;
-
-pub use viewport::*;
-
 use common::{Interface, RobotStatus};
 use gloo_storage::{LocalStorage, Storage};
 use time::{ext::NumericalDuration, OffsetDateTime};

@@ -1,8 +1,11 @@
 use web_sys::MediaStream;
 use yew::prelude::*;
 
-use crate::components::{
-    DeviceList, GenPin, GenToken, HeadsetStream, MediaSelect, MinionStatus, MinionStream, Viewport,
+use crate::{
+    components::{
+        DeviceList, GenPin, GenToken, HeadsetStream, MediaSelect, MinionStatus, MinionStream,
+    },
+    headset::Viewport,
 };
 
 #[derive(PartialEq, Eq, Properties)]
