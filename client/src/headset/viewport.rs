@@ -1,11 +1,7 @@
-use std::rc::Rc;
-
-use wasm_bindgen::prelude::*;
-
 use web_sys::MediaStream;
 use yew::prelude::*;
 
-use crate::{headset, services::tracking::Track};
+use crate::headset;
 
 use super::headset;
 
@@ -19,7 +15,6 @@ pub struct Viewport {
     canvas_ref: NodeRef,
     left_ref: NodeRef,
     right_ref: NodeRef,
-    track: Rc<Track>,
 }
 
 impl Component for Viewport {
@@ -36,7 +31,6 @@ impl Component for Viewport {
             canvas_ref: NodeRef::default(),
             left_ref: NodeRef::default(),
             right_ref: NodeRef::default(),
-            track: Rc::new(Track::default()),
         }
     }
 
@@ -61,10 +55,7 @@ impl Component for Viewport {
             let left = self.left_ref.cast().unwrap();
             let right = self.right_ref.cast().unwrap();
 
-            let track = self.track.clone();
-            let closure = Closure::new(move |value| track.send(value));
-            headset(&canvas, &left, &right, &closure);
-            closure.forget();
+            headset(&canvas, &left, &right);
 
             left.set_src_object(self.headset.left_viewport());
             right.set_src_object(self.headset.right_viewport());

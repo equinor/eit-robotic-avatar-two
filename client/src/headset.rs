@@ -5,6 +5,8 @@ pub use viewport::*;
 use wasm_bindgen::{prelude::*, JsCast};
 use web_sys::{HtmlCanvasElement, HtmlVideoElement, MediaStream};
 
+use crate::services::tracking::Track;
+
 pub struct Wrapper {
     left: MediaStream,
     right: MediaStream,
@@ -44,13 +46,11 @@ impl Wrapper {
     }
 }
 
-fn headset(
-    canvas: &HtmlCanvasElement,
-    left: &HtmlVideoElement,
-    right: &HtmlVideoElement,
-    on_track: &Closure<dyn FnMut(JsValue)>,
-) {
-    setup_3d(canvas, left, right, on_track)
+fn headset(canvas: &HtmlCanvasElement, left: &HtmlVideoElement, right: &HtmlVideoElement) {
+    let track = Track::default();
+    let closure = Closure::new(move |value| track.send(value));
+    setup_3d(canvas, left, right, &closure);
+    closure.forget();
 }
 
 #[wasm_bindgen(raw_module = "/js/viewport.mjs")]
