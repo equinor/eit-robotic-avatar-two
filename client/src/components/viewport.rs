@@ -53,22 +53,22 @@ impl Component for Viewport {
 
     fn changed(&mut self, ctx: &Context<Self>, _old_props: &Self::Properties) -> bool {
         self.headset.set_streams(&ctx.props().streams);
-        true
+        false
     }
 
     fn rendered(&mut self, _ctx: &Context<Self>, first_render: bool) {
-        let left = self.left_ref.cast().unwrap();
-        let right = self.right_ref.cast().unwrap();
-
         if first_render {
+            let left = self.left_ref.cast().unwrap();
+            let right = self.right_ref.cast().unwrap();
+
             let track = self.track.clone();
             let closure = Closure::new(move |value| track.send(value));
             setup_3d(self.canvas_ref.cast().unwrap(), &left, &right, &closure);
             closure.forget();
-        }
 
-        left.set_src_object(self.headset.left_viewport());
-        right.set_src_object(self.headset.right_viewport());
+            left.set_src_object(self.headset.left_viewport());
+            right.set_src_object(self.headset.right_viewport());
+        }
     }
 }
 
