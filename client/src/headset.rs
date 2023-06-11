@@ -1,3 +1,7 @@
+mod viewport;
+
+pub use viewport::*;
+
 use wasm_bindgen::JsCast;
 use web_sys::MediaStream;
 
