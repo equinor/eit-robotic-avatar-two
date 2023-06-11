@@ -1,14 +1,13 @@
 use std::rc::Rc;
 
-use wasm_bindgen::{
-    prelude::{wasm_bindgen, Closure},
-    JsValue,
-};
+use wasm_bindgen::prelude::*;
 
-use web_sys::{HtmlCanvasElement, HtmlVideoElement, MediaStream};
+use web_sys::MediaStream;
 use yew::prelude::*;
 
 use crate::{headset, services::tracking::Track};
+
+use super::headset;
 
 #[derive(PartialEq, Eq, Properties, Clone)]
 pub struct ViewportProps {
@@ -58,26 +57,17 @@ impl Component for Viewport {
 
     fn rendered(&mut self, _ctx: &Context<Self>, first_render: bool) {
         if first_render {
+            let canvas = self.canvas_ref.cast().unwrap();
             let left = self.left_ref.cast().unwrap();
             let right = self.right_ref.cast().unwrap();
 
             let track = self.track.clone();
             let closure = Closure::new(move |value| track.send(value));
-            setup_3d(self.canvas_ref.cast().unwrap(), &left, &right, &closure);
+            headset(&canvas, &left, &right, &closure);
             closure.forget();
 
             left.set_src_object(self.headset.left_viewport());
             right.set_src_object(self.headset.right_viewport());
         }
     }
-}
-
-#[wasm_bindgen(raw_module = "/js/viewport.mjs")]
-extern "C" {
-    fn setup_3d(
-        canvas: HtmlCanvasElement,
-        left: &HtmlVideoElement,
-        right: &HtmlVideoElement,
-        onTrack: &Closure<dyn FnMut(JsValue)>,
-    );
 }
