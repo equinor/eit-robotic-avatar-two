@@ -5,7 +5,7 @@ use crate::{
     components::{
         DeviceList, GenPin, GenToken, HeadsetStream, MediaSelect, MinionStatus, MinionStream,
     },
-    headset::Viewport,
+    headset::{headset, Wrapper},
 };
 
 #[derive(PartialEq, Eq, Properties)]
@@ -17,8 +17,9 @@ pub enum Msg {
 }
 
 pub struct Robotic {
-    streams: Option<(MediaStream, MediaStream)>,
     show_advanced: bool,
+    headset: Wrapper,
+    headset_ref: NodeRef,
 }
 
 impl Component for Robotic {
@@ -27,14 +28,15 @@ impl Component for Robotic {
 
     fn create(_ctx: &Context<Self>) -> Self {
         Robotic {
-            streams: None,
             show_advanced: false,
+            headset: Wrapper::new(),
+            headset_ref: NodeRef::default(),
         }
     }
 
     fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
-            Msg::SetStreams(s) => self.streams = Some(s),
+            Msg::SetStreams(s) => self.headset.set_streams(&Some(s)),
             Msg::ToggleAdvanced => self.show_advanced = !self.show_advanced,
         };
         true
@@ -54,7 +56,7 @@ impl Component for Robotic {
                     <li>{"When you see the video click the ENTER VR button at the bottom of the viewport"}</li>
                 </ol>
 
-                <Viewport streams={self.streams.clone()}/>
+                <div ref={self.headset_ref.clone()}/>
 
                 <h2 onclick={link.callback(|_| Msg::ToggleAdvanced)}>{"Advanced and minion settings."}</h2>
 
@@ -67,6 +69,13 @@ impl Component for Robotic {
                     <GenToken/>
                 }
             </div>
+        }
+    }
+
+    fn rendered(&mut self, _ctx: &Context<Self>, first_render: bool) {
+        if first_render {
+            let root = self.headset_ref.cast().unwrap();
+            headset(&root, &self.headset);
         }
     }
 }
