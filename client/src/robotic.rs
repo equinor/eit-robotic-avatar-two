@@ -5,7 +5,7 @@ use crate::{
     components::{
         DeviceList, GenPin, GenToken, HeadsetStream, MediaSelect, MinionStatus, MinionStream,
     },
-    headset::{headset, Wrapper},
+    headset::Headset,
 };
 
 #[derive(PartialEq, Eq, Properties)]
@@ -18,7 +18,7 @@ pub enum Msg {
 
 pub struct Robotic {
     show_advanced: bool,
-    headset: Wrapper,
+    headset: Headset,
     headset_ref: NodeRef,
 }
 
@@ -29,14 +29,14 @@ impl Component for Robotic {
     fn create(_ctx: &Context<Self>) -> Self {
         Robotic {
             show_advanced: false,
-            headset: Wrapper::new(),
+            headset: Headset::new(),
             headset_ref: NodeRef::default(),
         }
     }
 
     fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
-            Msg::SetStreams(s) => self.headset.set_streams(&Some(s)),
+            Msg::SetStreams(s) => self.headset.set_streams(s),
             Msg::ToggleAdvanced => self.show_advanced = !self.show_advanced,
         };
         true
@@ -75,7 +75,7 @@ impl Component for Robotic {
     fn rendered(&mut self, _ctx: &Context<Self>, first_render: bool) {
         if first_render {
             let root = self.headset_ref.cast().unwrap();
-            headset(&root, &self.headset);
+            self.headset.render(&root);
         }
     }
 }
