@@ -1,5 +1,5 @@
 [package]
-name = "common"
+name = "brain"
 version = "0.1.0"
 edition = "2021"
 
@@ -7,5 +7,5 @@ edition = "2021"
 
 [dependencies]
 serde = { version = "1.0.164", features = ["derive"] }
-time = {version = "0.3.22", features = ["serde"]}
-url = { version ="2.4.0", features = ["serde"] }
+time = { version = "0.3.22", features = ["serde"] }
+url = { version = "2.4.0", features = ["serde"] }

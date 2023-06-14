@@ -1,4 +1,4 @@
-use common::{RobotRegister, RobotStatus};
+use brain::{RobotRegister, RobotStatus};
 use parking_lot::Mutex;
 use time::OffsetDateTime;
 

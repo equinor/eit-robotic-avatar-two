@@ -1,6 +1,6 @@
 use std::{cell::RefCell, rc::Rc};
 
-use common::{Drive, Head, Tracking};
+use brain::{Drive, Head, Tracking};
 use js_sys::Reflect;
 use wasm_bindgen::JsValue;
 use wasm_bindgen_futures::spawn_local;

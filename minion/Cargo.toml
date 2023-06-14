@@ -6,15 +6,18 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-common = { path = "../common" }
+brain = { path = "../brain" }
 serde_json = "1.0.96"
 serde = { version = "1.0.164", features = ["derive"] }
 anyhow = "1.0.71"
-pyo3 = {version = "0.19.0", features = ["auto-initialize"], optional = true}
-serialport = { version = "4.2.1", default-features = false}
-tokio = { version = "1.28.2", default-features = false, features = ["signal"]}
+pyo3 = { version = "0.19.0", features = ["auto-initialize"], optional = true }
+serialport = { version = "4.2.1", default-features = false }
+tokio = { version = "1.28.2", default-features = false, features = ["signal"] }
 dotenvy = "0.15.7"
-reqwest = { version = "0.11.18", default-features = false, features = ["json", "rustls-tls"] }
+reqwest = { version = "0.11.18", default-features = false, features = [
+    "json",
+    "rustls-tls",
+] }
 network-interface = "1.0.1"
 
 [features]
