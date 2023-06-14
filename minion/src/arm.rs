@@ -1,4 +1,4 @@
-use common::Head;
+use brain::Head;
 use pyo3::{
     types::{PyDict, PyModule},
     Py, PyAny, PyResult, Python,

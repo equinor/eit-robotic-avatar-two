@@ -1,4 +1,4 @@
-use common::RobotRegister;
+use brain::RobotRegister;
 use reqwest::{header, Client, RequestBuilder, Url};
 
 use crate::config::Config;
@@ -39,7 +39,7 @@ impl Server {
     }
 }
 
-use common::Interface;
+use brain::Interface;
 use network_interface::{NetworkInterface, NetworkInterfaceConfig};
 
 pub fn get_networking_interfaces() -> Vec<Interface> {

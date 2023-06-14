@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use common::{Drive, Head, RtcIce};
+use brain::{Drive, Head, RtcIce};
 use parking_lot::Mutex;
 use time::Instant;
 

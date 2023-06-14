@@ -1,4 +1,4 @@
-use common::{Interface, RobotStatus};
+use brain::{Interface, RobotStatus};
 use gloo_storage::{LocalStorage, Storage};
 use time::{ext::NumericalDuration, OffsetDateTime};
 use wasm_bindgen::JsCast;

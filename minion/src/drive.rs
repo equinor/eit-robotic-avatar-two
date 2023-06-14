@@ -57,7 +57,7 @@ pub fn drive_start() -> Drive {
     Drive::new()
 }
 
-pub fn drive_run(drive: &mut Drive, data: common::Drive) {
+pub fn drive_run(drive: &mut Drive, data: brain::Drive) {
     let y = data.speed;
     let x = data.turn;
 

@@ -1,4 +1,4 @@
-use common::{RtcIce, RtcMessage, RtcSession};
+use brain::{RtcIce, RtcMessage, RtcSession};
 use gloo_console::log;
 use gloo_timers::future::TimeoutFuture;
 use js_sys::Array;

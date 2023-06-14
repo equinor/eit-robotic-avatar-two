@@ -24,10 +24,10 @@ jobs:
         key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
         restore-keys: ${{ runner.os }}-cargo-
     - name: Check format
-      run: cargo fmt --check --verbose
+      run: cargo fmt --check
     - name: Check compile errors
-      run: cargo check --verbose --all-features
+      run: cargo check --all-features
     - name: Run lints
-      run: cargo clippy --verbose --all-features
+      run: cargo clippy --all-features
     - name: Run tests
-      run: cargo test --verbose --all-features
+      run: cargo test --all-features
