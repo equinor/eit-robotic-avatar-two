@@ -11,3 +11,7 @@ pub struct Picture {
     pub timestamp: OffsetDateTime,
     pub image: Arc<RgbImage>,
 }
+
+pub fn null_camera() -> Camera {
+    todo!()
+}

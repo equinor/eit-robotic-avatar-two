@@ -1,5 +1,2 @@
 [workspace]
 members = ["server", "client", "brain", "minion"]
-
-# Deafult build traget.
-default-members = ["server", "minion"]

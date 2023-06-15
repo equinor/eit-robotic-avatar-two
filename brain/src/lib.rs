@@ -1,5 +1,5 @@
 mod camera;
 mod legacy;
 
-pub use camera::{Camera, Picture};
+pub use camera::{null_camera, Camera, Picture};
 pub use legacy::*;
