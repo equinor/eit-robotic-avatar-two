@@ -9,3 +9,5 @@ edition = "2021"
 serde = { version = "1.0.164", features = ["derive"] }
 time = { version = "0.3.22", features = ["serde"] }
 url = { version = "2.4.0", features = ["serde"] }
+tokio = { version = "1.28.2", features = ["sync"] }
+image = { version = "0.24.6", default-features = false}
