@@ -2,10 +2,11 @@ use std::sync::Arc;
 
 use image::RgbImage;
 use time::OffsetDateTime;
-use tokio::sync::watch::Receiver;
+use tokio::sync::watch::{channel, Receiver};
 
-pub type Camera = Receiver<Picture>;
+pub type Camera = Receiver<Option<Picture>>;
 
+#[derive(Debug)]
 pub struct Picture {
     pub seq: u64,
     pub timestamp: OffsetDateTime,
@@ -13,5 +14,21 @@ pub struct Picture {
 }
 
 pub fn null_camera() -> Camera {
-    todo!()
+    let (_send, receive) = channel(None);
+    receive
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn null_camera_return_empty_camera() {
+        let camera = null_camera();
+        assert!(
+            camera.borrow().is_none(),
+            "Expected the value in null_camera to be None but was: {:?}",
+            camera.borrow()
+        );
+    }
 }

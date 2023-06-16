@@ -1,2 +1,4 @@
 [workspace]
 members = ["server", "client", "brain", "minion"]
+
+resolver = "2"
