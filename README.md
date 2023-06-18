@@ -3,6 +3,8 @@
 Robotic Avatar is a study to see if we can use the human mind as part of a robotic control system via VR.  
 The goal is to give a human operator a natural control of a remote robot as if it was his own body.
 
+## [Future vision](./vision.md)
+
 ## Main features and goals
 * Use web technologies to allow peer to peer connection between robots and robot and user. We use web technologies because it works everywhere. (Not Implemented)
 * Allow for remote installation of robots, as the robots may be somewhat remote. (Not Implemented)
