@@ -5,20 +5,18 @@ mod drive;
 mod server;
 mod tracking;
 
-use std::time::Duration;
-
+use avatar::{controller, ControllerInputs, ControllerOutputs};
 use config::Config;
 use drive::{drive_run, drive_start};
 use server::Server;
-use tokio::{runtime::Builder, signal, task};
+use tokio::{signal, task};
 
-fn main() {
-    let runtime = Builder::new_multi_thread().enable_all().build().unwrap();
-
-    runtime.spawn(start());
-
-    runtime.block_on(signal::ctrl_c()).unwrap();
-    runtime.shutdown_timeout(Duration::from_millis(100));
+#[tokio::main]
+async fn main() {
+    tokio::select! {
+        _ = start() => (),
+        _ = signal::ctrl_c() => ()
+    }
 }
 
 async fn start() {
@@ -27,11 +25,15 @@ async fn start() {
 
     let tracking = tracking::tracking(server);
 
+    let ControllerOutputs {
+        drive: drive_receive,
+        arm: arm_receive,
+    } = controller(ControllerInputs { pilot: tracking });
+
     let mut drive = drive_start();
     {
-        let tracking = tracking.clone();
         task::spawn_blocking(move || loop {
-            let drive_tracking = { tracking.borrow().drive };
+            let drive_tracking = { *drive_receive.borrow() };
             drive_run(&mut drive, drive_tracking);
         });
     }
@@ -40,7 +42,7 @@ async fn start() {
     {
         let arm = arm::arm_start();
         task::spawn_blocking(move || loop {
-            let head = { tracking.borrow().head };
+            let head = { *arm_receive.borrow() };
             //println!("Head: {:?}", head);
             arm::arm_run(&arm, head);
         });
