@@ -42,7 +42,7 @@ flowchart
     headset[VR headset]
     pilot[Abstract pilot]
     robot_arm[Robotic Arm]
-    drive[Virtual drive]
+    drive[Abstract drive]
     motors[Motor]
     controller
 
