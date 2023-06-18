@@ -71,6 +71,22 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d468802bab17cbc0cc575e9b053f41e72aa36bfa6b7f55e3529ffa43161b97fa"
 
 [[package]]
+name = "avatar"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "brain",
+ "dotenvy",
+ "network-interface",
+ "pyo3",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "serialport",
+ "tokio",
+]
+
+[[package]]
 name = "axum"
 version = "0.6.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1207,22 +1223,6 @@ checksum = "4192263c238a5f0d0c6bfd21f336a313a4ce1c450542449ca191bb657b4642ef"
 dependencies = [
  "mime",
  "unicase",
-]
-
-[[package]]
-name = "minion"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "brain",
- "dotenvy",
- "network-interface",
- "pyo3",
- "reqwest",
- "serde",
- "serde_json",
- "serialport",
- "tokio",
 ]
 
 [[package]]
