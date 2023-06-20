@@ -1,12 +1,17 @@
-use std::io;
+use std::{
+    io,
+    sync::{Arc, Mutex},
+};
 
+use ractor::{Actor, ActorProcessingErr, ActorRef};
 use serialport::SerialPort;
+use tokio::{sync::watch::Receiver, task};
 
-pub struct Drive {
+struct DriveInner {
     serial: Box<dyn SerialPort>,
 }
 
-impl Drive {
+impl DriveInner {
     fn new() -> Self {
         let serial = serialport::new("/dev/ttyACM0", 115_200)
             .open()
@@ -52,12 +57,12 @@ fn speed_to_bytes(speed: f64) -> [u8; 2] {
     [direction, speed]
 }
 
-pub fn drive_start() -> Drive {
+fn drive_start() -> DriveInner {
     println!("Starting drive");
-    Drive::new()
+    DriveInner::new()
 }
 
-pub fn drive_run(drive: &mut Drive, data: brain::Drive) {
+fn drive_run(drive: &mut DriveInner, data: brain::Drive) {
     let y = data.speed;
     let x = data.turn;
 
@@ -68,4 +73,49 @@ pub fn drive_run(drive: &mut Drive, data: brain::Drive) {
     let right = -(v + w) / 2.0;
 
     drive.set_speed(left, right);
+}
+
+#[derive(Default)]
+struct Drive;
+
+#[async_trait::async_trait]
+impl Actor for Drive {
+    type Msg = brain::Drive;
+    type State = Arc<Mutex<DriveInner>>;
+    type Arguments = ();
+
+    async fn pre_start(
+        &self,
+        _myself: ActorRef<Self::Msg>,
+        _: (),
+    ) -> Result<Self::State, ActorProcessingErr> {
+        let drive = task::spawn_blocking(drive_start).await.unwrap();
+        Ok(Arc::new(Mutex::new(drive)))
+    }
+
+    // This is our main message handler
+    async fn handle(
+        &self,
+        _myself: ActorRef<Self::Msg>,
+        data: Self::Msg,
+        drive: &mut Self::State,
+    ) -> Result<(), ActorProcessingErr> {
+        let drive = drive.clone();
+        task::spawn_blocking(move || {
+            if let Ok(mut drive) = drive.try_lock() {
+                drive_run(&mut drive, data)
+            }
+        });
+        Ok(())
+    }
+}
+
+pub fn register(mut drive_receive: Receiver<brain::Drive>) {
+    task::spawn(async move {
+        let (drive, _) = Drive::spawn(None, Drive, ()).await.unwrap();
+        drive.send_message(*drive_receive.borrow()).unwrap();
+        while let Ok(()) = drive_receive.changed().await {
+            drive.send_message(*drive_receive.borrow()).unwrap();
+        }
+    });
 }

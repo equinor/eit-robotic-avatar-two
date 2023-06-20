@@ -1,13 +1,11 @@
 #[cfg(feature = "python")]
 mod arm;
 mod config;
-mod drive;
 mod server;
 mod tracking;
 
-use avatar::{controller, ControllerInputs, ControllerOutputs};
+use avatar::{arduino, controller, ControllerInputs, ControllerOutputs};
 use config::Config;
-use drive::{drive_run, drive_start};
 use server::Server;
 use tokio::{signal, task};
 
@@ -30,13 +28,7 @@ async fn start() {
         arm: arm_receive,
     } = controller(ControllerInputs { pilot: tracking });
 
-    let mut drive = drive_start();
-    {
-        task::spawn_blocking(move || loop {
-            let drive_tracking = { *drive_receive.borrow() };
-            drive_run(&mut drive, drive_tracking);
-        });
-    }
+    arduino::register(drive_receive);
 
     #[cfg(feature = "python")]
     {
