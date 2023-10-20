@@ -73,20 +73,6 @@ checksum = "d468802bab17cbc0cc575e9b053f41e72aa36bfa6b7f55e3529ffa43161b97fa"
 [[package]]
 name = "avatar"
 version = "0.1.0"
-dependencies = [
- "anyhow",
- "async-trait",
- "brain",
- "dotenvy",
- "network-interface",
- "pyo3",
- "ractor",
- "reqwest",
- "serde",
- "serde_json",
- "serialport",
- "tokio",
-]
 
 [[package]]
 name = "axum"
@@ -1250,6 +1236,24 @@ checksum = "4192263c238a5f0d0c6bfd21f336a313a4ce1c450542449ca191bb657b4642ef"
 dependencies = [
  "mime",
  "unicase",
+]
+
+[[package]]
+name = "minion"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "brain",
+ "dotenvy",
+ "network-interface",
+ "pyo3",
+ "ractor",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "serialport",
+ "tokio",
 ]
 
 [[package]]
