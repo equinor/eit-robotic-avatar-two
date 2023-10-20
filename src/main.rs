@@ -1,38 +1,53 @@
-use std::time::Instant;
+use std::{sync::Arc, thread, time::Instant};
 
-use nokhwa::{utils::{CameraIndex, RequestedFormat, RequestedFormatType}, Buffer, Camera, pixel_format::RgbFormat};
+use nokhwa::{
+    pixel_format::RgbFormat,
+    utils::{CameraIndex, FrameFormat, RequestedFormat, RequestedFormatType, Resolution},
+    Buffer, Camera,
+};
+use tokio::sync::watch;
 
-fn main() {
-    let mut eyes = Eyes::new();
+#[tokio::main(flavor = "current_thread")]
+async fn main() {
+    let mut eyes = eyes();
 
     loop {
         let start = Instant::now();
-        let _a = eyes.a_frame();
-        let a_done = Instant::now();
-        let _b = eyes.b_frame();
-        let b_done = Instant::now();
-
-        println!("FameA: {:?} FrameB: {:?} Total: {:?}", a_done - start, b_done - a_done, b_done - start);
+        eyes.changed().await.unwrap();
+        let _frames = eyes.borrow_and_update().clone();
+        println!("Frame time: {:?}", start.elapsed());
     }
 }
 
-struct Eyes {
-    a: Camera,
-    b: Camera,
-}
+fn eyes() -> watch::Receiver<Arc<(Buffer, Buffer)>> {
+    let null_buffer = Buffer::new(
+        Resolution {
+            width_x: 0,
+            height_y: 0,
+        },
+        &[],
+        FrameFormat::RAWRGB,
+    );
 
-impl Eyes {
-    fn new() -> Eyes {
-        let a = Camera::new(CameraIndex::Index(0), RequestedFormat::new::<RgbFormat>(RequestedFormatType::AbsoluteHighestResolution)).unwrap();
-        let b = Camera::new(CameraIndex::Index(1), RequestedFormat::new::<RgbFormat>(RequestedFormatType::AbsoluteHighestResolution)).unwrap();
-        Eyes { a,b }
-    }
+    let (sender, receiver) = watch::channel(Arc::new((null_buffer.clone(), null_buffer)));
 
-    fn a_frame(&mut self) -> Buffer {
-        self.a.frame().unwrap()
-    }
+    thread::spawn(move || {
+        let mut camera_a = Camera::new(
+            CameraIndex::Index(0),
+            RequestedFormat::new::<RgbFormat>(RequestedFormatType::AbsoluteHighestResolution),
+        )
+        .unwrap();
+        let mut camera_b = Camera::new(
+            CameraIndex::Index(1),
+            RequestedFormat::new::<RgbFormat>(RequestedFormatType::AbsoluteHighestResolution),
+        )
+        .unwrap();
+        loop {
+            let a = camera_a.frame().unwrap();
+            let b = camera_b.frame().unwrap();
+            sender.send(Arc::new((a, b))).unwrap();
+        }
+    });
 
-    fn b_frame(&mut self) -> Buffer {    
-        self.b.frame().unwrap()
-    }
+    receiver
 }

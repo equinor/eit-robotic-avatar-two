@@ -101,6 +101,7 @@ name = "avatar"
 version = "0.1.0"
 dependencies = [
  "nokhwa",
+ "tokio",
 ]
 
 [[package]]
