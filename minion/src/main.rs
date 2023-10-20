@@ -2,8 +2,8 @@ mod config;
 mod server;
 mod tracking;
 
-use minion::{arduino, controller, ros, ControllerInputs, ControllerOutputs};
 use config::Config;
+use minion::{arduino, controller, ros, ControllerInputs, ControllerOutputs};
 use server::Server;
 use tokio::signal;
 
