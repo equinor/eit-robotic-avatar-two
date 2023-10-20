@@ -14,3 +14,5 @@ edition = "2021"
 nokhwa = { version = "0.10.4", features = ["input-native"] }
 tokio = { version = "1.0", features = ["rt", "macros", "sync"] }
 axum = { version = "0.6.20", features = ["ws"] }
+serde = { version = "1.0.189", features = ["derive"] }
+rmp-serde = "1.1.2"

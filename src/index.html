@@ -2,7 +2,7 @@
 <html>
 
 <head>
-
+    <script crossorigin src="https://unpkg.com/@msgpack/msgpack"></script>
 </head>
 
 <body>
@@ -11,8 +11,10 @@
     </h1>
     <script type="module">
         let webSocket = new WebSocket("ws://localhost:3000/ws");
-        webSocket.onmessage = (event) => {
-            console.log(event.data);
+        webSocket.onmessage = async (event) => {
+            console.timeEnd("frame");
+            console.time("frame");
+            console.timeLog("frame", await MessagePack.decodeAsync(event.data.stream()));
         }
     </script>
 </body>
