@@ -82,8 +82,6 @@ async fn upgrade(ws: WebSocketUpgrade, sight: Sight) -> Response {
     ws.on_upgrade(|socket| websocket(socket, sight))
 }
 
-
-
 async fn websocket(mut socket: WebSocket, mut sight: Sight) {
     while sight.changed().await.is_ok() {
         let eyes = sight.borrow_and_update().clone();
