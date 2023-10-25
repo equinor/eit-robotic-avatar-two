@@ -14,7 +14,6 @@ use nokhwa::{
     utils::{CameraIndex, FrameFormat, RequestedFormat, RequestedFormatType, Resolution},
     Buffer, Camera,
 };
-use serde::Serialize;
 use tokio::sync::watch;
 
 #[tokio::main(flavor = "current_thread")]
@@ -83,18 +82,17 @@ async fn upgrade(ws: WebSocketUpgrade, sight: Sight) -> Response {
     ws.on_upgrade(|socket| websocket(socket, sight))
 }
 
-#[derive(Serialize)]
-struct SendPacket<'a> {
-    pub eyes: (&'a [u8], &'a [u8]),
-}
+
 
 async fn websocket(mut socket: WebSocket, mut sight: Sight) {
     while sight.changed().await.is_ok() {
         let eyes = sight.borrow_and_update().clone();
-        let packet = SendPacket {
-            eyes: (eyes.0.buffer(), eyes.1.buffer()),
-        };
-        let msg = Message::Binary(rmp_serde::to_vec(&packet).unwrap());
+        let mut packet = Vec::with_capacity(4 + eyes.0.buffer().len() + eyes.1.buffer().len());
+        packet.extend_from_slice(&u32::to_be_bytes(eyes.0.buffer().len().try_into().unwrap()));
+        packet.extend_from_slice(eyes.0.buffer());
+        packet.extend_from_slice(eyes.1.buffer());
+
+        let msg = Message::Binary(packet);
 
         if socket.send(msg).await.is_err() {
             break;
