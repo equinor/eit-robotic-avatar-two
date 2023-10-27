@@ -47,7 +47,7 @@ fn eyes() -> watch::Receiver<Arc<(Buffer, Buffer)>> {
             Camera::new(
                 CameraIndex::Index(0),
                 RequestedFormat::new::<RgbFormat>(RequestedFormatType::Exact(
-                    CameraFormat::new_from(320, 180, FrameFormat::MJPEG, 30),
+                    CameraFormat::new_from(320, 240, FrameFormat::MJPEG, 30),
                 )),
             )
             .unwrap();
@@ -55,7 +55,7 @@ fn eyes() -> watch::Receiver<Arc<(Buffer, Buffer)>> {
             Camera::new(
                 CameraIndex::Index(2),
                 RequestedFormat::new::<RgbFormat>(RequestedFormatType::Exact(
-                    CameraFormat::new_from(320, 180, FrameFormat::MJPEG, 30),
+                    CameraFormat::new_from(320, 240, FrameFormat::MJPEG, 30),
                 )),
             )
             .unwrap();
@@ -96,7 +96,14 @@ async fn upgrade(ws: WebSocketUpgrade, sight: Sight) -> Response {
 }
 
 async fn websocket(mut socket: WebSocket, mut sight: Sight) {
-    while sight.changed().await.is_ok() {
+    loop {
+        let msg = socket.recv().await.unwrap().unwrap();
+        match msg {
+            Message::Text(s) if s == "f" => {}
+            _ => continue,
+        }
+
+        sight.changed().await.unwrap();
         let eyes = sight.borrow_and_update().clone();
         let mut packet = Vec::with_capacity(4 + eyes.0.buffer().len() + eyes.1.buffer().len());
         packet.extend_from_slice(&u32::to_be_bytes(eyes.0.buffer().len().try_into().unwrap()));
@@ -105,8 +112,6 @@ async fn websocket(mut socket: WebSocket, mut sight: Sight) {
 
         let msg = Message::Binary(packet);
 
-        if socket.send(msg).await.is_err() {
-            break;
-        }
+        socket.send(msg).await.unwrap();
     }
 }
