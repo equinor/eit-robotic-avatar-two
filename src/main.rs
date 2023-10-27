@@ -47,7 +47,7 @@ fn eyes() -> watch::Receiver<Arc<(Buffer, Buffer)>> {
             Camera::new(
                 CameraIndex::Index(0),
                 RequestedFormat::new::<RgbFormat>(RequestedFormatType::Exact(
-                    CameraFormat::new_from(1920, 1080, FrameFormat::MJPEG, 30),
+                    CameraFormat::new_from(320, 180, FrameFormat::MJPEG, 30),
                 )),
             )
             .unwrap();
@@ -55,7 +55,7 @@ fn eyes() -> watch::Receiver<Arc<(Buffer, Buffer)>> {
             Camera::new(
                 CameraIndex::Index(2),
                 RequestedFormat::new::<RgbFormat>(RequestedFormatType::Exact(
-                    CameraFormat::new_from(1920, 1080, FrameFormat::MJPEG, 30),
+                    CameraFormat::new_from(320, 180, FrameFormat::MJPEG, 30),
                 )),
             )
             .unwrap();
@@ -98,7 +98,6 @@ async fn upgrade(ws: WebSocketUpgrade, sight: Sight) -> Response {
 async fn websocket(mut socket: WebSocket, mut sight: Sight) {
     while sight.changed().await.is_ok() {
         let eyes = sight.borrow_and_update().clone();
-        println!("{}", eyes.0.source_frame_format());
         let mut packet = Vec::with_capacity(4 + eyes.0.buffer().len() + eyes.1.buffer().len());
         packet.extend_from_slice(&u32::to_be_bytes(eyes.0.buffer().len().try_into().unwrap()));
         packet.extend_from_slice(eyes.0.buffer());
