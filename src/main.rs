@@ -11,13 +11,18 @@ use axum::{
 };
 use nokhwa::{
     pixel_format::RgbFormat,
-    utils::{CameraIndex, FrameFormat, RequestedFormat, RequestedFormatType, Resolution},
+    utils::{
+        ApiBackend, CameraFormat, CameraIndex, FrameFormat, RequestedFormat, RequestedFormatType,
+        Resolution,
+    },
     Buffer, Camera,
 };
 use tokio::sync::watch;
 
 #[tokio::main(flavor = "current_thread")]
 async fn main() {
+    let backends = nokhwa::query(ApiBackend::Auto).unwrap();
+    println!("{backends:?}");
     let eyes = eyes();
 
     transport(eyes).await;
@@ -38,16 +43,24 @@ fn eyes() -> watch::Receiver<Arc<(Buffer, Buffer)>> {
     let (sender, receiver) = watch::channel(Arc::new((null_buffer.clone(), null_buffer)));
 
     thread::spawn(move || {
-        let mut camera_a = Camera::new(
-            CameraIndex::Index(0),
-            RequestedFormat::new::<RgbFormat>(RequestedFormatType::AbsoluteHighestResolution),
-        )
-        .unwrap();
-        let mut camera_b = Camera::new(
-            CameraIndex::Index(1),
-            RequestedFormat::new::<RgbFormat>(RequestedFormatType::AbsoluteHighestResolution),
-        )
-        .unwrap();
+        let mut camera_a =
+            Camera::new(
+                CameraIndex::Index(0),
+                RequestedFormat::new::<RgbFormat>(RequestedFormatType::Exact(
+                    CameraFormat::new_from(1920, 1080, FrameFormat::MJPEG, 30),
+                )),
+            )
+            .unwrap();
+        let mut camera_b =
+            Camera::new(
+                CameraIndex::Index(2),
+                RequestedFormat::new::<RgbFormat>(RequestedFormatType::Exact(
+                    CameraFormat::new_from(1920, 1080, FrameFormat::MJPEG, 30),
+                )),
+            )
+            .unwrap();
+        camera_a.open_stream().unwrap();
+        camera_b.open_stream().unwrap();
         loop {
             let a = camera_a.frame().unwrap();
             let b = camera_b.frame().unwrap();
@@ -85,6 +98,7 @@ async fn upgrade(ws: WebSocketUpgrade, sight: Sight) -> Response {
 async fn websocket(mut socket: WebSocket, mut sight: Sight) {
     while sight.changed().await.is_ok() {
         let eyes = sight.borrow_and_update().clone();
+        println!("{}", eyes.0.source_frame_format());
         let mut packet = Vec::with_capacity(4 + eyes.0.buffer().len() + eyes.1.buffer().len());
         packet.extend_from_slice(&u32::to_be_bytes(eyes.0.buffer().len().try_into().unwrap()));
         packet.extend_from_slice(eyes.0.buffer());
