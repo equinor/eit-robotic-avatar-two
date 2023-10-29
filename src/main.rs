@@ -1,46 +1,26 @@
-use std::{sync::Arc, thread};
+use std::{hint, thread};
 
-use axum::{
-    extract::{
-        ws::{Message, WebSocket},
-        WebSocketUpgrade,
-    },
-    response::{Html, Response},
-    routing::get,
-    Router,
-};
 use nokhwa::{
     pixel_format::RgbFormat,
     utils::{
         ApiBackend, CameraFormat, CameraIndex, FrameFormat, RequestedFormat, RequestedFormatType,
-        Resolution,
     },
-    Buffer, Camera,
+    Camera,
 };
-use tokio::sync::watch;
+use parking_lot::Mutex;
+use tiny_http::{Header, Method, Request, Response, StatusCode};
+use tungstenite::{handshake::derive_accept_key, protocol::Role, Message, WebSocket};
 
-#[tokio::main(flavor = "current_thread")]
-async fn main() {
-    let backends = nokhwa::query(ApiBackend::Auto).unwrap();
-    println!("{backends:?}");
-    let eyes = eyes();
+static SIGHT: Mutex<Option<Vec<u8>>> = Mutex::new(None);
 
-    transport(eyes).await;
+fn main() {
+    eyes();
+    transport();
 }
 
-type Sight = watch::Receiver<Arc<(Buffer, Buffer)>>;
-
-fn eyes() -> watch::Receiver<Arc<(Buffer, Buffer)>> {
-    let null_buffer = Buffer::new(
-        Resolution {
-            width_x: 0,
-            height_y: 0,
-        },
-        &[],
-        FrameFormat::RAWRGB,
-    );
-
-    let (sender, receiver) = watch::channel(Arc::new((null_buffer.clone(), null_buffer)));
+fn eyes() {
+    let backends = nokhwa::query(ApiBackend::Auto).unwrap();
+    println!("{backends:?}");
 
     thread::spawn(move || {
         let mut camera_a =
@@ -62,56 +42,117 @@ fn eyes() -> watch::Receiver<Arc<(Buffer, Buffer)>> {
         camera_a.open_stream().unwrap();
         camera_b.open_stream().unwrap();
         loop {
-            let a = camera_a.frame().unwrap();
-            let b = camera_b.frame().unwrap();
-            sender.send(Arc::new((a, b))).unwrap();
+            let a = camera_a.frame_raw().unwrap();
+            let b = camera_b.frame_raw().unwrap();
+
+            let mut packet = Vec::with_capacity(4 + a.len() + b.len());
+            packet.extend_from_slice(&u32::to_be_bytes(a.len().try_into().unwrap()));
+            packet.extend_from_slice(&a);
+            packet.extend_from_slice(&b);
+
+            *SIGHT.lock() = Some(packet);
         }
     });
-
-    receiver
 }
 
-async fn transport(sight: Sight) {
-    let app = Router::new().route("/", get(index)).route(
-        "/ws",
-        get({
-            let sight_clone = sight.clone();
-            move |ws| upgrade(ws, sight_clone)
-        }),
-    );
+fn transport() {
+    let server = tiny_http::Server::http("0.0.0.0:3000").unwrap();
 
-    // run it with hyper on localhost:3000
-    axum::Server::bind(&"0.0.0.0:3000".parse().unwrap())
-        .serve(app.into_make_service())
-        .await
-        .unwrap();
-}
-
-async fn index() -> Html<&'static str> {
-    Html(include_str!("./index.html"))
-}
-
-async fn upgrade(ws: WebSocketUpgrade, sight: Sight) -> Response {
-    ws.on_upgrade(|socket| websocket(socket, sight))
-}
-
-async fn websocket(mut socket: WebSocket, mut sight: Sight) {
     loop {
-        let msg = socket.recv().await.unwrap().unwrap();
+        let request = match server.recv() {
+            Ok(rq) => rq,
+            Err(e) => {
+                println!("error: {}", e);
+                break;
+            }
+        };
+
+        match (request.method(), request.url()) {
+            (Method::Get, "/") => index(request),
+            (Method::Get, "/ws") => ws_update(request),
+            _ => not_found(request),
+        }
+    }
+}
+
+fn index(req: Request) {
+    let mut res = Response::from_string(include_str!("./index.html"));
+    res.add_header(Header::from_bytes(&b"Content-Type"[..], &b"text/html"[..]).unwrap());
+    req.respond(res).expect("response");
+}
+
+fn ws_update(request: Request) {
+    // checking the "Upgrade" header to check that it is a websocket
+    if request
+        .headers()
+        .iter()
+        .find(|h| h.field.equiv("Upgrade"))
+        .and_then(|hdr| {
+            if hdr.value == "websocket" {
+                Some(hdr)
+            } else {
+                None
+            }
+        })
+        .is_none()
+    {
+        // sending the HTML page
+        not_found(request);
+        return;
+    };
+
+    // getting the value of Sec-WebSocket-Key
+    let key = match request
+        .headers()
+        .iter()
+        .find(|h| h.field.equiv("Sec-WebSocket-Key"))
+        .map(|h| h.value.clone())
+    {
+        None => {
+            let response = tiny_http::Response::new_empty(tiny_http::StatusCode(400));
+            request.respond(response).expect("Responded");
+            return;
+        }
+        Some(k) => k,
+    };
+
+    // building the "101 Switching Protocols" response
+    let response = tiny_http::Response::new_empty(tiny_http::StatusCode(101))
+        .with_header("Upgrade: websocket".parse::<tiny_http::Header>().unwrap())
+        .with_header("Connection: Upgrade".parse::<tiny_http::Header>().unwrap())
+        .with_header(
+            format!(
+                "Sec-WebSocket-Accept: {}",
+                derive_accept_key(key.as_bytes())
+            )
+            .parse::<tiny_http::Header>()
+            .unwrap(),
+        );
+
+    let stream = request.upgrade("websocket", response);
+
+    let mut socket = WebSocket::from_raw_socket(stream, Role::Server, Default::default());
+
+    thread::spawn(move || loop {
+        let msg = socket.read().unwrap();
         match msg {
             Message::Text(s) if s == "f" => {}
             _ => continue,
         }
 
-        sight.changed().await.unwrap();
-        let eyes = sight.borrow_and_update().clone();
-        let mut packet = Vec::with_capacity(4 + eyes.0.buffer().len() + eyes.1.buffer().len());
-        packet.extend_from_slice(&u32::to_be_bytes(eyes.0.buffer().len().try_into().unwrap()));
-        packet.extend_from_slice(eyes.0.buffer());
-        packet.extend_from_slice(eyes.1.buffer());
+        loop {
+            let maybe_buffer = SIGHT.lock().take();
+            if let Some(buffer) = maybe_buffer {
+                let msg = Message::Binary(buffer);
+                socket.send(msg).unwrap();
+                break;
+            }
+            hint::spin_loop();
+        }
+    });
+}
 
-        let msg = Message::Binary(packet);
-
-        socket.send(msg).await.unwrap();
-    }
+fn not_found(req: Request) {
+    req.respond(Response::empty(StatusCode(404)))
+        .expect("response")
 }
