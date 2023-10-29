@@ -1,14 +1,5 @@
-use std::thread;
+use std::{hint, thread};
 
-use axum::{
-    extract::{
-        ws::{Message, WebSocket},
-        WebSocketUpgrade,
-    },
-    response::{Html, Response},
-    routing::get,
-    Router,
-};
 use nokhwa::{
     pixel_format::RgbFormat,
     utils::{
@@ -17,14 +8,14 @@ use nokhwa::{
     Camera,
 };
 use parking_lot::Mutex;
-use tokio::task;
+use tiny_http::{Header, Method, Request, Response, StatusCode};
+use tungstenite::{handshake::derive_accept_key, protocol::Role, Message, WebSocket};
 
 static SIGHT: Mutex<Option<Vec<u8>>> = Mutex::new(None);
 
-#[tokio::main(flavor = "current_thread")]
-async fn main() {
+fn main() {
     eyes();
-    transport().await;
+    transport();
 }
 
 fn eyes() {
@@ -64,29 +55,86 @@ fn eyes() {
     });
 }
 
-async fn transport() {
-    let app = Router::new()
-        .route("/", get(index))
-        .route("/ws", get(upgrade));
+fn transport() {
+    let server = tiny_http::Server::http("0.0.0.0:3000").unwrap();
 
-    // run it with hyper on localhost:3000
-    axum::Server::bind(&"0.0.0.0:3000".parse().unwrap())
-        .serve(app.into_make_service())
-        .await
-        .unwrap();
-}
-
-async fn index() -> Html<&'static str> {
-    Html(include_str!("./index.html"))
-}
-
-async fn upgrade(ws: WebSocketUpgrade) -> Response {
-    ws.on_upgrade(websocket)
-}
-
-async fn websocket(mut socket: WebSocket) {
     loop {
-        let msg = socket.recv().await.unwrap().unwrap();
+        let request = match server.recv() {
+            Ok(rq) => rq,
+            Err(e) => {
+                println!("error: {}", e);
+                break;
+            }
+        };
+
+        match (request.method(), request.url()) {
+            (Method::Get, "/") => index(request),
+            (Method::Get, "/ws") => ws_update(request),
+            _ => not_found(request),
+        }
+    }
+}
+
+fn index(req: Request) {
+    let mut res = Response::from_string(include_str!("./index.html"));
+    res.add_header(Header::from_bytes(&b"Content-Type"[..], &b"text/html"[..]).unwrap());
+    req.respond(res).expect("response");
+}
+
+fn ws_update(request: Request) {
+    // checking the "Upgrade" header to check that it is a websocket
+    if request
+        .headers()
+        .iter()
+        .find(|h| h.field.equiv("Upgrade"))
+        .and_then(|hdr| {
+            if hdr.value == "websocket" {
+                Some(hdr)
+            } else {
+                None
+            }
+        })
+        .is_none()
+    {
+        // sending the HTML page
+        not_found(request);
+        return;
+    };
+
+    // getting the value of Sec-WebSocket-Key
+    let key = match request
+        .headers()
+        .iter()
+        .find(|h| h.field.equiv("Sec-WebSocket-Key"))
+        .map(|h| h.value.clone())
+    {
+        None => {
+            let response = tiny_http::Response::new_empty(tiny_http::StatusCode(400));
+            request.respond(response).expect("Responded");
+            return;
+        }
+        Some(k) => k,
+    };
+
+    // building the "101 Switching Protocols" response
+    let response = tiny_http::Response::new_empty(tiny_http::StatusCode(101))
+        .with_header("Upgrade: websocket".parse::<tiny_http::Header>().unwrap())
+        .with_header("Connection: Upgrade".parse::<tiny_http::Header>().unwrap())
+        .with_header(
+            format!(
+                "Sec-WebSocket-Accept: {}",
+                derive_accept_key(key.as_bytes())
+            )
+            .parse::<tiny_http::Header>()
+            .unwrap(),
+        );
+
+    let stream = request.upgrade("websocket", response);
+
+    let mut socket = WebSocket::from_raw_socket(stream, Role::Server, Default::default());
+
+    thread::spawn(move || loop {
+        let msg = socket.read().unwrap();
         match msg {
             Message::Text(s) if s == "f" => {}
             _ => continue,
@@ -96,10 +144,15 @@ async fn websocket(mut socket: WebSocket) {
             let maybe_buffer = SIGHT.lock().take();
             if let Some(buffer) = maybe_buffer {
                 let msg = Message::Binary(buffer);
-                socket.send(msg).await.unwrap();
+                socket.send(msg).unwrap();
                 break;
             }
-            task::yield_now().await;
+            hint::spin_loop();
         }
-    }
+    });
+}
+
+fn not_found(req: Request) {
+    req.respond(Response::empty(StatusCode(404)))
+        .expect("response")
 }
