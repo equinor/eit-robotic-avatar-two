@@ -1,4 +1,4 @@
-use std::{sync::Arc, thread};
+use std::thread;
 
 use axum::{
     extract::{
@@ -13,34 +13,23 @@ use nokhwa::{
     pixel_format::RgbFormat,
     utils::{
         ApiBackend, CameraFormat, CameraIndex, FrameFormat, RequestedFormat, RequestedFormatType,
-        Resolution,
     },
-    Buffer, Camera,
+    Camera,
 };
-use tokio::sync::watch;
+use parking_lot::Mutex;
+use tokio::task;
+
+static SIGHT: Mutex<Option<Vec<u8>>> = Mutex::new(None);
 
 #[tokio::main(flavor = "current_thread")]
 async fn main() {
-    let backends = nokhwa::query(ApiBackend::Auto).unwrap();
-    println!("{backends:?}");
-    let eyes = eyes();
-
-    transport(eyes).await;
+    eyes();
+    transport().await;
 }
 
-type Sight = watch::Receiver<Arc<(Buffer, Buffer)>>;
-
-fn eyes() -> watch::Receiver<Arc<(Buffer, Buffer)>> {
-    let null_buffer = Buffer::new(
-        Resolution {
-            width_x: 0,
-            height_y: 0,
-        },
-        &[],
-        FrameFormat::RAWRGB,
-    );
-
-    let (sender, receiver) = watch::channel(Arc::new((null_buffer.clone(), null_buffer)));
+fn eyes() {
+    let backends = nokhwa::query(ApiBackend::Auto).unwrap();
+    println!("{backends:?}");
 
     thread::spawn(move || {
         let mut camera_a =
@@ -62,23 +51,23 @@ fn eyes() -> watch::Receiver<Arc<(Buffer, Buffer)>> {
         camera_a.open_stream().unwrap();
         camera_b.open_stream().unwrap();
         loop {
-            let a = camera_a.frame().unwrap();
-            let b = camera_b.frame().unwrap();
-            sender.send(Arc::new((a, b))).unwrap();
+            let a = camera_a.frame_raw().unwrap();
+            let b = camera_b.frame_raw().unwrap();
+
+            let mut packet = Vec::with_capacity(4 + a.len() + b.len());
+            packet.extend_from_slice(&u32::to_be_bytes(a.len().try_into().unwrap()));
+            packet.extend_from_slice(&a);
+            packet.extend_from_slice(&b);
+
+            *SIGHT.lock() = Some(packet);
         }
     });
-
-    receiver
 }
 
-async fn transport(sight: Sight) {
-    let app = Router::new().route("/", get(index)).route(
-        "/ws",
-        get({
-            let sight_clone = sight.clone();
-            move |ws| upgrade(ws, sight_clone)
-        }),
-    );
+async fn transport() {
+    let app = Router::new()
+        .route("/", get(index))
+        .route("/ws", get(upgrade));
 
     // run it with hyper on localhost:3000
     axum::Server::bind(&"0.0.0.0:3000".parse().unwrap())
@@ -91,11 +80,11 @@ async fn index() -> Html<&'static str> {
     Html(include_str!("./index.html"))
 }
 
-async fn upgrade(ws: WebSocketUpgrade, sight: Sight) -> Response {
-    ws.on_upgrade(|socket| websocket(socket, sight))
+async fn upgrade(ws: WebSocketUpgrade) -> Response {
+    ws.on_upgrade(websocket)
 }
 
-async fn websocket(mut socket: WebSocket, mut sight: Sight) {
+async fn websocket(mut socket: WebSocket) {
     loop {
         let msg = socket.recv().await.unwrap().unwrap();
         match msg {
@@ -103,15 +92,14 @@ async fn websocket(mut socket: WebSocket, mut sight: Sight) {
             _ => continue,
         }
 
-        sight.changed().await.unwrap();
-        let eyes = sight.borrow_and_update().clone();
-        let mut packet = Vec::with_capacity(4 + eyes.0.buffer().len() + eyes.1.buffer().len());
-        packet.extend_from_slice(&u32::to_be_bytes(eyes.0.buffer().len().try_into().unwrap()));
-        packet.extend_from_slice(eyes.0.buffer());
-        packet.extend_from_slice(eyes.1.buffer());
-
-        let msg = Message::Binary(packet);
-
-        socket.send(msg).await.unwrap();
+        loop {
+            let maybe_buffer = SIGHT.lock().take();
+            if let Some(buffer) = maybe_buffer {
+                let msg = Message::Binary(buffer);
+                socket.send(msg).await.unwrap();
+                break;
+            }
+            task::yield_now().await;
+        }
     }
 }
