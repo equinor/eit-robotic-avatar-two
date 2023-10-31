@@ -89,7 +89,6 @@ fn javascript(req: Request, body: &str) {
     req.respond(res).expect("response");
 }
 
-
 fn ws_update(request: Request) {
     // checking the "Upgrade" header to check that it is a websocket
     if request

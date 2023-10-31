@@ -1,4 +1,6 @@
-import Viewport from "./viewport";
+import Viewport from "./viewport.js";
+
+let viewport = new Viewport(document.getElementById("eye-1"));
 
 let webSocket = new WebSocket("ws://localhost:3000/ws");
 webSocket.binaryType = "blob";
@@ -15,9 +17,8 @@ webSocket.onmessage = async (event) => {
     let eye0Bitmap = await createImageBitmap(eye0Blob);
     let eye1Bitmap = await createImageBitmap(eye1Blob);
     let eye0context = document.getElementById("eye-0").getContext("2d");
-    let eye1context = document.getElementById("eye-1").getContext("2d");
     eye0context.drawImage(eye0Bitmap, 0, 0)
-    eye1context.drawImage(eye1Bitmap, 0, 0)
+    viewport.update(eye1Bitmap);
     console.timeLog("frame", "Painted eyes");
 }
 
