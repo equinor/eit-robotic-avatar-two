@@ -68,18 +68,27 @@ fn transport() {
         };
 
         match (request.method(), request.url()) {
-            (Method::Get, "/") => index(request),
+            (Method::Get, "/") => html(request, include_str!("./index.html")),
+            (Method::Get, "/app.js") => javascript(request, include_str!("./app.js")),
+            (Method::Get, "/viewport.js") => javascript(request, include_str!("./viewport.js")),
             (Method::Get, "/ws") => ws_update(request),
             _ => not_found(request),
         }
     }
 }
 
-fn index(req: Request) {
-    let mut res = Response::from_string(include_str!("./index.html"));
+fn html(req: Request, body: &str) {
+    let mut res = Response::from_string(body);
     res.add_header(Header::from_bytes(&b"Content-Type"[..], &b"text/html"[..]).unwrap());
     req.respond(res).expect("response");
 }
+
+fn javascript(req: Request, body: &str) {
+    let mut res = Response::from_string(body);
+    res.add_header(Header::from_bytes(&b"Content-Type"[..], &b"text/javascript"[..]).unwrap());
+    req.respond(res).expect("response");
+}
+
 
 fn ws_update(request: Request) {
     // checking the "Upgrade" header to check that it is a websocket
